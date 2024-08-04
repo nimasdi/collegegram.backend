@@ -7,11 +7,11 @@ export interface IUser extends Document {
   username: string;
   password: string;
   email: string;
-  followerCount?: number;
-  followingCount?: number;
-  postCount?: number;
-  private?: boolean;
-  imageUrl?: string;
+  followerCount: number;
+  followingCount: number;
+  postCount: number;
+  private: boolean;
+  imageUrl: string;
   bio?: string;
 }
 
@@ -19,13 +19,11 @@ export interface IUser extends Document {
 const UserSchema: Schema<IUser> = new Schema({
   firstName: {
     type: String,
-    required: true,
     minlength: 3,
     maxlength: 50,
   },
   lastName: {
     type: String,
-    required: true,
     minlength: 3,
     maxlength: 50,
   },
@@ -52,22 +50,27 @@ const UserSchema: Schema<IUser> = new Schema({
   },
   followerCount: {
     type: Number,
+    required: true,
     default: 0,
   },
   followingCount: {
     type: Number,
+    required: true,
     default: 0,
   },
   postCount: {
     type: Number,
+    required: true,
     default: 0,
   },
   private: {
     type: Boolean,
+    required: true,
     default: false,
   },
   imageUrl: {
     type: String,
+    required: true,
   },
   bio: {
     type: String,
