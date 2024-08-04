@@ -7,7 +7,16 @@ export interface createUser {
     email: string;
 }
 
-export interface updateUser extends IUser {}
+export interface updateUser {
+    firstName: string;
+    lastName: string;
+    username: string;
+    password: string;
+    email: string;
+    private: boolean;
+    imageUrl: string;
+    bio?: string;
+}
 
 // interface loginField { username: string, password: string } | { email: string , password: string}
 
