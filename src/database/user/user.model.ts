@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 // Interface for User attributes
-interface IUser extends Document {
+export interface IUser extends Document {
   firstName: string;
   lastName: string;
   username: string;
