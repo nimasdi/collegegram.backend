@@ -18,13 +18,6 @@ export interface updateUser {
     bio?: string;
 }
 
-// interface loginField { username: string, password: string } | { email: string , password: string}
-
-// export interface loginUser {
-    
-   
-// }???
-
 export class UserRepository {
 
     private model: Model<IUser>;
