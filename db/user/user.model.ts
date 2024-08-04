@@ -73,7 +73,7 @@ const UserSchema: Schema<IUser> = new Schema({
     type: String,
   },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
 // User Model
