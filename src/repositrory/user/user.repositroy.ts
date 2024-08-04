@@ -36,6 +36,7 @@ export class UserRepository {
     async updateUser(username: string, updateData: updateUser): Promise<IUser | null> {
         return await this.model.findOneAndUpdate({username}, updateData).exec();
     }
+
 }
 
 
