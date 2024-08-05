@@ -19,6 +19,12 @@ export interface updateUser {
     bio?: string;
 }
 
+export interface loginUser{
+    username: Username;
+    password: Password;
+    email: Email;
+}
+
 export class UserRepository {
 
     private model: Model<IUser>;
@@ -34,6 +40,15 @@ export class UserRepository {
 
     async getUserByUsername(username: Username): Promise<IUser | null> {
         return await this.model.findOne({username}, { _id: 0 , password : 0 }).exec();
+    }
+
+    async getUserPasswordByUsername(username: Username): Promise<loginUser | null> {
+        return await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1}).exec();
+    }
+    
+
+    async getUserPasswordByEmail(email: Email): Promise<loginUser | null> {
+        return await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 }).exec();
     }
 
     async updateUser(username: string, updateData: updateUser): Promise<IUser | null> {
