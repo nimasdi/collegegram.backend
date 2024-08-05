@@ -84,8 +84,14 @@ export class UserRepository {
         return user
     }
 
-    async UpdatePassword(username:Username, password: Password): Promise<IUser | null>{
-        return await this.model.findOneAndUpdate({username}, {password}).exec();
+    async UpdatePassword(username:Username, password: Password): Promise<IUser>{
+        const user = await this.model.findOneAndUpdate({username}, {password}).exec();
+
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
 
 }
