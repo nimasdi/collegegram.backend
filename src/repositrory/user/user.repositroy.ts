@@ -35,28 +35,63 @@ export class UserRepository {
     
     async createUser(userData: createUser): Promise<IUser> {
         const user = new this.model(userData);
-        return await user.save();
+        await user.save();
+
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
 
-    async getUserByUsername(username: Username): Promise<IUser | null> {
-        return await this.model.findOne({username}, { _id: 0 , password : 0 }).exec();
+    async getUserByUsername(username: Username): Promise<IUser> {
+        const user = await this.model.findOne({username}, { _id: 0 , password : 0 }).exec();
+
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
 
-    async getUserPasswordByUsername(username: Username): Promise<loginUser | null> {
-        return await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1}).exec();
+    async getUserPasswordByUsername(username: Username): Promise<loginUser> {
+        const user = await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1}).exec();
+
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
     
+    async getUserPasswordByEmail(email: Email): Promise<loginUser> {
+        const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 }).exec();
 
-    async getUserPasswordByEmail(email: Email): Promise<loginUser | null> {
-        return await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 }).exec();
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
 
-    async updateUser(username: string, updateData: updateUser): Promise<IUser | null> {
-        return await this.model.findOneAndUpdate({username}, updateData).exec();
+    async updateUser(username: string, updateData: updateUser): Promise<IUser> {
+        const user = await this.model.findOneAndUpdate({username}, updateData).exec();
+
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
 
-    async UpdatePassword(username:Username, password: Password): Promise<IUser | null>{
-        return await this.model.findOneAndUpdate({username}, {password}).exec();
+    async UpdatePassword(username:Username, password: Password): Promise<IUser>{
+        const user = await this.model.findOneAndUpdate({username}, {password}).exec();
+
+        if(!user) {
+            throw new Error('user not created')
+        }
+
+        return user
     }
 
 }
