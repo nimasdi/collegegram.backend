@@ -15,31 +15,24 @@ export class UserService {
 
     updatePassword(encodedUsername: string, password: string) {
 
-        try {
-            const username = decodeUsernameWithSalt(encodedUsername);
+        const username = decodeUsernameWithSalt(encodedUsername);
 
-            if (!isUsername(username)) {
-                throw new Error("invalid username")
-            }
-            if (!isPassword(password)) {
-                throw new Error("invalid password")
-            }
-
-            const hashedPassword = md5(password) as Password;
-
-            const user = this.userRepo.UpdatePassword(username, hashedPassword)
-
-            return {
-                success: true,
-                message: "Password has been updated"
-            }
-
+        if (!isUsername(username)) {
+            throw new Error("invalid username")
         }
-        catch (err) { 
-            return {success: false, message: "user doesnt exist"}
+        if (!isPassword(password)) {
+            throw new Error("invalid password")
         }
+
+        const hashedPassword = md5(password) as Password;
+
+        const user = this.userRepo.UpdatePassword(username, hashedPassword)
+
+        return true;
 
     }
 
-
 }
+
+
+
