@@ -55,6 +55,10 @@ export class UserRepository {
         return await this.model.findOneAndUpdate({username}, updateData).exec();
     }
 
+    async UpdatePassword(username:Username, password: Password): Promise<IUser | null>{
+        return await this.model.findOneAndUpdate({username}, {password}).exec();
+    }
+
 }
 
 
