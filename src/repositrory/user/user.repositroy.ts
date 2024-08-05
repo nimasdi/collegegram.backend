@@ -33,7 +33,7 @@ export class UserRepository {
     }
 
     async getUserByUsername(username: string): Promise<IUser | null> {
-        return await this.model.findOne({username}).exec();
+        return await this.model.findOne({username}, { _id: 0 }).exec();
     }
 
     async updateUser(username: string, updateData: updateUser): Promise<IUser | null> {
