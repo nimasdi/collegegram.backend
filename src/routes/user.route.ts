@@ -9,7 +9,7 @@ const userRoutes = Router()
 const userRepo = new UserRepository(User)
 const userServive = new UserService(userRepo)
 
-userRoutes.post("/create",async (req,res,next) => {
+userRoutes.post("/signup",async (req,res,next) => {
     try {
         const user: createUser = createUserDto.parse(req)
         const userCreated = await userServive.createUser(user)
