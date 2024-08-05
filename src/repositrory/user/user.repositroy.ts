@@ -32,7 +32,7 @@ export class UserRepository {
         return await user.save();
     }
 
-    async getUserByUsername(username: string): Promise<IUser | null> {
+    async getUserByUsername(username: Username): Promise<IUser | null> {
         return await this.model.findOne({username}, { _id: 0 }).exec();
     }
 
