@@ -10,17 +10,7 @@ export class UserService {
     }
 
     async createUser(userData : createUser): Promise<Boolean> {
-      try {
-        const user =  await this.userRepository.createUser(userData);
-        if(!!user){
-            return true
-        }else{
-            return false
-        }
-      } catch (error) {
-        if(error instanceof Error){
-          throw new Error(`Error creating form: ${error.message}`);
-        }
-      }
+      const user = await this.userRepository.createUser(userData);
+      return true
     }
 }
