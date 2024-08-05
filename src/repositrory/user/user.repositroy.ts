@@ -1,6 +1,6 @@
 import { Model } from "mongoose";
 import { IUser } from "../../../db/user/user.model";
-
+ 
 export interface createUser {
     username: string;
     password: string;
