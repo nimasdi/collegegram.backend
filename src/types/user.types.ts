@@ -11,6 +11,11 @@ export type Username = Brand<string, 'Username'>;
 export const isUsername = (x: string): x is Username =>
     x.length > 8 && x.length < 50 
 
+// type for password
+export type Password = Brand<string, 'Password'>;
+export const isPassword = (x: string): x is Password =>
+    x.length > 8 && x.length < 50 
+
 // type for email
 export type Email = Brand<string, 'Email'>;
 export const isEmail = (x: string): x is Email =>

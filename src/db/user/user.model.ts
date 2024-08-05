@@ -1,12 +1,13 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import { Email, Name, Password, Username } from '../../types/user.types';
 
 // Interface for User attributes
 export interface IUser extends Document {
-  firstName: string;
-  lastName: string;
-  username: string;
-  password: string;
-  email: string;
+  firstName: Name;
+  lastName: Name;
+  username: Username;
+  password: Password;
+  email: Email;
   followerCount: number;
   followingCount: number;
   postCount: number;

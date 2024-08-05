@@ -1,18 +1,19 @@
 import { Model } from "mongoose";
 import { IUser } from "../../db/user/user.model";
+import { Email, Name, Password, Username } from "../../types/user.types";
  
 export interface createUser {
-    username: string;
-    password: string;
-    email: string;
+    username: Username;
+    password: Password;
+    email: Email;
 }
 
 export interface updateUser {
-    firstName: string;
-    lastName: string;
-    username: string;
-    password: string;
-    email: string;
+    firstName: Name;
+    lastName: Name;
+    username: Username;
+    password: Password;
+    email: Email;
     private: boolean;
     imageUrl: string;
     bio?: string;
