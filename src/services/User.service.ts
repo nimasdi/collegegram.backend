@@ -1,0 +1,45 @@
+import { UserRepository } from "../repositrory/user/user.repositroy";
+import { isName, isPassword, isUsername, Password } from "../types/user.types";
+import { md5 } from 'js-md5';
+import { decodeUsernameWithSalt } from "../utility/decode";
+
+
+export class UserService {
+
+    constructor(
+        private userRepo: UserRepository
+    ) {
+    }
+
+
+
+    updatePassword(encodedUsername: string, password: string) {
+
+        try {
+            const username = decodeUsernameWithSalt(encodedUsername);
+
+            if (!isUsername(username)) {
+                throw new Error("invalid username")
+            }
+            if (!isPassword(password)) {
+                throw new Error("invalid password")
+            }
+
+            const hashedPassword = md5(password) as Password;
+
+            const user = this.userRepo.UpdatePassword(username, hashedPassword)
+
+            return {
+                success: true,
+                message: "Password has been updated"
+            }
+
+        }
+        catch (err) { 
+            return {success: false, message: "user doesnt exist"}
+        }
+
+    }
+
+
+}
