@@ -2,6 +2,7 @@ import { Router } from "express";
 import { UserService } from "../services/user/user.service";
 import { UserRepository, createUser } from "../repositrory/user/user.repositroy";
 import { User } from "../db/user/user.model";
+import { createUserDto } from "../dto/user.dto";
 
 const userRoutes = Router()
 
@@ -16,6 +17,6 @@ userRoutes.post("/create",async (req,res,next) => {
             res.status(200).json({"message" : "ثبت نام با موفقیت انجام شد."})
         }
     } catch (error) {
-        
+        res.status(400).json({"message":"bad !"})
     }
 })
