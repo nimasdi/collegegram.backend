@@ -12,7 +12,6 @@ export class UserService {
     }
 
 
-
     async updatePassword(encodedUsername: string, password: string) {
 
         const username = decodeUsernameWithSalt(encodedUsername);
