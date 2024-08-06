@@ -1,6 +1,6 @@
 import { md5 } from "js-md5";
 import { IUser, User } from "../db/user/user.model";
-import { loginUser, UserRepository } from "../repositrory/user/user.repositroy";
+import { createUser, loginUser, UserRepository } from "../repositrory/user/user.repositroy";
 import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
@@ -27,6 +27,11 @@ export class UserService {
     constructor(
         private userRepo: UserRepository
     ) {
+    }
+
+    async createUser(userData : createUser): Promise<Boolean> {
+        const user = await this.userRepo.createUser(userData);
+        return true
     }
 
     async LoginUser(usernameOrEmail: UsernameOrEmail, password: Password, rememberMe: boolean): Promise<string | null> {
