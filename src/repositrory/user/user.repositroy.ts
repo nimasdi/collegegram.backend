@@ -25,7 +25,6 @@ export interface loginUser{
     email: Email;
 }
 
-<<<<<<< HEAD
 
 export interface loginUserResponse{
     username: Username;
@@ -46,11 +45,6 @@ export interface dataUserResponse{
 
 
 
-=======
-type MongoDoc<T> = (Document<unknown, {}, T> & T & Required<{
-    _id: unknown;
-}>);
->>>>>>> 0b0d1a0f0c0c92645bbdf5cea8eedbfaec735076
 
 export class UserRepository {
 
@@ -94,26 +88,15 @@ export class UserRepository {
         return true
     }
 
-<<<<<<< HEAD
     async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model.findOne({username}, { _id: 0 , password : 0 })
         .exec().catch((err) => this.handleDBError());
-=======
-    
-    async getUserByUsername(username: Username): Promise<MongoDoc<IUser>> {
-        const user = await this.model.findOne({username}, { _id: 0 , password : 0 }).exec();
->>>>>>> 0b0d1a0f0c0c92645bbdf5cea8eedbfaec735076
 
         if(user){
             return this.generateDataUserResponse(user)
         }
 
-<<<<<<< HEAD
         return null
-=======
-        // const a = user.()
-        return user
->>>>>>> 0b0d1a0f0c0c92645bbdf5cea8eedbfaec735076
     }
 
     async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
