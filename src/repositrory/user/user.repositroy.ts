@@ -25,21 +25,14 @@ export interface loginUser{
     email: Email;
 }
 
-type MongoDoc<T> = (Document<unknown, {}, T> & T & Required<{
-    _id: unknown;
-}>);
 
-const handleDBError = () => {
-    throw new Error("خطای شبکه رخ داده است.")
-}
- 
-export interface createUser {
+export interface loginUserResponse{
     username: Username;
     password: Password;
     email: Email;
 }
 
-export interface updateUser {
+export interface dataUserResponse{
     firstName: Name;
     lastName: Name;
     username: Username;
@@ -50,11 +43,33 @@ export interface updateUser {
     bio?: string;
 }
 
-export interface loginUser{
-    username: Username;
-    password: Password;
-    email: Email;
+const handleDBError = () => {
+    throw new Error("خطای شبکه رخ داده است.")
 }
+
+const generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
+    let userResponse : dataUserResponse = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
+        password: user.password,
+        email: user.email,
+        private: user.private,
+        imageUrl: user.imageUrl,
+        bio: user.bio,
+    }
+    return userResponse
+}
+
+const generateLoginUserResponse: (user: IUser) => loginUserResponse = (user) => {
+    let userResponse : loginUserResponse = {
+        username: user.username,
+        password: user.password,
+        email: user.email,
+    }
+    return userResponse
+}
+
 
 export class UserRepository {
 
@@ -71,39 +86,59 @@ export class UserRepository {
         return true
     }
 
-    async getUserByUsername(username: Username): Promise<MongoDoc<IUser> | null> {
+    async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model.findOne({username}, { _id: 0 , password : 0 })
         .exec().catch((err) => handleDBError());
 
-        return user
+        if(user){
+            return generateDataUserResponse(user)
+        }
+
+        return null
     }
 
-    async getUserPasswordByUsername(username: Username): Promise<MongoDoc<IUser> | null> {
+    async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1})
         .exec().catch((err) => handleDBError());;
 
-        return user
+        if(user){
+            return generateLoginUserResponse(user)
+        }
+
+        return null
     }
     
-    async getUserPasswordByEmail(email: Email): Promise<MongoDoc<IUser> | null> {
+    async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 })
         .exec().catch((err) => handleDBError());;
 
-        return user
+        if(user){
+            return generateLoginUserResponse(user)
+        }
+
+        return null
     }
 
-    async updateUser(username: string, updateData: updateUser): Promise<MongoDoc<IUser> | null> {
+    async updateUser(username: string, updateData: updateUser): Promise<dataUserResponse | null> {
         const user = await this.model.findOneAndUpdate({username}, updateData)
         .exec().catch((err) => handleDBError());;
 
-        return user
+        if(user){
+            return generateDataUserResponse(user)
+        }
+
+        return null
     }
 
-    async UpdatePassword(username:Username, password: Password): Promise<MongoDoc<IUser> | null>{
+    async UpdatePassword(username:Username, password: Password): Promise<loginUserResponse | null>{
         const user = await this.model.findOneAndUpdate({username}, {password})
         .exec().catch((err) => handleDBError());;
 
-        return user
+        if(user){
+            return generateLoginUserResponse(user)
+        }
+
+        return null
     }
 
 }
