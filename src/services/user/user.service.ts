@@ -9,8 +9,7 @@ export class UserService {
       this.userRepository = userRepository;
     }
 
-    async createUser(userData : createUser): Promise<Boolean> {
-      const user = await this.userRepository.createUser(userData);
-      return true
+    async createUser(userData : createUser): Promise<void> {
+      await this.userRepository.createUser(userData);
     }
 }

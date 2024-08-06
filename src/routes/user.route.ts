@@ -12,10 +12,8 @@ const userServive = new UserService(userRepo)
 userRoutes.post("/signup",async (req,res,next) => {
     try {
         const user: createUser = createUserDto.parse(req)
-        const userCreated = await userServive.createUser(user)
-        if(userCreated){
-            res.status(200).json({"message" : "ثبت نام با موفقیت انجام شد."})
-        }
+        await userServive.createUser(user)
+        res.status(200).json({"success":true , message: "ثبت نام با موفقیت انجام شد."})
     } catch (error) {
         res.status(400).json({"message":"bad !"})
     }
