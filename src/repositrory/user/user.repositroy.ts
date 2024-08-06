@@ -43,32 +43,7 @@ export interface dataUserResponse{
     bio?: string;
 }
 
-const handleDBError = () => {
-    throw new Error("خطای شبکه رخ داده است.")
-}
 
-const generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
-    let userResponse : dataUserResponse = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        username: user.username,
-        password: user.password,
-        email: user.email,
-        private: user.private,
-        imageUrl: user.imageUrl,
-        bio: user.bio,
-    }
-    return userResponse
-}
-
-const generateLoginUserResponse: (user: IUser) => loginUserResponse = (user) => {
-    let userResponse : loginUserResponse = {
-        username: user.username,
-        password: user.password,
-        email: user.email,
-    }
-    return userResponse
-}
 
 
 export class UserRepository {
@@ -78,20 +53,47 @@ export class UserRepository {
     constructor(model: Model<IUser>) {
       this.model = model;
     }
+
+    private handleDBError = () => {
+        throw new Error("خطای شبکه رخ داده است.")
+    }
+    
+    private generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
+        let userResponse : dataUserResponse = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            password: user.password,
+            email: user.email,
+            private: user.private,
+            imageUrl: user.imageUrl,
+            bio: user.bio,
+        }
+        return userResponse
+    }
+    
+    private generateLoginUserResponse: (user: IUser) => loginUserResponse = (user) => {
+        let userResponse : loginUserResponse = {
+            username: user.username,
+            password: user.password,
+            email: user.email,
+        }
+        return userResponse
+    }
     
     async createUser(userData: createUser): Promise<Boolean> {
         const user = new this.model(userData);
-        await user.save().catch((err) => handleDBError());
+        await user.save().catch((err) => this.handleDBError());
 
         return true
     }
 
     async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model.findOne({username}, { _id: 0 , password : 0 })
-        .exec().catch((err) => handleDBError());
+        .exec().catch((err) => this.handleDBError());
 
         if(user){
-            return generateDataUserResponse(user)
+            return this.generateDataUserResponse(user)
         }
 
         return null
@@ -99,10 +101,10 @@ export class UserRepository {
 
     async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1})
-        .exec().catch((err) => handleDBError());;
+        .exec().catch((err) => this.handleDBError());;
 
         if(user){
-            return generateLoginUserResponse(user)
+            return this.generateLoginUserResponse(user)
         }
 
         return null
@@ -110,10 +112,10 @@ export class UserRepository {
     
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 })
-        .exec().catch((err) => handleDBError());;
+        .exec().catch((err) => this.handleDBError());;
 
         if(user){
-            return generateLoginUserResponse(user)
+            return this.generateLoginUserResponse(user)
         }
 
         return null
@@ -121,10 +123,10 @@ export class UserRepository {
 
     async updateUser(username: string, updateData: updateUser): Promise<dataUserResponse | null> {
         const user = await this.model.findOneAndUpdate({username}, updateData)
-        .exec().catch((err) => handleDBError());;
+        .exec().catch((err) => this.handleDBError());;
 
         if(user){
-            return generateDataUserResponse(user)
+            return this.generateDataUserResponse(user)
         }
 
         return null
@@ -132,10 +134,10 @@ export class UserRepository {
 
     async UpdatePassword(username:Username, password: Password): Promise<loginUserResponse | null>{
         const user = await this.model.findOneAndUpdate({username}, {password})
-        .exec().catch((err) => handleDBError());;
+        .exec().catch((err) => this.handleDBError());;
 
         if(user){
-            return generateLoginUserResponse(user)
+            return this.generateLoginUserResponse(user)
         }
 
         return null
