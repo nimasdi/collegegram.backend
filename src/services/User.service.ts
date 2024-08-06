@@ -13,7 +13,7 @@ export class UserService {
 
 
 
-    updatePassword(encodedUsername: string, password: string) {
+    async updatePassword(encodedUsername: string, password: string) {
 
         const username = decodeUsernameWithSalt(encodedUsername);
 
@@ -26,7 +26,7 @@ export class UserService {
 
         const hashedPassword = md5(password) as Password;
 
-        const user = this.userRepo.UpdatePassword(username, hashedPassword)
+        const user = await this.userRepo.UpdatePassword(username, hashedPassword)
 
         return true;
 
