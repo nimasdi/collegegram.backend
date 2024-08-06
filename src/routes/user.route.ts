@@ -6,6 +6,7 @@ import { createUserDto } from "../dto/user.dto";
 export const UserRoute = (userService: UserService) => {
     const router = Router();
 
+<<<<<<< HEAD
     router.post("/create",async (req,res,next) => {
         try {
             const user: createUser = createUserDto.parse(req)
@@ -71,3 +72,17 @@ export const UserRoute = (userService: UserService) => {
 
     return router;
 };
+=======
+const userRepo = new UserRepository(User)
+const userServive = new UserService(userRepo)
+
+userRoutes.post("/signup",async (req,res,next) => {
+    try {
+        const user: createUser = createUserDto.parse(req)
+        await userServive.createUser(user)
+        res.status(200).json({"success":true , message: "ثبت نام با موفقیت انجام شد."})
+    } catch (error) {
+        res.status(400).json({"message":"bad !"})
+    }
+})
+>>>>>>> a3208ecff33e69e6ef86dfe85437428385bc16af

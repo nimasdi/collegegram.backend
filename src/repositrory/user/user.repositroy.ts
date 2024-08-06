@@ -1,4 +1,4 @@
-import { Model } from "mongoose";
+import { Document, Model } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
  
@@ -25,6 +25,10 @@ export interface loginUser{
     email: Email;
 }
 
+type MongoDoc<T> = (Document<unknown, {}, T> & T & Required<{
+    _id: unknown;
+}>);
+
 export class UserRepository {
 
     private model: Model<IUser>;
@@ -44,13 +48,15 @@ export class UserRepository {
         return user
     }
 
-    async getUserByUsername(username: Username): Promise<IUser> {
+    
+    async getUserByUsername(username: Username): Promise<MongoDoc<IUser>> {
         const user = await this.model.findOne({username}, { _id: 0 , password : 0 }).exec();
 
         if(!user) {
             throw new Error('user not created')
         }
 
+        // const a = user.()
         return user
     }
 
@@ -95,5 +101,4 @@ export class UserRepository {
     }
 
 }
-
 
