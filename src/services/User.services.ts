@@ -25,40 +25,30 @@ if (!JWT_SECRET) {
 
 export class UserService {
     constructor(
-        private userRepo : UserRepository
-    ){
+        private userRepo: UserRepository
+    ) {
     }
 
-    async LoginUser(usernameOrEmail : UsernameOrEmail , password : Password , rememberMe : boolean) : Promise<string | null> {
-        try{
+    async LoginUser(usernameOrEmail: UsernameOrEmail, password: Password, rememberMe: boolean): Promise<string | null> {
 
-            let user: loginUser | null = null;
-            
-            if(isUsername(usernameOrEmail)){
-               user = await this.userRepo.getUserPasswordByUsername(usernameOrEmail);
-            } else if (isEmail(usernameOrEmail)) {
-                user = await this.userRepo.getUserPasswordByEmail(usernameOrEmail);
-            }
 
-            if(user){
-                const hashedPasswordFromClint = md5(password);
-                if(hashedPasswordFromClint === user.password){
-                    if(rememberMe === false){
-                    const token = sign({
-                        username : user.username}  
-                         , JWT_SECRET, { expiresIn: '1d' });
-                    return token;
-                    }else {
-                        const token = sign({
-                            username : user.username}  
-                             , JWT_SECRET, { expiresIn: '30d' });
-                        return token;
-                    }
-                }
+        let user: loginUser | null = null;
+
+        if (isUsername(usernameOrEmail)) {
+            user = await this.userRepo.getUserPasswordByUsername(usernameOrEmail);
+        } else if (isEmail(usernameOrEmail)) {
+            user = await this.userRepo.getUserPasswordByEmail(usernameOrEmail);
+        }
+
+        if (user) {
+            const hashedPasswordFromClient = md5(password);
+            if (hashedPasswordFromClient === user.password) {
+                const expiresIn = rememberMe ? '30d' : '1d';
+                const token = sign({ username: user.username }, JWT_SECRET, { expiresIn });
+                return token;
             }
             return null;
-        }catch(error){
-            throw new Error("invalid username or password");
         }
-    }   
+        return null;
+    }
 }
