@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { UserService } from '../services/User.services';
+import { UserService } from '../services/User.service';
 
 
 export const UserRoute = (userService: UserService) => {
