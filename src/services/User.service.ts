@@ -72,7 +72,6 @@ export class UserService {
         const user = await this.userRepo.UpdatePassword(username, hashedPassword)
 
         return true;
-
     }
 }
 
