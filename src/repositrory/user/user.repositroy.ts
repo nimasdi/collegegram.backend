@@ -110,6 +110,7 @@ export class UserRepository {
         return null
     }
     
+    
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 })
         .exec().catch((err) => this.handleDBError());;
