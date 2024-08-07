@@ -2,11 +2,11 @@ import { Router, Request, Response } from 'express';
 import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
 import { createUserDto } from "../dto/user.dto";
+import { Username } from '../types/user.types';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
 
-<<<<<<< HEAD
     router.post("/create",async (req,res,next) => {
         try {
             const user: createUser = createUserDto.parse(req)
@@ -70,19 +70,20 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
+    router.get('/user/:username' , async(req : Request , res : Response ) => {
+        const username = req.params.username as Username;
+        try {
+            const user = await userService.getUserInformation(username);
+            if (user) {
+                return res.status(200).json({ user });
+            } else {
+                return res.status(404).json({ message: 'User not found.' });
+            }
+        } catch (error) {
+           // console.error("Error fetching user information:", error);
+            return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+        }
+    });
+    
     return router;
 };
-=======
-const userRepo = new UserRepository(User)
-const userServive = new UserService(userRepo)
-
-userRoutes.post("/signup",async (req,res,next) => {
-    try {
-        const user: createUser = createUserDto.parse(req)
-        await userServive.createUser(user)
-        res.status(200).json({"success":true , message: "ثبت نام با موفقیت انجام شد."})
-    } catch (error) {
-        res.status(400).json({"message":"bad !"})
-    }
-})
->>>>>>> a3208ecff33e69e6ef86dfe85437428385bc16af
