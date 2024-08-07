@@ -1,6 +1,6 @@
 import { md5 } from "js-md5";
 import { IUser, User } from "../db/user/user.model";
-import { createUser, loginUser, UserRepository } from "../repositrory/user/user.repositroy";
+import { createUser, loginUser, loginUserResponse, UserRepository } from "../repositrory/user/user.repositroy";
 import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
@@ -72,7 +72,11 @@ export class UserService {
         const user = await this.userRepo.UpdatePassword(username, hashedPassword)
 
         return true;
+    }
 
+    async getUserInformation(username : Username)  : Promise<loginUserResponse | null> {
+        const user = await this.userRepo.getUserByUsername(username);
+        return user;
     }
 }
 
