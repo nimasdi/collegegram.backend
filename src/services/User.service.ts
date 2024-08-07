@@ -5,6 +5,7 @@ import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
 import { decodeUsernameWithSalt } from "../utility/decode";
+import { sendEmail } from "../utility/mailer";
 
 
 type UsernameOrEmail = Username | Email;
@@ -56,6 +57,7 @@ export class UserService {
         }
         return null;
     }
+
     async updatePassword(encodedUsername: string, password: string) {
 
         const username = decodeUsernameWithSalt(encodedUsername);
@@ -73,6 +75,21 @@ export class UserService {
 
         return true;
     }
+
+    async sendEmail(username:Username): Promise<Boolean> {
+        const user = await this.userRepo.getUserByUsername(username)
+
+        if(!user){
+            return false
+        }
+
+        const encodedUsername = decodeUsernameWithSalt(username);
+        const resetPassLink = `https://url/setPassword/${encodedUsername}`
+    
+        // Send a welcome email after successful registration
+        await sendEmail(user.email, 'Reset Password', 'reset yout password', `<h1>${resetPassLink}</h1>`);
+        return true
+    };
 
     async getUserInformation(username : Username)  : Promise<loginUserResponse | null> {
         const user = await this.userRepo.getUserByUsername(username);
