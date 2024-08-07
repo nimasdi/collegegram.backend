@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
 import { createUserDto } from "../dto/user.dto";
+import { Username } from '../types/user.types';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -66,6 +67,21 @@ export const UserRoute = (userService: UserService) => {
 
         } catch (error) {
             return res.status(400).json(error);
+        }
+    });
+
+    router.get('/user/:username' , async(req : Request , res : Response ) => {
+        const username = req.params.username as Username;
+        try {
+
+            const user = await userService.getUserInformation(username);
+            if (user) {
+                return res.status(200).json({ user });
+            } else {
+                return res.status(404).json({ message: 'User not found.' });
+            }
+        } catch (error) {
+            return res.status(500).json({ message: 'Internal server error. Please try again later.' });
         }
     });
 
