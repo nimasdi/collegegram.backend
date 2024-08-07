@@ -25,9 +25,26 @@ export interface loginUser{
     email: Email;
 }
 
-type MongoDoc<T> = (Document<unknown, {}, T> & T & Required<{
-    _id: unknown;
-}>);
+
+export interface loginUserResponse{
+    username: Username;
+    password: Password;
+    email: Email;
+}
+
+export interface dataUserResponse{
+    firstName: Name;
+    lastName: Name;
+    username: Username;
+    password: Password;
+    email: Email;
+    private: boolean;
+    imageUrl: string;
+    bio?: string;
+}
+
+
+
 
 export class UserRepository {
 
@@ -36,68 +53,94 @@ export class UserRepository {
     constructor(model: Model<IUser>) {
       this.model = model;
     }
+
+    private handleDBError = () => {
+        throw new Error("خطای شبکه رخ داده است.")
+    }
     
-    async createUser(userData: createUser): Promise<IUser> {
+    private generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
+        let userResponse : dataUserResponse = {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            username: user.username,
+            password: user.password,
+            email: user.email,
+            private: user.private,
+            imageUrl: user.imageUrl,
+            bio: user.bio,
+        }
+        return userResponse
+    }
+    
+    private generateLoginUserResponse: (user: IUser) => loginUserResponse = (user) => {
+        let userResponse : loginUserResponse = {
+            username: user.username,
+            password: user.password,
+            email: user.email,
+        }
+        return userResponse
+    }
+    
+    async createUser(userData: createUser): Promise<Boolean> {
         const user = new this.model(userData);
-        await user.save();
+        await user.save().catch((err) => this.handleDBError());
 
-        if(!user) {
-            throw new Error('user not created')
-        }
-
-        return user
+        return true
     }
 
-    
-    async getUserByUsername(username: Username): Promise<MongoDoc<IUser>> {
-        const user = await this.model.findOne({username}, { _id: 0 , password : 0 }).exec();
+    async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
+        const user = await this.model.findOne({username}, { _id: 0 , password : 0 })
+        .exec().catch((err) => this.handleDBError());
 
-        if(!user) {
-            throw new Error('user not created')
+        if(user){
+            return this.generateDataUserResponse(user)
         }
 
-        // const a = user.()
-        return user
+        return null
     }
 
-    async getUserPasswordByUsername(username: Username): Promise<loginUser> {
-        const user = await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1}).exec();
+    async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
+        const user = await this.model.findOne({username}, { _id: 0 , password : 1 , username: 1, email : 1})
+        .exec().catch((err) => this.handleDBError());;
 
-        if(!user) {
-            throw new Error('user not created')
+        if(user){
+            return this.generateLoginUserResponse(user)
         }
 
-        return user
+        return null
     }
     
-    async getUserPasswordByEmail(email: Email): Promise<loginUser> {
-        const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 }).exec();
+    async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
+        const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 })
+        .exec().catch((err) => this.handleDBError());;
 
-        if(!user) {
-            throw new Error('user not created')
+        if(user){
+            return this.generateLoginUserResponse(user)
         }
 
-        return user
+        return null
     }
 
-    async updateUser(username: string, updateData: updateUser): Promise<IUser> {
-        const user = await this.model.findOneAndUpdate({username}, updateData).exec();
+    async updateUser(username: string, updateData: updateUser): Promise<dataUserResponse | null> {
+        const user = await this.model.findOneAndUpdate({username}, updateData)
+        .exec().catch((err) => this.handleDBError());;
 
-        if(!user) {
-            throw new Error('user not created')
+        if(user){
+            return this.generateDataUserResponse(user)
         }
 
-        return user
+        return null
     }
 
-    async UpdatePassword(username:Username, password: Password): Promise<IUser>{
-        const user = await this.model.findOneAndUpdate({username}, {password}).exec();
+    async UpdatePassword(username:Username, password: Password): Promise<loginUserResponse | null>{
+        const user = await this.model.findOneAndUpdate({username}, {password})
+        .exec().catch((err) => this.handleDBError());;
 
-        if(!user) {
-            throw new Error('user not created')
+        if(user){
+            return this.generateLoginUserResponse(user)
         }
 
-        return user
+        return null
     }
 
 }
