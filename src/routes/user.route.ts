@@ -3,6 +3,7 @@ import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
 import { createUserDto } from "../dto/user.dto";
 import { Username } from '../types/user.types';
+import authMiddleware from '../utility/authorization';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -70,11 +71,11 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
-    router.get('/user/:username' , async(req : Request , res : Response ) => {
+    router.get('/userInformation/:username' , authMiddleware, async(req : Request , res : Response ) => {
         const username = req.params.username as Username;
         try {
 
-            const user = await userService.getUserInformation(username);
+            const user = await userService.GetUserInformation(username);
             if (user) {
                 return res.status(200).json({ user });
             } else {
@@ -82,6 +83,21 @@ export const UserRoute = (userService: UserService) => {
             }
         } catch (error) {
             return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+        }
+    });
+
+    router.put('/userUpdate/:username', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.params.username as Username;
+            const updatedData = req.body;
+            const updatedUser = await userService.UpdateUserInformation(username, updatedData);
+            if (updatedUser) {
+                res.status(200).json(updatedUser);
+            } else {
+                res.status(404).json({ message: 'User not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
