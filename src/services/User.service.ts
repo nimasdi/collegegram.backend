@@ -3,7 +3,7 @@ import { createUser, dataUserResponse, loginUser, loginUserResponse, updateUser,
 import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
-import { decodeUsernameWithSalt } from "../utility/decode";
+import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
 import { sendEmail } from "../utility/mailer";
 
 
@@ -87,7 +87,7 @@ export class UserService {
             return false
         }
 
-        const encodedIdentifier = decodeUsernameWithSalt(identifier);
+        const encodedIdentifier = encodeIdentifierWithSalt(identifier);
         const resetPassLink = `https://5.34.195.108/setPassword/${encodedIdentifier}`
     
         // Send a welcome email after successful registration
