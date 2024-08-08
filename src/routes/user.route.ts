@@ -70,17 +70,16 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
-    router.post("/resetPassword/:username", async (req: Request, res: Response) => {
+    router.get("/resetPassword/:identifier", async (req: Request, res: Response) => {
+        const { identifier } = req.params;
+
+        if (!(isUsername(identifier) || isEmail(identifier))) {
+            return res.status(400).send({
+                success: false,
+                message: 'نام کاربری  یا ایمیل خود را وارد کنید.'
+            });
+        }
         try {
-            const { identifier } = req.params;
-
-            if (!(isUsername(identifier) || isEmail(identifier))) {
-                return res.status(400).send({
-                    success: false,
-                    message: 'نام کاربری  یا ایمیل خود را وارد کنید.'
-                });
-            }
-
             const sendedEamil = await userService.sendEmail(identifier);
 
             if (sendedEamil) {
