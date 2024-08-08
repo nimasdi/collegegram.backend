@@ -1,6 +1,5 @@
 import { md5 } from "js-md5";
-import { IUser, User } from "../db/user/user.model";
-import { createUser, loginUser, loginUserResponse, UserRepository } from "../repositrory/user/user.repositroy";
+import { createUser, dataUserResponse, loginUser, loginUserResponse, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
 import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
@@ -96,10 +95,17 @@ export class UserService {
         return true
     };
 
-    async getUserInformation(username : Username)  : Promise<loginUserResponse | null> {
+    async GetUserInformation(username : Username)  : Promise<loginUserResponse | null> {
         const user = await this.userRepo.getUserByUsername(username);
         return user;
     }
+
+    async UpdateUserInformation(username : Username , updateData : updateUser) : Promise<dataUserResponse | null>{
+        const  updatedUser   = await this.userRepo.updateUser(username , updateData);
+        return updatedUser;
+    }
+
+
 }
 
 
