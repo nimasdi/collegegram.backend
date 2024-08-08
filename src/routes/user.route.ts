@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
 import { createUserDto } from "../dto/user.dto";
-import { Username } from '../types/user.types';
+import { Username, isEmail, isUsername } from '../types/user.types';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -57,6 +57,36 @@ export const UserRoute = (userService: UserService) => {
                 return res.status(200).send({
                     success: true,
                     message: 'Password updated successfully'
+                });
+            } else {
+                return res.status(400).send({
+                    success: false,
+                    message: 'Failed to update password'
+                });
+            }
+
+        } catch (error) {
+            return res.status(400).json(error);
+        }
+    });
+
+    router.post("/resetPassword/:username", async (req: Request, res: Response) => {
+        try {
+            const { identifier } = req.params;
+
+            if (!(isUsername(identifier) || isEmail(identifier))) {
+                return res.status(400).send({
+                    success: false,
+                    message: 'نام کاربری  یا ایمیل خود را وارد کنید.'
+                });
+            }
+
+            const sendedEamil = await userService.sendEmail(identifier);
+
+            if (sendedEamil) {
+                return res.status(200).send({
+                    success: true,
+                    message: 'ایمیل با موفقیت ارسال شد.'
                 });
             } else {
                 return res.status(400).send({

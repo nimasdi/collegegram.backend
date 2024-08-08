@@ -76,15 +76,20 @@ export class UserService {
         return true;
     }
 
-    async sendEmail(username:Username): Promise<Boolean> {
-        const user = await this.userRepo.getUserByUsername(username)
+    async sendEmail(identifier:Username | Email): Promise<Boolean> {
+        let user : loginUserResponse | null;
+        if(isUsername(identifier)){
+            user = await this.userRepo.getUserByUsername(identifier)
+        }else{
+            user = await this.userRepo.getUserPasswordByEmail(identifier)
+        }
 
         if(!user){
             return false
         }
 
-        const encodedUsername = decodeUsernameWithSalt(username);
-        const resetPassLink = `https://url/setPassword/${encodedUsername}`
+        const encodedIdentifier = decodeUsernameWithSalt(identifier);
+        const resetPassLink = `https://5.34.195.108/setPassword/${encodedIdentifier}`
     
         // Send a welcome email after successful registration
         await sendEmail(user.email, 'Reset Password', 'reset yout password', `<h1>${resetPassLink}</h1>`);
