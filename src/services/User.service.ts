@@ -1,10 +1,10 @@
 import { md5 } from "js-md5";
-import { IUser, User } from "../db/user/user.model";
 import { createUser, dataUserResponse, loginUser, loginUserResponse, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
 import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
-import { decodeUsernameWithSalt } from "../utility/decode";
+import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
+import { sendEmail } from "../utility/mailer";
 
 
 type UsernameOrEmail = Username | Email;
@@ -56,6 +56,7 @@ export class UserService {
         }
         return null;
     }
+
     async updatePassword(encodedUsername: string, password: string) {
 
         const username = decodeUsernameWithSalt(encodedUsername);
@@ -73,6 +74,26 @@ export class UserService {
 
         return true;
     }
+
+    async sendEmail(identifier:Username | Email): Promise<Boolean> {
+        let user : loginUserResponse | null;
+        if(isUsername(identifier)){
+            user = await this.userRepo.getUserByUsername(identifier)
+        }else{
+            user = await this.userRepo.getUserPasswordByEmail(identifier)
+        }
+
+        if(!user){
+            return false
+        }
+
+        const encodedIdentifier = encodeIdentifierWithSalt(identifier);
+        const resetPassLink = `https://5.34.195.108/setPassword/${encodedIdentifier}`
+    
+        // Send a welcome email after successful registration
+        await sendEmail(user.email, 'Reset Password', 'reset yout password', `<h1>${resetPassLink}</h1>`);
+        return true
+    };
 
     async GetUserInformation(username : Username)  : Promise<loginUserResponse | null> {
         const user = await this.userRepo.getUserByUsername(username);
