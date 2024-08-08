@@ -1,6 +1,9 @@
 import express from "express"
 import { UserService } from "./services/User.service";
 import { UserRoute } from "./routes/user.route";
+import swaggerJsDoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import swaggerOptions from '../swaggerOptions';
 
 var cors = require('cors')
 
@@ -17,6 +20,10 @@ export const makeApp = (userService:UserService) => {
 
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
+
+    // Swagger setup
+    const swaggerDocs = swaggerJsDoc(swaggerOptions);
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
     app.use('/' , UserRoute(userService))
 
