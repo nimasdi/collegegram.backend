@@ -8,7 +8,7 @@ export const decodeUsernameWithSalt = (encodedUsername: string): string => {
     return saltedUsername.slice(salt.length);
 }
 
-export const encodeIdentifierWithSalt = (identifier: Username | Email): string => {
+export const encodeIdentifierWithSalt = (identifier: Username): string => {
     const saltedIdentifier = salt + identifier;
     return Buffer.from(saltedIdentifier).toString('base64url');
 }
