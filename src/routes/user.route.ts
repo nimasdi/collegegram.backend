@@ -43,7 +43,7 @@ export const UserRoute = (userService: UserService) => {
      */
     router.post("/signup",async (req,res,next) => {
         try {
-            const user: createUser = createUserDto.parse(req)
+            const user: createUser = createUserDto.parse(req.body)
             const userCreated = await userService.createUser(user)
             if(userCreated){
                 res.status(200).json({"message" : "ثبت نام با موفقیت انجام شد."})
