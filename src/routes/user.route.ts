@@ -250,23 +250,35 @@ export const UserRoute = (userService: UserService) => {
      * /userUpdate/{username}:
      *   put:
      *     summary: Update user information
-     *     description: Update the information for an existing user identified by username.
      *     parameters:
      *       - in: path
      *         name: username
      *         required: true
+     *         description: Username of the user to update
      *         schema:
      *           type: string
      *     requestBody:
+     *       description: User information to update
      *       required: true
      *       content:
      *         application/json:
      *           schema:
      *             type: object
      *             properties:
-     *               name:
+     *               firstName:
+     *                 type: string
+     *               lastName:
+     *                 type: string
+     *               password:
      *                 type: string
      *               email:
+     *                 type: string
+     *               private:
+     *                 type: boolean
+     *               image:
+     *                 type: string
+     *                 description: Base64-encoded image
+     *               bio:
      *                 type: string
      *     responses:
      *       200:
@@ -280,14 +292,17 @@ export const UserRoute = (userService: UserService) => {
         try {
             const username = req.params.username as Username;
             const updatedData = req.body;
-            const updatedUser = await userService.UpdateUserInformation(username, updatedData);
+            const base64Image = req.body.image; 
+
+            const updatedUser = await userService.updateUserInformation(username, updatedData, base64Image);
+
             if (updatedUser) {
                 res.status(200).json(updatedUser);
             } else {
                 res.status(404).json({ message: 'User not found' });
             }
         } catch (error) {
-            res.status(500).json({ message: 'Internal server error' });
+            res.status(500).json({ message: "server error" });
         }
     });
 
