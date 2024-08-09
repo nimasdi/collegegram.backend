@@ -71,7 +71,7 @@ const UserSchema: Schema<IUser> = new Schema({
   },
   imageUrl: {
     type: String,
-    required: true,
+    defualt : ""
   },
   bio: {
     type: String,
