@@ -49,7 +49,7 @@ export const UserRoute = (userService: UserService) => {
                 res.status(200).json({"message" : "ثبت نام با موفقیت انجام شد."})
             }
         } catch (error) {
-            res.status(400).json({"message":"bad !"})
+            res.status(400).json({"message":"bad request!"})
         }
     })
 
