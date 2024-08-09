@@ -30,7 +30,8 @@ export class UserService {
     }
 
     async createUser(userData : createUser): Promise<Boolean> {
-        const user = await this.userRepo.createUser(userData);
+        userData.password =  md5(userData.password) as Password;
+        await this.userRepo.createUser(userData);
         return true
     }
 
