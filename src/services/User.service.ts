@@ -17,7 +17,7 @@ dotenv.config();
 
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; 
 
 
 if (!JWT_SECRET) {
@@ -109,7 +109,14 @@ export class UserService {
         if (!user) {
             throw new Error('User not found');
         }
+        if(base64Image){
+            const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
 
+            if (base64ImageSize > MAX_IMAGE_SIZE) {
+                throw new Error('Image exceeds maximum size of 5MB');
+            }
+        }
+    
         if (base64Image) {
             const imageDir = path.join(__dirname, '..', 'uploads', 'images');
             if (!fs.existsSync(imageDir)) {
