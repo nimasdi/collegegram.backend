@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
 import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
 import { sendEmail } from "../utility/mailer";
+import path from "path";
+import fs from 'fs';
 
 
 type UsernameOrEmail = Username | Email;
@@ -30,7 +32,8 @@ export class UserService {
     }
 
     async createUser(userData : createUser): Promise<Boolean> {
-        const user = await this.userRepo.createUser(userData);
+        userData.password =  md5(userData.password) as Password;
+        await this.userRepo.createUser(userData);
         return true
     }
 
@@ -100,11 +103,33 @@ export class UserService {
         return user;
     }
 
-    async UpdateUserInformation(username : Username , updateData : updateUser) : Promise<dataUserResponse | null>{
-        const  updatedUser   = await this.userRepo.updateUser(username , updateData);
+    async updateUserInformation(username: Username, updatedData: updateUser, base64Image?: string): Promise<updateUser | null> {
+        const user = await this.userRepo.getUserByUsername(username);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        if (base64Image) {
+            const imageDir = path.join(__dirname, '..', 'uploads', 'images');
+            if (!fs.existsSync(imageDir)) {
+                fs.mkdirSync(imageDir, { recursive: true });
+            }
+
+            const filename = `${username}-${Date.now()}.png`;
+            const imagePath = path.join(imageDir, filename);
+
+
+            const imageBuffer = Buffer.from(base64Image, 'base64');
+            fs.writeFileSync(imagePath, imageBuffer);
+
+            updatedData.imageUrl = `/uploads/images/${filename}`;
+        }
+
+        const updatedUser = await this.userRepo.updateUser(username, updatedData);
+
         return updatedUser;
     }
-
 
 }
 
