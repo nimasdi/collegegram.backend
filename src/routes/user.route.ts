@@ -292,7 +292,7 @@ export const UserRoute = (userService: UserService) => {
         try {
             const username = req.params.username as Username;
             const updatedData = req.body;
-            const base64Image = req.body.image; 
+            const base64Image = req.body.imageUrl; 
 
             const updatedUser = await userService.updateUserInformation(username, updatedData, base64Image);
 
