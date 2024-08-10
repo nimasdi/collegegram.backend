@@ -41,15 +41,15 @@ export const UserRoute = (userService: UserService) => {
      *       400:
      *         description: Invalid input data
      */
-    router.post("/signup",async (req,res,next) => {
+    router.post("/signup", async (req, res, next) => {
         try {
             const user: createUser = createUserDto.parse(req.body)
             const userCreated = await userService.createUser(user)
-            if(userCreated){
-                res.status(200).json({"message" : "ثبت نام با موفقیت انجام شد."})
+            if (userCreated) {
+                res.status(200).json({ "message": "ثبت نام با موفقیت انجام شد." })
             }
         } catch (error) {
-            res.status(400).json({"message":"bad !"})
+            res.status(400).json({ "message": "bad !" })
         }
     })
 
@@ -91,6 +91,7 @@ export const UserRoute = (userService: UserService) => {
 
         try {
             const token = await userService.LoginUser(usernameOrEmail, password, rememberMe);
+            console.log(token)
             if (token) {
                 return res.status(200).json({ token });
             } else {
@@ -158,7 +159,10 @@ export const UserRoute = (userService: UserService) => {
             }
 
         } catch (error) {
-            return res.status(500).json(error);
+            if (error instanceof Error) {
+                return res.status(400).send(error.message)
+            }
+            return res.status(500).send(error);
         }
     });
 
@@ -229,7 +233,7 @@ export const UserRoute = (userService: UserService) => {
      *       500:
      *         description: Internal server error
      */
-    router.get('/userInformation/:username' , authMiddleware, async(req : Request , res : Response ) => {
+    router.get('/userInformation/:username', authMiddleware, async (req: Request, res: Response) => {
         const username = req.params.username as Username;
         try {
 

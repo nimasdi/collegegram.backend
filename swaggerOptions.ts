@@ -10,11 +10,12 @@ const swaggerOptions: SwaggerOptions = {
         },
         servers: [
             {
-                url: 'http://localhost:3000',
+                url: 'http://5.34.195.108:3000',
             },
         ],
     },
-    apis: ['./src/routes/*.ts'], 
+    apis: ['./src/routes/*.ts'],
 };
 
 export default swaggerOptions;
+
