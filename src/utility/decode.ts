@@ -1,14 +1,20 @@
-import { sha256 } from "js-sha256";
-import { Email, Username } from "../types/user.types";
+import { Username } from "../types/user.types";
 
-const salt  = sha256("f1nd1ngn3m0");
-
-export const decodeUsernameWithSalt = (encodedUsername: string): string => {
-    const saltedUsername = Buffer.from(encodedUsername, 'base64url').toString();
-    return saltedUsername.slice(salt.length);
-}
+const salt = "static_salt_123";
 
 export const encodeIdentifierWithSalt = (identifier: Username): string => {
     const saltedIdentifier = salt + identifier;
-    return Buffer.from(saltedIdentifier).toString('base64url');
+
+    const encoded = Buffer.from(saltedIdentifier, 'utf-8').toString('base64url');
+
+    return encoded;
+}
+
+export const decodeUsernameWithSalt = (encodedUsername: string): string => {
+    const saltedIdentifier = Buffer.from(encodedUsername, 'base64url').toString('utf-8');
+
+    if (!saltedIdentifier.startsWith(salt)) {
+        throw new Error("Invalid encoded username: Salt mismatch");
+    }
+    return saltedIdentifier.slice(salt.length);
 }
