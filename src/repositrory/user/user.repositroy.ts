@@ -110,7 +110,7 @@ export class UserRepository {
         return null
     }
     
-    async checkUserExist(identifier:Email | Username): Promise<Boolean>{
+    async checkUserExist(identifier:Email | Username) : Promise<Boolean>{
         const user = await this.model.findOne({$or: [
             { username: identifier },
             { email: identifier }
