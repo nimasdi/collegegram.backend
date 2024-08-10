@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
 import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
 import { sendEmail } from "../utility/mailer";
+import path from "path";
+import fs from 'fs';
 
 
 type UsernameOrEmail = Username | Email;
@@ -15,7 +17,7 @@ dotenv.config();
 
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
-
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; 
 
 
 if (!JWT_SECRET) {
@@ -101,11 +103,40 @@ export class UserService {
         return user;
     }
 
-    async UpdateUserInformation(username : Username , updateData : updateUser) : Promise<dataUserResponse | null>{
-        const  updatedUser   = await this.userRepo.updateUser(username , updateData);
+    async updateUserInformation(username: Username, updatedData: updateUser, base64Image?: string): Promise<updateUser | null> {
+        const user = await this.userRepo.getUserByUsername(username);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+        if(base64Image){
+            const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
+
+            if (base64ImageSize > MAX_IMAGE_SIZE) {
+                throw new Error('Image exceeds maximum size of 5MB');
+            }
+        }
+    
+        if (base64Image) {
+            const imageDir = path.join(__dirname, '..', 'uploads', 'images');
+            if (!fs.existsSync(imageDir)) {
+                fs.mkdirSync(imageDir, { recursive: true });
+            }
+
+            const filename = `${username}-${Date.now()}.png`;
+            const imagePath = path.join(imageDir, filename);
+
+
+            const imageBuffer = Buffer.from(base64Image, 'base64');
+            fs.writeFileSync(imagePath, imageBuffer);
+
+            updatedData.imageUrl = `/uploads/images/${filename}`;
+        }
+
+        const updatedUser = await this.userRepo.updateUser(username, updatedData);
+
         return updatedUser;
     }
-
 
 }
 
