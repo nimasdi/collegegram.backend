@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
-import { createUserDto } from "../dto/user.dto";
+import { createUserDto } from "../dto/createUser.dto";
 import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
 import { ZodError } from 'zod';
@@ -48,6 +48,8 @@ export const UserRoute = (userService: UserService) => {
             const userCreated = await userService.createUser(user)
             if (userCreated) {
                 res.status(200).json({ "message": "ثبت نام با موفقیت انجام شد." })
+            }else{
+                res.status(400).json({ message: "user exist." })
             }
         } catch (error) {
             if(error instanceof ZodError){
@@ -189,8 +191,8 @@ export const UserRoute = (userService: UserService) => {
      *       400:
      *         description: Invalid identifier provided
      */
-    router.get("/resetPassword/:identifier", async (req: Request, res: Response) => {
-        const { identifier } = req.params;
+    router.post("/resetPassword", async (req: Request, res: Response) => {
+        const { identifier } = req.body;
 
         if (!(isUsername(identifier) || isEmail(identifier))) {
             return res.status(400).send({

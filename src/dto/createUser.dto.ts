@@ -1,16 +1,17 @@
 import { z } from "zod";
 import { zodEmail, zodPassword, zodUsername } from "../types/user.types";
 
-const checkRequired = (data: any,fieldName:string) => {
-    if (data[fieldName] === "undefined") {
-        return false;
-    }
-    return true;
+export const checkRequired = (data: any,fieldName:string) => {
+  if (data[fieldName] === "undefined") {
+      return false;
+  }
+  return true;
 }
+
 
 export const createUserDto = z.object({
     username : zodUsername,
-    password : zodPassword,
+    password: zodPassword,
     email: zodEmail
 })
 .refine(data => checkRequired(data,"email"), {

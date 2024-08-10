@@ -110,7 +110,20 @@ export class UserRepository {
         return null
     }
     
-    
+    async checkUserExist(identifier:Email | Username): Promise<Boolean>{
+        const user = await this.model.findOne({$or: [
+            { username: identifier },
+            { email: identifier }
+        ]}, { _id: 0 , password : 1 , username: 1, email : 1})
+        .exec().catch((err) => this.handleDBError());;
+
+        if(user){
+            return true
+        }
+
+        return false
+    }
+
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({email}, { _id: 0 , password : 1 , username: 1, email : 1 })
         .exec().catch((err) => this.handleDBError());;
