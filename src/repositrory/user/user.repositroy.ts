@@ -115,7 +115,7 @@ export class UserRepository {
             { username: identifier },
             { email: identifier }
         ]}, { _id: 0 , password : 1 , username: 1, email : 1})
-        .exec().catch((err) => this.handleDBError());;
+        .exec().catch((err) => this.handleDBError());
 
         if(user){
             return true
