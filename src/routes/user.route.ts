@@ -52,7 +52,6 @@ export const UserRoute = (userService: UserService) => {
                 res.status(400).json({ message: "user exist." })
             }
         } catch (error) {
-            console.log(error)
             if(error instanceof ZodError){
                 const errorsMessage = error.errors.reduce((prev,e) => {return {...prev,[e.path[0]]:e.message}},{})
                 return res.status(400).json(errorsMessage)
@@ -177,15 +176,20 @@ export const UserRoute = (userService: UserService) => {
     /**
      * @swagger
      * /resetPassword/{identifier}:
-     *   get:
+     *   post:
      *     summary: Reset user password
      *     description: Sends an email to reset the password for the user identified by username or email.
-     *     parameters:
-     *       - in: path
-     *         name: identifier
-     *         required: true
-     *         schema:
-     *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - identifier
+     *             properties:
+     *               identifier:
+     *                 type: string
      *     responses:
      *       200:
      *         description: Email sent successfully
