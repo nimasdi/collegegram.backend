@@ -1,9 +1,10 @@
 import { Router, Request, Response } from 'express';
 import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
-import { createUserDto } from "../dto/user.dto";
+import { createUserDto } from "../dto/createUser.dto";
 import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
+import { ZodError } from 'zod';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -47,9 +48,15 @@ export const UserRoute = (userService: UserService) => {
             const userCreated = await userService.createUser(user)
             if (userCreated) {
                 res.status(200).json({ "message": "ثبت نام با موفقیت انجام شد." })
+            }else{
+                res.status(400).json({ message: "user exist." })
             }
         } catch (error) {
-            res.status(400).json({ "message": "bad request!" })
+            if(error instanceof ZodError){
+                const errorsMessage = error.errors.reduce((prev,e) => {return {...prev,[e.path[0]]:e.message}},{})
+                return res.status(400).json(errorsMessage)
+            }
+            return res.status(500).json({message:"server error"})
         }
     })
 
@@ -169,23 +176,28 @@ export const UserRoute = (userService: UserService) => {
     /**
      * @swagger
      * /resetPassword/{identifier}:
-     *   get:
+     *   post:
      *     summary: Reset user password
      *     description: Sends an email to reset the password for the user identified by username or email.
-     *     parameters:
-     *       - in: path
-     *         name: identifier
-     *         required: true
-     *         schema:
-     *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - identifier
+     *             properties:
+     *               identifier:
+     *                 type: string
      *     responses:
      *       200:
      *         description: Email sent successfully
      *       400:
      *         description: Invalid identifier provided
      */
-    router.get("/resetPassword/:identifier", async (req: Request, res: Response) => {
-        const { identifier } = req.params;
+    router.post("/resetPassword", async (req: Request, res: Response) => {
+        const { identifier } = req.body;
 
         if (!(isUsername(identifier) || isEmail(identifier))) {
             return res.status(400).send({
