@@ -227,25 +227,27 @@ export const UserRoute = (userService: UserService) => {
     });
 
     /**
-     * @swagger
-     * /userInformation/{username}:
-     *   get:
-     *     summary: Get user information
-     *     description: Retrieve detailed information for a user by username.
-     *     parameters:
-     *       - in: path
-     *         name: username
-     *         required: true
-     *         schema:
-     *           type: string
-     *     responses:
-     *       200:
-     *         description: User information retrieved successfully
-     *       404:
-     *         description: User not found
-     *       500:
-     *         description: Internal server error
-     */
+    * @swagger
+    * /userInformation/{username}:
+    *   get:
+    *     summary: Get user information
+    *     description: Retrieve detailed information for a user by username.
+    *     parameters:
+    *       - in: path
+    *         name: username
+    *         required: true
+    *         schema:
+    *           type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
     router.get('/userInformation/:username', authMiddleware, async (req: Request, res: Response) => {
         const username = req.params.username as Username;
         try {
@@ -296,6 +298,8 @@ export const UserRoute = (userService: UserService) => {
      *                 description: Base64-encoded image
      *               bio:
      *                 type: string
+     *     security:
+     *        - bearerAuth: []
      *     responses:
      *       200:
      *         description: User information updated successfully
