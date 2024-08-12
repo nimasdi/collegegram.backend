@@ -1,6 +1,7 @@
 import { Document, Model } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
+import { HttpError } from "../../utility/error-handler";
  
 export interface createUser {
     username: Username;
@@ -55,7 +56,7 @@ export class UserRepository {
     }
 
     private handleDBError = () => {
-        throw new Error("خطای شبکه رخ داده است.")
+        throw new HttpError(500,'خطای شبکه رخ داده است.')
     }
     
     private generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
