@@ -33,6 +33,10 @@ export class UserService {
 
     async createUser(userData : createUser): Promise<Boolean> {
         userData.password =  md5(userData.password) as Password;
+        const userExist = await this.userRepo.checkUserExist(userData.email) || await this.userRepo.checkUserExist(userData.username)
+        if(userExist){
+            return false
+        }
         await this.userRepo.createUser(userData);
         return true
     }
