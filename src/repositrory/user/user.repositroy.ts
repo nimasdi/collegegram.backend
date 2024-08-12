@@ -169,7 +169,7 @@ export class UserRepository {
 
     async createPost(username: Username, postData: createPost): Promise<true | null> {
 
-        const user = await this.model.findOneAndUpdate({ username }).exec().catch((err) => {
+        const user = await this.model.findOne({ username }).exec().catch((err) => {
             return null;
         });
     
