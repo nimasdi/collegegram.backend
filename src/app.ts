@@ -4,6 +4,7 @@ import { UserRoute } from "./routes/user.route";
 import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from '../swaggerOptions';
+import path from "path";
 
 var cors = require('cors')
 
@@ -23,6 +24,10 @@ export const makeApp = (userService:UserService) => {
 
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
+
+    //images
+    app.use('/uploads/images', express.static(path.join(__dirname, '..', 'uploads', 'images')));
+
 
     // Swagger setup
     const swaggerDocs = swaggerJsDoc(swaggerOptions);
