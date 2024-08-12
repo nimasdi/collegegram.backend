@@ -99,7 +99,7 @@ export const UserRoute = (userService: UserService) => {
 
         try {
             const token = await userService.LoginUser(usernameOrEmail, password, rememberMe);
-            console.log(token)
+           // console.log(token)
             if (token) {
                 return res.status(200).json({ token });
             } else {
