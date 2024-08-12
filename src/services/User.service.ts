@@ -7,12 +7,12 @@ import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/dec
 import { sendEmail } from "../utility/mailer";
 import path from "path";
 import fs from 'fs';
+import { extractTags } from "../utility/extractTags";
 
 export type userCreatePostData = {
     images: string[],
     caption: string,
-    tags: string[],
-    mentions: Username[],
+    mentionsUsernames: string[],
 }
 
 type UsernameOrEmail = Username | Email;
@@ -148,8 +148,12 @@ export class UserService {
         return updatedUser;
     }
 
-    async createPost(username: Username, postData: userCreatePostData) {
+    async createPost(username: string, postData: userCreatePostData) {
 
+        if(!isUsername(username)) {
+            throw new Error("invalid username")
+        }
+        
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
@@ -183,9 +187,35 @@ export class UserService {
 
             postData.images = imagePaths;
         }
+        else {
+            throw new Error("You havent uploaded any images");
+        }
 
-        const postDataWithDate = { createdAt: new Date(), ...postData };
-        
+        const mentions: Username[] = [];
+
+        if (postData.mentionsUsernames && postData.mentionsUsernames.length > 0) {
+
+            for (const mentionedUsername of postData.mentionsUsernames) {
+                if (!isUsername(mentionedUsername)) {
+                    throw new Error(`Invalid username format: ${mentionedUsername}`);
+                }
+
+                // Check if the username exists in the database
+                const mentionedUser = await this.userRepo.getUserByUsername(mentionedUsername);
+                if (!mentionedUser) {
+                    throw new Error(`User not found: ${mentionedUsername}`);
+                }
+
+                mentions.push(mentionedUsername as Username);
+            }
+
+        }
+
+        const tags = extractTags(postData.caption);
+
+        const { mentionsUsernames, ...postDataWithoutDescription } = postData;
+        const postDataWithDate = { mentions, tags, createdAt: new Date(), ...postDataWithoutDescription };
+
         const createdPost = await this.userRepo.createPost(username, postDataWithDate);
 
         return createdPost;
