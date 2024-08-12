@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { Email, Name, Password, Username } from '../../types/user.types';
+import { IPost, postSchema } from '../post/post';
 
 // Interface for User attributes
 export interface IUser extends Document {
@@ -14,7 +15,10 @@ export interface IUser extends Document {
   private: boolean;
   imageUrl: string;
   bio?: string;
+  posts: IPost[];
 }
+
+
 
 // User Schema
 const UserSchema: Schema<IUser> = new Schema({
@@ -70,10 +74,14 @@ const UserSchema: Schema<IUser> = new Schema({
   },
   imageUrl: {
     type: String,
-    defualt : ""
+    defualt: ""
   },
   bio: {
     type: String,
+  },
+  posts: {
+    type: [postSchema],
+    default: []
   },
 }, {
   timestamps: true,

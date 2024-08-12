@@ -326,5 +326,59 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
+    /**
+     * @swagger
+     * /{username}/createPost
+     *   post:
+     *     summary: create post
+     *     description: Create a new post for the user.
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - images
+     *               - mentions
+     *               - description
+     *             properties:
+     *               username:
+     *                 type: string
+     *                 example: johndoe
+     *               email:
+     *                 type: string
+     *                 format: email
+     *                 example: johndoe@example.com
+     *               password:
+     *                 type: string
+     *                 example: strongpassword123
+     *     responses:
+     *       200:
+     *         description: Signup successful
+     *       400:
+     *         description: Invalid input data
+     */
+    router.post("/:username/createPost", async (req, res, next) => {
+        try {
+            const user: createUser = createUserDto.parse(req.body)
+            const userCreated = await userService.createUser(user)
+            if (userCreated) {
+                res.status(200).json({ "message": "ثبت نام با موفقیت انجام شد." })
+            }else{
+                res.status(400).json({ message: "user exist." })
+            }
+        } catch (error) {
+            if(error instanceof ZodError){
+                const errorsMessage = error.errors.reduce((prev,e) => {return {...prev,[e.path[0]]:e.message}},{})
+                return res.status(400).json(errorsMessage)
+            }
+            return res.status(500).json({message:"server error"})
+        }
+    })
+
+
+
+
     return router;
 };
