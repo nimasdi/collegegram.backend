@@ -4,8 +4,6 @@ import { createUser } from "../repositrory/user/user.repositroy";
 import { createUserDto } from "../dto/createUser.dto";
 import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
-import { ZodError } from 'zod';
-import { HttpError } from '../utility/error-handler';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
 
 export const UserRoute = (userService: UserService) => {

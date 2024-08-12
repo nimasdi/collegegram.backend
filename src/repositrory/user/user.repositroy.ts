@@ -1,4 +1,4 @@
-import { Document, Model } from "mongoose";
+import {  Model } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
 import { HttpError } from "../../utility/error-handler";
