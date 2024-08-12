@@ -1,5 +1,5 @@
 import { md5 } from "js-md5";
-import { createPost, createUser, dataUserResponse, loginUser, loginUserResponse, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
+import { createPost, createUser, dataUserResponse, loginUser, loginUserResponse, updatePost, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
 import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
@@ -13,6 +13,12 @@ export type userCreatePostData = {
     images: string[],
     caption: string,
     mentionsUsernames: string[],
+}
+
+export type userUpdatePost = {
+    images: string[],
+    caption: string,
+    mentionsUsernames: string[]
 }
 
 type UsernameOrEmail = Username | Email;
@@ -150,16 +156,17 @@ export class UserService {
 
     async createPost(username: string, postData: userCreatePostData) {
 
-        if(!isUsername(username)) {
+        if (!isUsername(username)) {
             throw new Error("invalid username")
         }
-        
+
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
             throw new Error('User not found');
         }
 
+        // check the images and save them
         if (postData.images && postData.images.length > 0) {
             const imageDir = path.join(__dirname, '..', 'uploads', 'posts');
 
@@ -191,8 +198,9 @@ export class UserService {
             throw new Error("You havent uploaded any images");
         }
 
-        const mentions: Username[] = [];
 
+        // check the usernames 
+        const mentions: Username[] = [];
         if (postData.mentionsUsernames && postData.mentionsUsernames.length > 0) {
 
             for (const mentionedUsername of postData.mentionsUsernames) {
@@ -221,10 +229,109 @@ export class UserService {
         return createdPost;
     }
 
+    async updatePost(username: string, postId: string, postData: userUpdatePost) {
+
+        if (!isUsername(username)) {
+            throw new Error("invalid username")
+        }
+
+        const user = await this.userRepo.getUserByUsername(username);
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // Find the post by postId
+        const postIndex = user.posts.findIndex(post => post.id === postId);
+        if (postIndex === -1) {
+            throw new Error('Post not found');
+        }
+
+        const oldPost = user.posts[postIndex];
+
+        // Delete the old images
+        if (oldPost.images && oldPost.images.length > 0) {
+            for (const oldImagePath of oldPost.images) {
+                const absolutePath = path.join(__dirname, '..', oldImagePath);
+                if (fs.existsSync(absolutePath)) {
+                    fs.unlinkSync(absolutePath);
+                }
+            }
+        }
+
+        // Process and save new images
+        if (postData.images && postData.images.length > 0) {
+            const imageDir = path.join(__dirname, '..', 'uploads', 'posts');
+
+            if (!fs.existsSync(imageDir)) {
+                fs.mkdirSync(imageDir, { recursive: true });
+            }
+
+            const imagePaths: string[] = [];
+
+            for (const base64Image of postData.images) {
+                const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
+
+                if (base64ImageSize > MAX_IMAGE_SIZE) {
+                    throw new Error('One or more images exceed the maximum size of 5MB');
+                }
+
+                const filename = `${username}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`; // Add a random string for uniqueness
+                const imagePath = path.join(imageDir, filename);
+                const imageBuffer = Buffer.from(base64Image, 'base64');
+
+                fs.writeFileSync(imagePath, imageBuffer);
+
+                imagePaths.push(`/uploads/posts/${filename}`);
+            }
+
+            postData.images = imagePaths;
+        } else {
+            throw new Error("You haven't uploaded any images");
+        }
+
+
+        // check the usernames 
+        const mentions: Username[] = [];
+        if (postData.mentionsUsernames && postData.mentionsUsernames.length > 0) {
+
+            for (const mentionedUsername of postData.mentionsUsernames) {
+                if (!isUsername(mentionedUsername)) {
+                    throw new Error(`Invalid username format: ${mentionedUsername}`);
+                }
+
+                // Check if the username exists in the database
+                const mentionedUser = await this.userRepo.getUserByUsername(mentionedUsername);
+                if (!mentionedUser) {
+                    throw new Error(`User not found: ${mentionedUsername}`);
+                }
+
+                mentions.push(mentionedUsername as Username);
+            }
+        }
+
+        const tags = extractTags(postData.caption);
+
+
+        const updateData: updatePost = {
+            images: postData.images,
+            caption: postData.caption,
+            tags,
+            mentions,
+            editedAt: new Date()
+        };
+    
+        const result = await this.userRepo.updatePost(username, postId, updateData);
+    
+        if (!result) {
+            throw new Error('Failed to update the post');
+        }
+    
+        return true;
+
+    }
 
 }
-
-
 
 
 

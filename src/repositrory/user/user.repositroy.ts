@@ -43,6 +43,7 @@ export interface dataUserResponse {
     private: boolean;
     imageUrl: string;
     bio?: string;
+    posts: IPost[];
 }
 
 export interface createPost {
@@ -51,6 +52,14 @@ export interface createPost {
     tags: string[],
     mentions: Username[],
     createdAt: Date,
+}
+
+export interface updatePost {
+    images: string[],
+    caption: string,
+    tags: string[],
+    mentions: Username[],
+    editedAt: Date
 }
 
 
@@ -76,6 +85,7 @@ export class UserRepository {
             private: user.private,
             imageUrl: user.imageUrl,
             bio: user.bio,
+            posts: user.posts
         }
         return userResponse
     }
@@ -186,6 +196,40 @@ export class UserRepository {
         return true;
 
     }
+
+    async updatePost(username: Username, postId: string, updateData: updatePost): Promise<true | null> {
+
+        const user = await this.model.findOne({ username }).exec().catch((err) => {
+            this.handleDBError();
+            return null;
+        });
+    
+        if (!user) {
+            return null;
+        }
+    
+
+        const postIndex = user.posts.findIndex(post => post.id === postId);
+    
+        if (postIndex === -1) {
+            return null; 
+        }
+    
+
+        user.posts[postIndex].images = updateData.images;
+        user.posts[postIndex].caption = updateData.caption;
+        user.posts[postIndex].tags = updateData.tags;
+        user.posts[postIndex].mentions = updateData.mentions;
+        user.posts[postIndex].editedAt = updateData.editedAt; 
+    
+        await user.save().catch((err) => {
+            this.handleDBError();
+            return null;
+        });
+    
+        return true;
+    }
+    
 
 }
 
