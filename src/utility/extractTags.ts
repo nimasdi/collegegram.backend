@@ -1,0 +1,6 @@
+export const extractTags = (inputText: string): string[] => {
+
+    const matches = inputText.match(/#(\w+)/g);
+
+    return matches ? matches.map(word => word.substring(1)) : [];
+}

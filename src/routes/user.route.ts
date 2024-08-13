@@ -4,7 +4,12 @@ import { createUser } from "../repositrory/user/user.repositroy";
 import { createUserDto } from "../dto/createUser.dto";
 import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
+<<<<<<< HEAD
 import { handelErrorResponse } from '../utility/habdle-errResponse';
+=======
+import { ZodError } from 'zod';
+import { createPostDto } from '../dto/createPost.dto';
+>>>>>>> 746ea784207bc431c9c8c9aec76eda85318d940e
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -47,10 +52,23 @@ export const UserRoute = (userService: UserService) => {
             const user: createUser = createUserDto.parse(req.body)
             const userCreated = await userService.createUser(user)
             if (userCreated) {
+<<<<<<< HEAD
                 res.status(200).json({ "message": "user created" })
             }
         } catch (error) {
             handelErrorResponse(res, error)
+=======
+                res.status(200).json({ "message": "ثبت نام با موفقیت انجام شد." })
+            } else {
+                res.status(400).json({ message: "user exist." })
+            }
+        } catch (error) {
+            if (error instanceof ZodError) {
+                const errorsMessage = error.errors.reduce((prev, e) => { return { ...prev, [e.path[0]]: e.message } }, {})
+                return res.status(400).json(errorsMessage)
+            }
+            return res.status(500).json({ message: "server error" })
+>>>>>>> 746ea784207bc431c9c8c9aec76eda85318d940e
         }
     })
 
@@ -306,7 +324,7 @@ export const UserRoute = (userService: UserService) => {
         try {
             const username = req.params.username as Username;
             const updatedData = req.body;
-            const base64Image = req.body.image; 
+            const base64Image = req.body.image;
 
             const updatedUser = await userService.updateUserInformation(username, updatedData, base64Image);
 
@@ -319,6 +337,91 @@ export const UserRoute = (userService: UserService) => {
             res.status(500).json({ message: "server error" });
         }
     });
+
+    /**
+    * @swagger
+    * openapi: 3.0.0
+    * info:
+    *   title: User API
+    *   version: 1.0.0
+    *   description: API for user operations.
+    * paths:
+    *   /{username}/createPost:
+    *     post:
+    *       summary: Create a new post for a user
+    *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
+    *       parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: The username of the user for whom the post is being created.
+    *           schema:
+    *             type: string
+    *       requestBody:
+    *         description: Data required to create a new post.
+    *         required: true
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 images:
+    *                   type: array
+    *                   items:
+    *                     type: string
+    *                   example: ["test"]
+    *                 caption:
+    *                   type: string
+    *                   example: "hdhdhdh #dgdg dhdhdh"
+    *                 mentionsUsernames:
+    *                   type: array
+    *                   items:
+    *                     type: string
+    *                   example: ["aashshshaa"]
+    *               required:
+    *                 - images
+    *                 - caption
+    *                 - mentionsUsernames
+    *       responses:
+    *         200:
+    *           description: Post created successfully
+    *         400:
+    *           description: Bad request, possibly due to validation errors
+    *         500:
+    *           description: Server error
+    *       security:
+    *         - bearerAuth: []
+    * components:
+    *   securitySchemes:
+    *     bearerAuth:
+    *       type: http
+    *       scheme: bearer
+    *       bearerFormat: JWT
+    */
+
+    router.post('/:username/createPost', authMiddleware, async (req, res, next) => {
+        try {
+
+            const username = req.params.username
+            const postData = createPostDto.parse(req.body)
+
+            userService.createPost(username, postData);
+
+            res.status(200).send({ message: 'Post created successfully' })
+
+        } catch (error) {
+            if (error instanceof ZodError) {
+                return res.status(400).send(error.message)
+            }
+            if (error instanceof Error) {
+                return res.status(400).send(error.message)
+            }
+            return res.status(500).json({ message: "server error" })
+        }
+    })
+
+
+
 
     return router;
 };
