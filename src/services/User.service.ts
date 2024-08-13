@@ -114,41 +114,6 @@ export class UserService {
         return user;
     }
 
-    async updateUserInformation(username: Username, updatedData: updateUser, base64Image?: string): Promise<updateUser | null> {
-        const user = await this.userRepo.getUserByUsername(username);
-
-        if (!user) {
-            throw new Error('User not found');
-        }
-        if (base64Image) {
-            const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
-
-            if (base64ImageSize > MAX_IMAGE_SIZE) {
-                throw new Error('Image exceeds maximum size of 5MB');
-            }
-        }
-
-        if (base64Image) {
-            const imageDir = path.join(__dirname, '..', 'uploads', 'images');
-            if (!fs.existsSync(imageDir)) {
-                fs.mkdirSync(imageDir, { recursive: true });
-            }
-
-            const filename = `${username}-${Date.now()}.png`;
-            const imagePath = path.join(imageDir, filename);
-
-
-            const imageBuffer = Buffer.from(base64Image, 'base64');
-            fs.writeFileSync(imagePath, imageBuffer);
-
-            updatedData.imageUrl = `/uploads/images/${filename}`;
-        }
-
-        const updatedUser = await this.userRepo.updateUser(username, updatedData);
-
-        return updatedUser;
-    }
-
     async createPost(username: string, postData: userCreatePostData) {
 
         if(!isUsername(username)) {
@@ -222,9 +187,44 @@ export class UserService {
         return createdPost;
     }
 
+
+    
+    async updateUserInformation(username: Username, updatedData: updateUser, imageFile?: Express.Multer.File): Promise<updateUser | null> {
+        const user = await this.userRepo.getUserByUsername(username);
+    
+        if (!user) {
+            throw new Error('User not found');
+        }
+    
+        if (imageFile) {
+    
+            if (imageFile.size > MAX_IMAGE_SIZE) {
+                throw new Error('Image exceeds maximum size of 5MB');
+            }
+    
+            const imageDir = path.join(__dirname, '..' ,'..', 'uploads', 'images');
+            if (!fs.existsSync(imageDir)) {
+                fs.mkdirSync(imageDir, { recursive: true });
+            }
+    
+            const filename = `${username}-${Date.now()}${path.extname(imageFile.originalname)}`;
+            const imagePath = path.join(imageDir, filename);
+    
+            fs.renameSync(imageFile.path, imagePath);
+    
+            updatedData.imageUrl = `/uploads/images/${filename}`;
+        }
+    
+        const updatedUser = await this.userRepo.updateUser(username, updatedData);
+    
+        return updatedUser;
+    }
+    
+
+
     async getUserInfoWithoutPosts(username: Username): Promise<UserWithoutPosts | null> {
         const user = await this.userRepo.getUserByUsername(username);
-
+        
         if (!user) {
             throw new Error('User not found');
         }
