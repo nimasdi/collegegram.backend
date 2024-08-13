@@ -270,17 +270,10 @@ export const UserRoute = (userService: UserService) => {
     *   version: 1.0.0
     *   description: API for user operations.
     * paths:
-    *   /{username}/createPost:
+    *   /createPost:
     *     post:
     *       summary: Create a new post for a user
     *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
-    *       parameters:
-    *         - in: path
-    *           name: username
-    *           required: true
-    *           description: The username of the user for whom the post is being created.
-    *           schema:
-    *             type: string
     *       requestBody:
     *         description: Data required to create a new post.
     *         required: true
@@ -322,10 +315,11 @@ export const UserRoute = (userService: UserService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/:username/createPost', authMiddleware, async (req, res, next) => {
+    router.post('/createPost', authMiddleware, async (req, res, next) => {
         try {
 
-            const username = req.params.username
+            const username = req.user.username
+            console.log(username)
             const postData = createPostDto.parse(req.body)
 
             userService.createPost(username, postData);
@@ -345,17 +339,11 @@ export const UserRoute = (userService: UserService) => {
     *   version: 1.0.0
     *   description: API for managing posts, including updating a post.
     * paths:
-    *   /{username}/{postid}/update:
+    *   /{postid}/update:
     *     post:
     *       summary: Update a post for a user
     *       description: Endpoint to update an existing post for a user specified by the username and postId in the path parameters.
     *       parameters:
-    *         - in: path
-    *           name: username
-    *           required: true
-    *           description: The username of the user whose post is being updated.
-    *           schema:
-    *             type: string
     *         - in: path
     *           name: postid
     *           required: true
@@ -403,10 +391,10 @@ export const UserRoute = (userService: UserService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/:username/:postid/update', authMiddleware ,  async (req, res, next) => {
+    router.post('/:postid/update', authMiddleware ,  async (req, res, next) => {
         try {
 
-            const username = req.params.username;
+            const username = req.user.username
             const postId = req.params.postid;
             const postData = updatePostDto.parse(req.body)
 
