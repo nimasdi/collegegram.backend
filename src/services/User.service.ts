@@ -223,11 +223,19 @@ export class UserService {
     }
 
     async follow(followingUsername: Username, followerUsername: Username) : Promise<Boolean> {
+        const follwingUserExist = this.userRepo.getUserByUsername(followingUsername)
+        if(!follwingUserExist){
+            throw new HttpError(400,"user not found")
+        }
         const followed = await this.userRepo.addFollowerAndFollowing(followerUsername, followingUsername)
         return followed
     }
 
     async unfollow(followingUsername: Username, followerUsername: Username) : Promise<Boolean> {
+        const follwingUserExist = this.userRepo.getUserByUsername(followingUsername)
+        if(!follwingUserExist){
+            throw new HttpError(400,"user not found")
+        }
         const followed = await this.userRepo.removeFollowerAndFollowing(followerUsername, followingUsername)
         return followed
     }

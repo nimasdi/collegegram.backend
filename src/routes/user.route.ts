@@ -7,6 +7,7 @@ import authMiddleware from '../utility/authorization';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
 import { ZodError } from 'zod';
 import { createPostDto } from '../dto/createPost.dto';
+import { HttpError } from '../utility/error-handler';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -403,6 +404,46 @@ export const UserRoute = (userService: UserService) => {
             return res.status(500).json({ message: "server error" })
         }
     })
+
+      /**
+     * @swagger
+     * /signup:
+     *   put:
+     *     summary: follow a user
+     *     description: follow a user
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - followingUsername
+     *             properties:
+     *               followingUsername:
+     *                 type: string
+     *                 example: johndoe
+     *     responses:
+     *       200:
+     *         description: followed
+     */
+      router.put("/follow", authMiddleware, async (req, res, next) => {
+        // try {
+        //     const followerUser: Username = req.user
+        //     // if(!req?.user) {
+        //     //     throw new HttpError(400, "user not found.") 
+        //     // }
+
+        //     const { followingUser } = req.body
+        //     if(!isUsername(followingUser)){
+        //         throw new HttpError(400, "user not found.")
+        //     }
+        //     const followed = userService.follow(followingUser, followerUser)
+        // } catch (error) {
+        //     handelErrorResponse(res, error)
+        // }
+    })
+
 
 
 
