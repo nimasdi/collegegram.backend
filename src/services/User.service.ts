@@ -7,6 +7,7 @@ import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/dec
 import { sendEmail } from "../utility/mailer";
 import path from "path";
 import fs from 'fs';
+import { HttpError } from "../utility/error-handler";
 import { extractTags } from "../utility/extractTags";
 
 export type userCreatePostData = {
@@ -46,8 +47,8 @@ export class UserService {
     async createUser(userData: createUser): Promise<Boolean> {
         userData.password = md5(userData.password) as Password;
         const userExist = await this.userRepo.checkUserExist(userData.email) || await this.userRepo.checkUserExist(userData.username)
-        if (userExist) {
-            return false
+        if(userExist){
+            throw new HttpError(400,"user exist before")
         }
         await this.userRepo.createUser(userData);
         return true
@@ -119,51 +120,16 @@ export class UserService {
         return user;
     }
 
-    async updateUserInformation(username: Username, updatedData: updateUser, base64Image?: string): Promise<updateUser | null> {
-        const user = await this.userRepo.getUserByUsername(username);
-
-        if (!user) {
-            throw new Error('User not found');
-        }
-        if (base64Image) {
-            const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
-
-            if (base64ImageSize > MAX_IMAGE_SIZE) {
-                throw new Error('Image exceeds maximum size of 5MB');
-            }
-        }
-
-        if (base64Image) {
-            const imageDir = path.join(__dirname, '..', 'uploads', 'images');
-            if (!fs.existsSync(imageDir)) {
-                fs.mkdirSync(imageDir, { recursive: true });
-            }
-
-            const filename = `${username}-${Date.now()}.png`;
-            const imagePath = path.join(imageDir, filename);
-
-
-            const imageBuffer = Buffer.from(base64Image, 'base64');
-            fs.writeFileSync(imagePath, imageBuffer);
-
-            updatedData.imageUrl = `/uploads/images/${filename}`;
-        }
-
-        const updatedUser = await this.userRepo.updateUser(username, updatedData);
-
-        return updatedUser;
-    }
-
     async createPost(username: string, postData: userCreatePostData) {
 
         if (!isUsername(username)) {
-            throw new Error("invalid username")
+            throw new HttpError(400,"invalid username")
         }
 
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
-            throw new Error('User not found');
+            throw new HttpError(400,"user not found")
         }
 
         // check the images and save them
@@ -180,7 +146,7 @@ export class UserService {
                 const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
 
                 if (base64ImageSize > MAX_IMAGE_SIZE) {
-                    throw new Error('One or more images exceed the maximum size of 5MB');
+                    throw new HttpError(400,"One or more images exceed the maximum size of 5MB")
                 }
 
                 const filename = `${username}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`; // Add a random string for uniqueness
@@ -195,7 +161,7 @@ export class UserService {
             postData.images = imagePaths;
         }
         else {
-            throw new Error("You havent uploaded any images");
+            throw new HttpError(400,"You havent uploaded any images");
         }
 
 
@@ -205,13 +171,13 @@ export class UserService {
 
             for (const mentionedUsername of postData.mentionsUsernames) {
                 if (!isUsername(mentionedUsername)) {
-                    throw new Error(`Invalid username format: ${mentionedUsername}`);
+                    throw new HttpError(400,`Invalid username: ${mentionedUsername}`)
                 }
 
                 // Check if the username exists in the database
                 const mentionedUser = await this.userRepo.getUserByUsername(mentionedUsername);
                 if (!mentionedUser) {
-                    throw new Error(`User not found: ${mentionedUsername}`);
+                    throw new HttpError(400,`User not found: ${mentionedUsername}`)
                 }
 
                 mentions.push(mentionedUsername as Username);
@@ -229,22 +195,58 @@ export class UserService {
         return createdPost;
     }
 
+    
+    
+    async updateUserInformation(username: Username, updatedData: updateUser, imageFile?: Express.Multer.File): Promise<updateUser | null> {
+        const user = await this.userRepo.getUserByUsername(username);
+    
+        if (!user) {
+            throw new Error('User not found');
+        }
+    
+        if (imageFile) {
+    
+            if (imageFile.size > MAX_IMAGE_SIZE) {
+                throw new Error('Image exceeds maximum size of 5MB');
+            }
+    
+            const imageDir = path.join(__dirname, '..' ,'..', 'uploads', 'images');
+            if (!fs.existsSync(imageDir)) {
+                fs.mkdirSync(imageDir, { recursive: true });
+            }
+    
+            const filename = `${username}-${Date.now()}${path.extname(imageFile.originalname)}`;
+            const imagePath = path.join(imageDir, filename);
+    
+            fs.renameSync(imageFile.path, imagePath);
+    
+            updatedData.imageUrl = `/uploads/images/${filename}`;
+        }
+    
+        const updatedUser = await this.userRepo.updateUser(username, updatedData);
+    
+        return updatedUser;
+    }
+    
+
+
+
     async updatePost(username: string, postId: string, postData: userUpdatePost) {
 
         if (!isUsername(username)) {
-            throw new Error("invalid username")
+            throw new HttpError(400,"invalid username")
         }
 
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
-            throw new Error('User not found');
+            throw new HttpError(400,"user not found")
         }
 
         // Find the post by postId
         const postIndex = user.posts.findIndex(post => post.id === postId);
         if (postIndex === -1) {
-            throw new Error('Post not found');
+            throw new HttpError(400,"post not found")
         }
 
         const oldPost = user.posts[postIndex];
@@ -273,7 +275,7 @@ export class UserService {
                 const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
 
                 if (base64ImageSize > MAX_IMAGE_SIZE) {
-                    throw new Error('One or more images exceed the maximum size of 5MB');
+                    throw new HttpError(400,"One or more images exceed the maximum size of 5MB")
                 }
 
                 const filename = `${username}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`; // Add a random string for uniqueness
@@ -287,7 +289,7 @@ export class UserService {
 
             postData.images = imagePaths;
         } else {
-            throw new Error("You haven't uploaded any images");
+            throw new HttpError(400,"You havent uploaded any images");
         }
 
 
@@ -297,13 +299,13 @@ export class UserService {
 
             for (const mentionedUsername of postData.mentionsUsernames) {
                 if (!isUsername(mentionedUsername)) {
-                    throw new Error(`Invalid username format: ${mentionedUsername}`);
+                    throw new HttpError(400,`Invalid username: ${mentionedUsername}`)
                 }
 
                 // Check if the username exists in the database
                 const mentionedUser = await this.userRepo.getUserByUsername(mentionedUsername);
                 if (!mentionedUser) {
-                    throw new Error(`User not found: ${mentionedUsername}`);
+                    throw new HttpError(400,`User not found: ${mentionedUsername}`)
                 }
 
                 mentions.push(mentionedUsername as Username);
@@ -324,7 +326,7 @@ export class UserService {
         const result = await this.userRepo.updatePost(username, postId, updateData);
     
         if (!result) {
-            throw new Error('Failed to update the post');
+            throw new HttpError(400,'Failed to update the post')
         }
     
         return true;
