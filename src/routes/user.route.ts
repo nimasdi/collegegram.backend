@@ -515,6 +515,76 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
+    	
+    /**
+     * @swagger
+     * /user-info/{username}:
+     *   get:
+     *     summary: Get user information without posts
+     *     description: Retrieves basic information about a user based on their username, excluding any posts.
+     *     tags:
+     *       - Users
+     *     parameters:
+     *       - in: path
+     *         name: username
+     *         required: true
+     *         description: The username of the user whose information is to be retrieved.
+     *         schema:
+     *           type: string
+     *     responses:
+     *       200:
+     *         description: Successful response with user information
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 username:
+     *                   type: string
+     *                   example: johndoe
+     *                 fullName:
+     *                   type: string
+     *                   example: John Doe
+     *                 email:
+     *                   type: string
+     *                   example: johndoe@example.com
+     *                 # Add more fields as returned by the userService.getUserInfoWithoutPosts method
+     *       404:
+     *         description: User not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   example: User not found
+     *       500:
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   example: Server error
+     */
+
+    router.get('/user-info/:username', async (req: Request, res: Response) => {
+        try {
+            const { username } = req.params;
+            const userInfo = await userService.getUserInfoWithoutPosts(username as Username);
+
+            if (!userInfo) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            res.status(200).json(userInfo);
+        } catch (error) {
+            res.status(500).json({ message: "server error"});
+        }
+    });
 
 
     return router;

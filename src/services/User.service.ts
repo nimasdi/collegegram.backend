@@ -1,6 +1,6 @@
 import { md5 } from "js-md5";
 import { createUser, dataUserResponse, loginUser, loginUserResponse, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
-import { Email, isEmail, isPassword, isUsername, Name, Password, Username } from "../types/user.types";
+import { Email, isEmail, isPassword, isUsername, Name, Password, Username, UserWithoutPosts } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
 import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
@@ -189,13 +189,13 @@ export class UserService {
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
-            throw new Error('User not found');
+            throw new HttpError(404 ,'User not found');
         }
 
         if (imageFile) {
 
             if (imageFile.size > MAX_IMAGE_SIZE) {
-                throw new Error('Image exceeds maximum size of 5MB');
+                throw new HttpError(413 , 'Image exceeds maximum size of 5MB');
             }
 
             const imageDir = path.join(__dirname, '..', '..', 'uploads', 'images');
@@ -215,10 +215,18 @@ export class UserService {
 
         return updatedUser;
     }
+    
+    async getUserInfoWithoutPosts(username: Username): Promise<UserWithoutPosts | null> {
+        const user = await this.userRepo.getUserByUsername(username);
 
+        if (!user) {
+            throw new HttpError(404 ,'User not found');
+        }
+        const { posts, ...userWithoutPosts } = user;
 
-
-
+        return userWithoutPosts as UserWithoutPosts;
+    }   
+    
     async updatePost(username: string, postId: string, postData: userUpdatePost) {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
