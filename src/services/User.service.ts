@@ -220,11 +220,9 @@ export class UserService {
         return updatedUser;
     }
     
-
-
     async getUserInfoWithoutPosts(username: Username): Promise<UserWithoutPosts | null> {
         const user = await this.userRepo.getUserByUsername(username);
-        
+
         if (!user) {
             throw new Error('User not found');
         }
