@@ -410,7 +410,72 @@ export const UserRoute = (userService: UserService) => {
         }
     })
 
-
+    /**
+    * @swagger
+    * openapi: 3.0.0
+    * info:
+    *   title: Post API
+    *   version: 1.0.0
+    *   description: API for managing posts, including updating a post.
+    * paths:
+    *   /{username}/{postid}/update:
+    *     post:
+    *       summary: Update a post for a user
+    *       description: Endpoint to update an existing post for a user specified by the username and postId in the path parameters.
+    *       parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: The username of the user whose post is being updated.
+    *           schema:
+    *             type: string
+    *         - in: path
+    *           name: postid
+    *           required: true
+    *           description: The ID of the post to be updated.
+    *           schema:
+    *             type: string
+    *       requestBody:
+    *         description: Data required to update the post.
+    *         required: true
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 images:
+    *                   type: array
+    *                   items:
+    *                     type: string
+    *                   example: ["base64ImageString"]
+    *                 caption:
+    *                   type: string
+    *                   example: "Updated caption with #tags"
+    *                 mentionsUsernames:
+    *                   type: array
+    *                   items:
+    *                     type: string
+    *                   example: ["mentionedUsername"]
+    *               required:
+    *                 - images
+    *                 - caption
+    *                 - mentionsUsernames
+    *       responses:
+    *         200:
+    *           description: Post updated successfully
+    *         400:
+    *           description: Bad request, possibly due to validation errors
+    *         500:
+    *           description: Server error
+    *       security:
+    *         - bearerAuth: []
+    * components:
+    *   securitySchemes:
+    *     bearerAuth:
+    *       type: http
+    *       scheme: bearer
+    *       bearerFormat: JWT
+    */
     router.post('/:username/:postid/update', authMiddleware ,  async (req, res, next) => {
         try {
 

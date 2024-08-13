@@ -10,8 +10,7 @@ dotenv.config();
 const userRepo = new UserRepository(User);
 const userService = new UserService(userRepo);
 
-// const uri = process.env.MONGO_URI || '';
-const uri = "mongodb://localhost:27017/coltest"
+const uri = process.env.MONGO_URI || '';
 
 const dbConnection = new MongoDBConnection(uri);
 
