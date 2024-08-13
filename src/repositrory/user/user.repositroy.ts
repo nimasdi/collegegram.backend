@@ -192,34 +192,34 @@ export class UserRepository {
     async addFollowerAndFollowing(followerUsername: Username, followingUsername: Username): Promise<boolean> {
         const session: ClientSession = await mongoose.startSession();
         session.startTransaction();
+
+        // add follower
+        const followerUser = await this.model.findOne({ username: followerUsername }).session(session);
+        if (!followerUser) {
+            throw new HttpError(404,`User with username ${followerUsername} not found`);
+        }
+        if (!followerUser.followings.includes(followingUsername)) {
+            const followings = [...followerUser.followings]
+            followings.push(followingUsername)
+            followerUser.followings = followings;
+        }else{
+            throw new HttpError(404,`followed before`);
+        }
+
+        // add following
+        const followingUser = await this.model.findOne({ username: followingUsername }).session(session);
+        if (!followingUser) {
+            throw new HttpError(404,`User with username ${followingUsername} not found`);
+        }
+        if (!followingUser.followers.includes(followerUsername)) {
+            const followers = [...followingUser.followers];
+            followers.push(followerUsername)
+            followingUser.followers = followers;
+        }else{
+            throw new HttpError(404,`followed before`);
+        }
     
         try {
-            // add follower
-            const followerUser = await this.model.findOne({ username: followerUsername }).session(session);
-            if (!followerUser) {
-                throw new HttpError(404,`User with username ${followerUsername} not found`);
-            }
-            if (!followerUser.followings.includes(followingUsername)) {
-                const followings = [...followerUser.followings]
-                followings.push(followingUsername)
-                followerUser.followings = followings;
-            }else{
-                throw new HttpError(404,`followed before`);
-            }
-
-            // add following
-            const followingUser = await this.model.findOne({ username: followingUsername }).session(session);
-            if (!followingUser) {
-                throw new HttpError(404,`User with username ${followingUsername} not found`);
-            }
-            if (!followingUser.followers.includes(followerUsername)) {
-                const followers = [...followingUser.followers];
-                followers.push(followerUsername)
-                followingUser.followers = followers;
-            }else{
-                throw new HttpError(404,`followed before`);
-            }
-
             await followingUser.save({ session });
             await followerUser.save({ session });
 

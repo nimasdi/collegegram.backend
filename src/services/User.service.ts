@@ -222,7 +222,15 @@ export class UserService {
         return createdPost;
     }
 
+    async follow(followingUsername: Username, followerUsername: Username) : Promise<Boolean> {
+        const followed = await this.userRepo.addFollowerAndFollowing(followerUsername, followingUsername)
+        return followed
+    }
 
+    async unfollow(followingUsername: Username, followerUsername: Username) : Promise<Boolean> {
+        const followed = await this.userRepo.removeFollowerAndFollowing(followerUsername, followingUsername)
+        return followed
+    }
 }
 
 
