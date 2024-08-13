@@ -7,6 +7,7 @@ import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/dec
 import { sendEmail } from "../utility/mailer";
 import path from "path";
 import fs from 'fs';
+import { HttpError } from "../utility/error-handler";
 import { extractTags } from "../utility/extractTags";
 
 export type userCreatePostData = {
@@ -40,8 +41,8 @@ export class UserService {
     async createUser(userData: createUser): Promise<Boolean> {
         userData.password = md5(userData.password) as Password;
         const userExist = await this.userRepo.checkUserExist(userData.email) || await this.userRepo.checkUserExist(userData.username)
-        if (userExist) {
-            return false
+        if(userExist){
+            throw new HttpError(400,"user exist before")
         }
         await this.userRepo.createUser(userData);
         return true
