@@ -344,24 +344,88 @@ export const UserRoute = (userService: UserService) => {
 
     
 
+    /**
+     * @swagger
+     * /userUpdate/{username}:
+     *   put:
+     *     summary: Update user information
+     *     description: Update the user information including an optional profile image.
+     *     parameters:
+     *       - in: path
+     *         name: username
+     *         required: true
+     *         schema:
+     *           type: string
+     *         description: Username of the user to update
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               otherData:
+     *                 type: string
+     *                 description: JSON string with updated user information
+     *               image:
+     *                 type: string
+     *                 format: binary
+     *                 description: Optional image file to upload
+     *       required: true
+     *     responses:
+     *       200:
+     *         description: User updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 username:
+     *                   type: string
+     *                   example: johndoe
+     *                 updatedData:
+     *                   type: object
+     *                   additionalProperties: true
+     *                 imageUrl:
+     *                   type: string
+     *                   example: /uploads/images/johndoe-1632760000000.png
+     *       404:
+     *         description: User not found
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   example: User not found
+     *       500:
+     *         description: Server error
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   example: server error
+     */
     const upload = multer({ dest: 'uploads/images/' });
-
     router.put('/userUpdate/:username', authMiddleware, upload.single('image'), async (req: Request, res: Response) => {
-    try {
-        const username = req.params.username as Username;
-        const updatedData = JSON.parse(req.body.otherData); 
-        const file = req.file;
+        try {
+            const username = req.params.username as Username;
+            const updatedData = JSON.parse(req.body.otherData); 
+            const file = req.file;
 
-        const updatedUser = await userService.updateUserInformation(username, updatedData , file)   ;
+            const updatedUser = await userService.updateUserInformation(username, updatedData, file);
 
-        if (updatedUser) {
-            res.status(200).json(updatedUser);
-        } else {
-            res.status(404).json({ message: 'User not found' });
+            if (updatedUser) {
+                res.status(200).json(updatedUser);
+            } else {
+                res.status(404).json({ message: 'User not found' });
+            }
+        } catch (error) {
+            res.status(500).json({ message: "server error" });
         }
-    } catch (error) {
-        res.status(500).json({ message: "server error" });
-    }
     });
 
 
