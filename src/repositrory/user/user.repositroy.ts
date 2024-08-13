@@ -1,14 +1,11 @@
 import {  Model } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
-<<<<<<< HEAD
 import { HttpError } from "../../utility/error-handler";
  
-=======
 import { v4 } from 'uuid';
 import { IPost, postSchema } from "../../db/post/post";
 
->>>>>>> 746ea784207bc431c9c8c9aec76eda85318d940e
 export interface createUser {
     username: Username;
     password: Password;

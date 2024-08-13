@@ -7,11 +7,8 @@ import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/dec
 import { sendEmail } from "../utility/mailer";
 import path from "path";
 import fs from 'fs';
-<<<<<<< HEAD
 import { HttpError } from "../utility/error-handler";
-=======
 import { extractTags } from "../utility/extractTags";
->>>>>>> 746ea784207bc431c9c8c9aec76eda85318d940e
 
 export type userCreatePostData = {
     images: string[],
