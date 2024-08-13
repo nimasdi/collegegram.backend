@@ -405,7 +405,24 @@ export const UserRoute = (userService: UserService) => {
     })
 
 
-
+    	
+	router.get('/user-info/:username', async (req: Request, res: Response) => {
+        try {
+            const { username } = req.params;
+            const userInfo = await userService.getUserInfoWithoutPosts(username as Username);
+    
+            if (!userInfo) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+    
+            res.status(200).json(userInfo);
+        } catch (error) {
+            res.status(500).json({ message: "server error"});
+        }
+    });
+    
+        
+        
 
     return router;
 };
