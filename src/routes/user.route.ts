@@ -49,23 +49,10 @@ export const UserRoute = (userService: UserService) => {
             const user: createUser = createUserDto.parse(req.body)
             const userCreated = await userService.createUser(user)
             if (userCreated) {
-<<<<<<< HEAD
                 res.status(200).json({ "message": "user created" })
             }
         } catch (error) {
             handelErrorResponse(res, error)
-=======
-                res.status(200).json({ "message": "ثبت نام با موفقیت انجام شد." })
-            } else {
-                res.status(400).json({ message: "user exist." })
-            }
-        } catch (error) {
-            if (error instanceof ZodError) {
-                const errorsMessage = error.errors.reduce((prev, e) => { return { ...prev, [e.path[0]]: e.message } }, {})
-                return res.status(400).json(errorsMessage)
-            }
-            return res.status(500).json({ message: "server error" })
->>>>>>> 746ea784207bc431c9c8c9aec76eda85318d940e
         }
     })
 

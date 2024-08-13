@@ -41,13 +41,8 @@ export class UserService {
     async createUser(userData: createUser): Promise<Boolean> {
         userData.password = md5(userData.password) as Password;
         const userExist = await this.userRepo.checkUserExist(userData.email) || await this.userRepo.checkUserExist(userData.username)
-<<<<<<< HEAD
         if(userExist){
             throw new HttpError(400,"user exist before")
-=======
-        if (userExist) {
-            return false
->>>>>>> 746ea784207bc431c9c8c9aec76eda85318d940e
         }
         await this.userRepo.createUser(userData);
         return true
