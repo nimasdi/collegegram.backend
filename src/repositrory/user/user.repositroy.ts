@@ -194,7 +194,7 @@ export class UserRepository {
         session.startTransaction();
     
         try {
-            // add following
+            // add follower
             const followerUser = await this.model.findOne({ username: followerUsername }).session(session);
             if (!followerUser) {
                 throw new HttpError(404,`User with username ${followerUsername} not found`);
@@ -203,9 +203,11 @@ export class UserRepository {
                 const followings = [...followerUser.followings]
                 followings.push(followingUsername)
                 followerUser.followings = followings;
+            }else{
+                throw new HttpError(404,`followed before`);
             }
 
-            // add follower
+            // add following
             const followingUser = await this.model.findOne({ username: followingUsername }).session(session);
             if (!followingUser) {
                 throw new HttpError(404,`User with username ${followingUsername} not found`);
@@ -214,6 +216,8 @@ export class UserRepository {
                 const followers = [...followingUser.followers];
                 followers.push(followerUsername)
                 followingUser.followers = followers;
+            }else{
+                throw new HttpError(404,`followed before`);
             }
 
             await followingUser.save({ session });
