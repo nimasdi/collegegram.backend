@@ -131,33 +131,7 @@ export class UserService {
         }
 
         // Check and save images
-        if (postData.images && postData.images.length > 0) {
-            const imageDir = path.join(__dirname, '..', 'uploads', 'posts');
-
-            if (!fs.existsSync(imageDir)) {
-                fs.mkdirSync(imageDir, { recursive: true });
-            }
-
-            const imagePaths: string[] = [];
-
-            for (const base64Image of postData.images) {
-                const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
-
-                if (base64ImageSize > MAX_IMAGE_SIZE) {
-                    throw new HttpError(400, "One or more images exceed the maximum size of 5MB");
-                }
-
-                const filename = `${username}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
-                const imagePath = path.join(imageDir, filename);
-                const imageBuffer = Buffer.from(base64Image, 'base64');
-
-                fs.writeFileSync(imagePath, imageBuffer);
-
-                imagePaths.push(`/uploads/posts/${filename}`);
-            }
-
-            postData.images = imagePaths;
-        } else {
+        if (!postData.images || postData.images.length === 0) {
             throw new HttpError(400, "You haven't uploaded any images");
         }
 
@@ -182,13 +156,13 @@ export class UserService {
         // Extract tags from caption
         const tags = extractTags(postData.caption);
 
-        const postDataWithDate: Omit<createPost, 'createdAt'> = {
+        const postData2: Omit<createPost, 'createdAt'> = {
             ...postData,
             tags,
             mentions,
         };
 
-        const createdPost = await this.postRepo.createPost(postDataWithDate);
+        const createdPost = await this.postRepo.createPost(postData2);
 
         if (createdPost) {
 
@@ -207,7 +181,7 @@ export class UserService {
 
 
     async updateUserInformation(username: string, updatedData: updateUser, imageFile?: Express.Multer.File): Promise<updateUser | null> {
-        
+
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
@@ -260,7 +234,7 @@ export class UserService {
             throw new HttpError(400, "Post not found");
         }
 
-        // Delete old images
+        /// Delete old images
         if (post.images && post.images.length > 0) {
             for (const oldImagePath of post.images) {
                 const absolutePath = path.join(__dirname, '..', oldImagePath);
@@ -270,35 +244,11 @@ export class UserService {
             }
         }
 
-        // Process and save new images
+        // Assign new images
         if (postData.images && postData.images.length > 0) {
-            const imageDir = path.join(__dirname, '..', 'uploads', 'posts');
-
-            if (!fs.existsSync(imageDir)) {
-                fs.mkdirSync(imageDir, { recursive: true });
-            }
-
-            const imagePaths: string[] = [];
-
-            for (const base64Image of postData.images) {
-                const base64ImageSize = (base64Image.length * 3) / 4 - (base64Image.includes('==') ? 2 : base64Image.includes('=') ? 1 : 0);
-
-                if (base64ImageSize > MAX_IMAGE_SIZE) {
-                    throw new HttpError(400, "One or more images exceed the maximum size of 5MB");
-                }
-
-                const filename = `${username}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`;
-                const imagePath = path.join(imageDir, filename);
-                const imageBuffer = Buffer.from(base64Image, 'base64');
-
-                fs.writeFileSync(imagePath, imageBuffer);
-
-                imagePaths.push(`/uploads/posts/${filename}`);
-            }
-
-            postData.images = imagePaths;
+            postData.images = postData.images; 
         } else {
-            throw new HttpError(400, "You haven't uploaded any images");
+            throw new HttpError(400, "you cant have a post with  no images");
         }
 
         // Validate and process mentions

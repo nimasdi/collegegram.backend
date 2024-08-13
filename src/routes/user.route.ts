@@ -9,6 +9,7 @@ import { ZodError } from 'zod';
 import { createPostDto } from '../dto/createPost.dto';
 import multer from 'multer';
 import { updatePostDto } from '../dto/updatePostdto';
+import { upload as uploadMiddleware } from "../utility/multer"
 
 
 export const UserRoute = (userService: UserService) => {
@@ -97,7 +98,7 @@ export const UserRoute = (userService: UserService) => {
 
         try {
             const token = await userService.LoginUser(usernameOrEmail, password, rememberMe);
-           // console.log(token)
+            // console.log(token)
             if (token) {
                 return res.status(200).json({ token });
             } else {
@@ -275,10 +276,10 @@ export const UserRoute = (userService: UserService) => {
     *       summary: Create a new post for a user
     *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
     *       requestBody:
-    *         description: Data required to create a new post.
+    *         description: Data required to create a new post, including images and other metadata.
     *         required: true
     *         content:
-    *           application/json:
+    *           multipart/form-data:
     *             schema:
     *               type: object
     *               properties:
@@ -286,14 +287,17 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   example: ["test"]
+    *                     format: binary
+    *                   description: List of image files to be uploaded
     *                 caption:
     *                   type: string
+    *                   description: Caption for the post
     *                   example: "hdhdhdh #dgdg dhdhdh"
     *                 mentionsUsernames:
     *                   type: array
     *                   items:
     *                     type: string
+    *                   description: List of usernames mentioned in the post
     *                   example: ["aashshshaa"]
     *               required:
     *                 - images
@@ -315,12 +319,20 @@ export const UserRoute = (userService: UserService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/createPost', authMiddleware, async (req, res, next) => {
+    router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
 
             const username = req.user.username
-            console.log(username)
-            const postData = createPostDto.parse(req.body)
+
+            const files = req.files as Express.Multer.File[];
+
+            const images = files?.map((file: Express.Multer.File) => file.path) || [];
+
+            const postData = createPostDto.parse({
+                ...req.body,
+                images: images
+            });
+
 
             userService.createPost(username, postData);
 
@@ -351,10 +363,10 @@ export const UserRoute = (userService: UserService) => {
     *           schema:
     *             type: string
     *       requestBody:
-    *         description: Data required to update the post.
+    *         description: Data required to update the post, including new images and other metadata.
     *         required: true
     *         content:
-    *           application/json:
+    *           multipart/form-data:
     *             schema:
     *               type: object
     *               properties:
@@ -362,14 +374,17 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   example: ["base64ImageString"]
+    *                     format: binary
+    *                   description: List of image files to be uploaded
     *                 caption:
     *                   type: string
+    *                   description: Updated caption for the post
     *                   example: "Updated caption with #tags"
     *                 mentionsUsernames:
     *                   type: array
     *                   items:
     *                     type: string
+    *                   description: List of usernames mentioned in the post
     *                   example: ["mentionedUsername"]
     *               required:
     *                 - images
@@ -391,14 +406,22 @@ export const UserRoute = (userService: UserService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/:postid/update', authMiddleware ,  async (req, res, next) => {
+    router.post('/:postid/update', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
 
             const username = req.user.username
             const postId = req.params.postid;
-            const postData = updatePostDto.parse(req.body)
 
-            userService.updatePost(username, postId,postData);
+            const files = req.files as Express.Multer.File[];
+
+            const images = files?.map((file: Express.Multer.File) => file.path) || [];
+
+            const postData = createPostDto.parse({
+                ...req.body,
+                images: images
+            });
+
+            userService.updatePost(username, postId, postData);
 
             res.status(200).send({ message: 'Post updated successfully' })
 
@@ -406,7 +429,7 @@ export const UserRoute = (userService: UserService) => {
             handelErrorResponse(res, error)
         }
     })
-    
+
 
     /**
      * @swagger
@@ -477,7 +500,7 @@ export const UserRoute = (userService: UserService) => {
     router.put('/userUpdate/:username', authMiddleware, upload.single('image'), async (req: Request, res: Response) => {
         try {
             const username = req.params.username as Username;
-            const updatedData = JSON.parse(req.body.otherData); 
+            const updatedData = JSON.parse(req.body.otherData);
             const file = req.file;
 
             const updatedUser = await userService.updateUserInformation(username, updatedData, file);

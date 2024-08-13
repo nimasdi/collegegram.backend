@@ -5,8 +5,7 @@ import swaggerJsDoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from '../swaggerOptions';
 import path from "path";
-
-var cors = require('cors')
+import cors from "cors"
 
 export const makeApp = (userService:UserService) => {
 
