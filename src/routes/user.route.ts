@@ -6,6 +6,7 @@ import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
 import { ZodError } from 'zod';
 import { createPostDto } from '../dto/createPost.dto';
+import multer from 'multer';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -265,69 +266,6 @@ export const UserRoute = (userService: UserService) => {
     });
 
     /**
-     * @swagger
-     * /userUpdate/{username}:
-     *   put:
-     *     summary: Update user information
-     *     parameters:
-     *       - in: path
-     *         name: username
-     *         required: true
-     *         description: Username of the user to update
-     *         schema:
-     *           type: string
-     *     requestBody:
-     *       description: User information to update
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               firstName:
-     *                 type: string
-     *               lastName:
-     *                 type: string
-     *               password:
-     *                 type: string
-     *               email:
-     *                 type: string
-     *               private:
-     *                 type: boolean
-     *               image:
-     *                 type: string
-     *                 description: Base64-encoded image
-     *               bio:
-     *                 type: string
-     *     security:
-     *        - bearerAuth: []
-     *     responses:
-     *       200:
-     *         description: User information updated successfully
-     *       404:
-     *         description: User not found
-     *       500:
-     *         description: Internal server error
-     */
-    router.put('/userUpdate/:username', authMiddleware, async (req: Request, res: Response) => {
-        try {
-            const username = req.params.username as Username;
-            const updatedData = req.body;
-            const base64Image = req.body.image;
-
-            const updatedUser = await userService.updateUserInformation(username, updatedData, base64Image);
-
-            if (updatedUser) {
-                res.status(200).json(updatedUser);
-            } else {
-                res.status(404).json({ message: 'User not found' });
-            }
-        } catch (error) {
-            res.status(500).json({ message: "server error" });
-        }
-    });
-
-    /**
     * @swagger
     * openapi: 3.0.0
     * info:
@@ -409,6 +347,27 @@ export const UserRoute = (userService: UserService) => {
         }
     })
 
+    
+
+    const upload = multer({ dest: 'uploads/images/' });
+
+    router.put('/userUpdate/:username', authMiddleware, upload.single('image'), async (req: Request, res: Response) => {
+    try {
+        const username = req.params.username as Username;
+        const updatedData = JSON.parse(req.body.otherData); 
+        const file = req.file;
+
+        const updatedUser = await userService.updateUserInformation(username, updatedData , file)   ;
+
+        if (updatedUser) {
+            res.status(200).json(updatedUser);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "server error" });
+    }
+    });
 
 
 

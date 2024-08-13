@@ -26,7 +26,8 @@ export const makeApp = (userService:UserService) => {
     app.use(express.urlencoded({ extended: true }))
 
     //images
-    app.use('/uploads/images', express.static(path.join(__dirname, '..', 'uploads', 'images')));
+    app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 
 
     // Swagger setup
