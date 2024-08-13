@@ -405,9 +405,10 @@ export const UserRoute = (userService: UserService) => {
         }
     })
 
+
       /**
      * @swagger
-     * /signup:
+     * /follow:
      *   put:
      *     summary: follow a user
      *     description: follow a user
@@ -427,21 +428,61 @@ export const UserRoute = (userService: UserService) => {
      *       200:
      *         description: followed
      */
-      router.put("/follow", authMiddleware, async (req, res, next) => {
-        // try {
-        //     const followerUser: Username = req.user
-        //     // if(!req?.user) {
-        //     //     throw new HttpError(400, "user not found.") 
-        //     // }
+      router.put("/follow", async (req, res, next) => {
+        try {
+            const followerUser: Username = "baharHAHA" as Username
+            // if(!req?.user) {
+            //     throw new HttpError(400, "user not found.") 
+            // }
 
-        //     const { followingUser } = req.body
-        //     if(!isUsername(followingUser)){
-        //         throw new HttpError(400, "user not found.")
-        //     }
-        //     const followed = userService.follow(followingUser, followerUser)
-        // } catch (error) {
-        //     handelErrorResponse(res, error)
-        // }
+            const { followingUser } = req.body
+            if(!isUsername(followingUser)){
+                throw new HttpError(400, "user name is wrong.")
+            }
+            const followed = userService.follow(followingUser, followerUser)
+            res.status(200).json({message:"user added."})
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+      /**
+     * @swagger
+     * /unfollow:
+     *   put:
+     *     summary: unfollow a user
+     *     description: unfollow a user
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - followingUsername
+     *             properties:
+     *               followingUsername:
+     *                 type: string
+     *                 example: johndoe
+     *     responses:
+     *       200:
+     *         description: followed
+     */
+    router.put("/unfollow", async (req, res, next) => {
+        try {
+            const followerUser: Username = "baharHAHA" as Username
+            // if(!req?.user) {
+            //     throw new HttpError(400, "user not found.") 
+            // }
+
+            const { followingUser } = req.body
+            if(!isUsername(followingUser)){
+                throw new HttpError(400, "user name is wrong.")
+            }
+            const followed = userService.unfollow(followingUser, followerUser)
+            res.status(200).json({message:"user removed."})
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
     })
 
 

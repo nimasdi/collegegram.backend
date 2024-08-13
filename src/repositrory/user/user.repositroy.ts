@@ -64,7 +64,8 @@ export class UserRepository {
         this.model = model;
     }
 
-    private handleDBError = () => {
+    private handleDBError = (error : any) => {
+        console.log(error)
         throw new HttpError(500,'خطای شبکه رخ داده است.')
     }
 
@@ -93,14 +94,14 @@ export class UserRepository {
 
     async createUser(userData: createUser): Promise<Boolean> {
         const user = new this.model(userData);
-        await user.save().catch((err) => this.handleDBError());
+        await user.save().catch((err) => this.handleDBError(err));
 
         return true
     }
 
     async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model.findOne({ username }, { _id: 0, password: 0 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return this.generateDataUserResponse(user)
@@ -111,7 +112,7 @@ export class UserRepository {
 
     async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({ username }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -127,7 +128,7 @@ export class UserRepository {
                 { email: identifier }
             ]
         }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return true
@@ -138,7 +139,7 @@ export class UserRepository {
 
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({ email }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -149,7 +150,7 @@ export class UserRepository {
 
     async updateUser(username: string, updateData: updateUser): Promise<dataUserResponse | null> {
         const user = await this.model.findOneAndUpdate({ username }, updateData)
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateDataUserResponse(user)
@@ -160,7 +161,7 @@ export class UserRepository {
 
     async UpdatePassword(username: Username, password: Password): Promise<loginUserResponse | null> {
         const user = await this.model.findOneAndUpdate({ username }, { password })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateLoginUserResponse(user)
