@@ -6,6 +6,7 @@ import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
 import { ZodError } from 'zod';
 import { createPostDto } from '../dto/createPost.dto';
+import { updatePostDto } from '../dto/updatePostdto';
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -409,6 +410,28 @@ export const UserRoute = (userService: UserService) => {
         }
     })
 
+
+    router.post('/:username/:postid/update', authMiddleware ,  async (req, res, next) => {
+        try {
+
+            const username = req.params.username;
+            const postId = req.params.postid;
+            const postData = updatePostDto.parse(req.body)
+
+            userService.updatePost(username, postId,postData);
+
+            res.status(200).send({ message: 'Post updated successfully' })
+
+        } catch (error) {
+            if (error instanceof ZodError) {
+                return res.status(400).send(error.message)
+            }
+            if (error instanceof Error) {
+                return res.status(400).send(error.message)
+            }
+            return res.status(500).json({ message: "server error" })
+        }
+    })
 
 
 
