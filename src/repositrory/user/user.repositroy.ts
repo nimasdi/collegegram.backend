@@ -45,6 +45,7 @@ export interface dataUserResponse {
     private: boolean;
     imageUrl: string;
     bio?: string;
+    posts : IPost[];
 }
 
 export interface createPost {
@@ -78,6 +79,7 @@ export class UserRepository {
             private: user.private,
             imageUrl: user.imageUrl,
             bio: user.bio,
+            posts : user.posts,
         }
         return userResponse
     }
