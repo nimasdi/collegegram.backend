@@ -8,6 +8,9 @@ import { handelErrorResponse } from '../utility/habdle-errResponse';
 import { ZodError } from 'zod';
 import { createPostDto } from '../dto/createPost.dto';
 import multer from 'multer';
+import { updatePostDto } from '../dto/updatePostdto';
+import { upload as uploadMiddleware } from "../utility/multer"
+
 
 export const UserRoute = (userService: UserService) => {
     const router = Router();
@@ -95,7 +98,7 @@ export const UserRoute = (userService: UserService) => {
 
         try {
             const token = await userService.LoginUser(usernameOrEmail, password, rememberMe);
-           // console.log(token)
+            // console.log(token)
             if (token) {
                 return res.status(200).json({ token });
             } else {
@@ -268,22 +271,15 @@ export const UserRoute = (userService: UserService) => {
     *   version: 1.0.0
     *   description: API for user operations.
     * paths:
-    *   /{username}/createPost:
+    *   /createPost:
     *     post:
     *       summary: Create a new post for a user
     *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
-    *       parameters:
-    *         - in: path
-    *           name: username
-    *           required: true
-    *           description: The username of the user for whom the post is being created.
-    *           schema:
-    *             type: string
     *       requestBody:
-    *         description: Data required to create a new post.
+    *         description: Data required to create a new post, including images and other metadata.
     *         required: true
     *         content:
-    *           application/json:
+    *           multipart/form-data:
     *             schema:
     *               type: object
     *               properties:
@@ -291,14 +287,17 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   example: ["test"]
+    *                     format: binary
+    *                   description: List of image files to be uploaded
     *                 caption:
     *                   type: string
+    *                   description: Caption for the post
     *                   example: "hdhdhdh #dgdg dhdhdh"
     *                 mentionsUsernames:
     *                   type: array
     *                   items:
     *                     type: string
+    *                   description: List of usernames mentioned in the post
     *                   example: ["aashshshaa"]
     *               required:
     *                 - images
@@ -320,29 +319,117 @@ export const UserRoute = (userService: UserService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-
-    router.post('/:username/createPost', authMiddleware, async (req, res, next) => {
+    router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
 
-            const username = req.params.username
-            const postData = createPostDto.parse(req.body)
+            const username = req.user.username
+
+            const files = req.files as Express.Multer.File[];
+
+            const images = files?.map((file: Express.Multer.File) => file.path) || [];
+
+            const postData = createPostDto.parse({
+                ...req.body,
+                images: images
+            });
+
 
             userService.createPost(username, postData);
 
             res.status(200).send({ message: 'Post created successfully' })
 
         } catch (error) {
-            if (error instanceof ZodError) {
-                return res.status(400).send(error.message)
-            }
-            if (error instanceof Error) {
-                return res.status(400).send(error.message)
-            }
-            return res.status(500).json({ message: "server error" })
+            handelErrorResponse(res, error)
         }
     })
 
-    
+    /**
+    * @swagger
+    * openapi: 3.0.0
+    * info:
+    *   title: Post API
+    *   version: 1.0.0
+    *   description: API for managing posts, including updating a post.
+    * paths:
+    *   /{postid}/update:
+    *     post:
+    *       summary: Update a post for a user
+    *       description: Endpoint to update an existing post for a user specified by the username and postId in the path parameters.
+    *       parameters:
+    *         - in: path
+    *           name: postid
+    *           required: true
+    *           description: The ID of the post to be updated.
+    *           schema:
+    *             type: string
+    *       requestBody:
+    *         description: Data required to update the post, including new images and other metadata.
+    *         required: true
+    *         content:
+    *           multipart/form-data:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 images:
+    *                   type: array
+    *                   items:
+    *                     type: string
+    *                     format: binary
+    *                   description: List of image files to be uploaded
+    *                 caption:
+    *                   type: string
+    *                   description: Updated caption for the post
+    *                   example: "Updated caption with #tags"
+    *                 mentionsUsernames:
+    *                   type: array
+    *                   items:
+    *                     type: string
+    *                   description: List of usernames mentioned in the post
+    *                   example: ["mentionedUsername"]
+    *               required:
+    *                 - images
+    *                 - caption
+    *                 - mentionsUsernames
+    *       responses:
+    *         200:
+    *           description: Post updated successfully
+    *         400:
+    *           description: Bad request, possibly due to validation errors
+    *         500:
+    *           description: Server error
+    *       security:
+    *         - bearerAuth: []
+    * components:
+    *   securitySchemes:
+    *     bearerAuth:
+    *       type: http
+    *       scheme: bearer
+    *       bearerFormat: JWT
+    */
+    router.post('/:postid/update', authMiddleware, uploadMiddleware, async (req, res, next) => {
+        try {
+
+            const username = req.user.username
+            const postId = req.params.postid;
+
+            const files = req.files as Express.Multer.File[];
+
+            const images = files?.map((file: Express.Multer.File) => file.path) || [];
+
+            const postData = createPostDto.parse({
+                ...req.body,
+                images: images
+            });
+
+            userService.updatePost(username, postId, postData);
+
+            res.status(200).send({ message: 'Post updated successfully' })
+
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+
 
     /**
      * @swagger
@@ -413,7 +500,7 @@ export const UserRoute = (userService: UserService) => {
     router.put('/userUpdate/:username', authMiddleware, upload.single('image'), async (req: Request, res: Response) => {
         try {
             const username = req.params.username as Username;
-            const updatedData = JSON.parse(req.body.otherData); 
+            const updatedData = JSON.parse(req.body.otherData);
             const file = req.file;
 
             const updatedUser = await userService.updateUserInformation(username, updatedData, file);

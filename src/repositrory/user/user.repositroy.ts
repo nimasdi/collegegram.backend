@@ -1,9 +1,7 @@
-import {  Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
 import { HttpError } from "../../utility/error-handler";
- 
-import { v4 } from 'uuid';
 import { IPost, postSchema } from "../../db/post/post";
 
 export interface createUser {
@@ -45,15 +43,7 @@ export interface dataUserResponse {
     private: boolean;
     imageUrl: string;
     bio?: string;
-    posts : IPost[];
-}
-
-export interface createPost {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
-    createdAt: Date,
+    posts: IPost[];
 }
 
 
@@ -65,12 +55,21 @@ export class UserRepository {
         this.model = model;
     }
 
+
     private handleDBError = () => {
-        throw new HttpError(500,'خطای شبکه رخ داده است.')
+        throw new HttpError(500, 'خطای شبکه رخ داده است.')
+    }
+
+    private async populateUserPosts(user: IUser): Promise<IUser> {
+        return await this.model
+            .findById(user._id)
+            .populate('posts')
+            .exec() as IUser;
     }
 
     private generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
-        let userResponse: dataUserResponse = {
+        const populatedUser = this.populateUserPosts(user);
+        const userResponse: dataUserResponse = {
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
@@ -79,10 +78,12 @@ export class UserRepository {
             private: user.private,
             imageUrl: user.imageUrl,
             bio: user.bio,
-            posts : user.posts,
-        }
-        return userResponse
-    }
+            posts: user.posts as unknown as IPost[],
+        };
+        // console.log(userResponse)
+        return userResponse;
+    };
+
 
     private generateLoginUserResponse: (user: IUser) => loginUserResponse = (user) => {
         let userResponse: loginUserResponse = {
@@ -94,7 +95,11 @@ export class UserRepository {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
-        const user = new this.model(userData);
+        
+        const user = new this.model({
+            ...userData,
+        });
+
         await user.save().catch((err) => this.handleDBError());
 
         return true
@@ -171,25 +176,71 @@ export class UserRepository {
         return null
     }
 
-    async createPost(username: Username, postData: createPost): Promise<true | null> {
+    async addPostToUser(username: string, postId: Types.ObjectId): Promise<boolean> {
+        try {
+            const user = await this.model.findOne({ username }).exec();
 
-        const user = await this.model.findOne({ username }).exec().catch((err) => {
-            return null;
-        });
-    
-        if (!user) {
-            return null;
+            if (!user) {
+                return false;
+            }
+
+            user.posts.push(postId);
+            await user.save();
+            return true;
+        } catch (err) {
+            this.handleDBError();
+            return false;
         }
-    
-        const id = v4();
-        const post = { id, ...postData };
-    
-        user.posts.push(post);
-        await user.save();
-
-        return true;
-
     }
+
+
+    // async createPost(username: Username, postData: createPost): Promise<boolean> {
+    //     const user = await this.model.findOne({ username }).exec().catch((err) => {
+    //         this.handleDBError();
+    //         return null;
+    //     });
+
+    //     if (!user) {
+    //         return false;
+    //     }
+
+    //     const post = await this.postRepo.createPost({
+    //         ...postData,
+    //     });
+
+    //     if (post) {
+    //         user.posts.push(post._id as Types.ObjectId);
+    //         await user.save().catch((err) => this.handleDBError());
+
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+    // async updatePost(username: Username, postId: string, updateData: updatePost): Promise<boolean> {
+
+    //     const user = await this.model.findOne({ username }).exec().catch((err) => {
+    //         this.handleDBError();
+    //         return null;
+    //     });
+
+    //     if (!user) {
+    //         return false;
+    //     }
+
+    //     const updatedPost = await this.postRepo.updatePost(postId, {
+    //         ...updateData,
+    //     });
+
+    //     if (updatedPost) {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+
 
 }
 
