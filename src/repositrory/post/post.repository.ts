@@ -1,6 +1,7 @@
-import { Model, Document } from 'mongoose';
+import { Model, Document, Types } from 'mongoose';
 import { IPost } from '../../db/post/post';
 import { Username } from '../../types/user.types';
+import { HttpError } from '../../utility/error-handler';
 
 export interface createPost {
     images: string[],
@@ -23,33 +24,50 @@ export class PostRepository {
         this.postModel = postModel;
     }
 
-    async createPost(postData: createPost): Promise<IPost | null> {
-        try {
-            const post = new this.postModel(postData);
-            await post.save();
-            return post;
-        } catch (err) {
-            console.error("Error creating post:", err);
-            return null;
-        }
+    private handleDBError = () => {
+        throw new HttpError(500, 'خطای شبکه رخ داده است.')
+    }
+
+    async createPost(postData: createPost, userId: Types.ObjectId): Promise<IPost | null> {
+        const post = new this.postModel({
+            ...postData,
+            userId
+        });
+
+        return post.save()
+            .then((savedPost) => savedPost)
+            .catch((err) => {
+                this.handleDBError();
+                return null;
+            });
     }
 
     async updatePost(postId: string, updateData: updatePost): Promise<IPost | null> {
-        try {
-            return await this.postModel.findByIdAndUpdate(postId, updateData, { new: true }).exec();
-        } catch (err) {
-            console.error("Error updating post:", err);
-            return null;
-        }
+        return this.postModel.findByIdAndUpdate(postId, updateData, { new: true }).exec()
+            .then((updatedPost) => {
+                if (!updatedPost) {
+                    console.warn(`Post with id ${postId} not found for update.`);
+                }
+                return updatedPost;
+            })
+            .catch((err) => {
+                this.handleDBError();
+                return null;
+            });
     }
 
     async findById(postId: string): Promise<IPost | null> {
-        try {
-            return await this.postModel.findById(postId).exec();
-        } catch (err) {
-            console.error("Error finding post by ID:", err);
-            return null;
-        }
+        return this.postModel.findById(postId).exec()
+            .then((post) => {
+                if (!post) {
+                    console.warn(`Post with id ${postId} not found.`);
+                }
+                return post;
+            })
+            .catch((err) => {
+                console.error("Error finding post by ID:", err.message);
+                return null;
+            });
     }
 
 

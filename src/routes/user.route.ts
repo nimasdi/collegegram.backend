@@ -49,15 +49,15 @@ export const UserRoute = (userService: UserService) => {
      *         description: Invalid input data
      */
     router.post("/signup", async (req, res, next) => {
-        try {
-            const user: createUser = createUserDto.parse(req.body)
-            const userCreated = await userService.createUser(user)
-            if (userCreated) {
-                res.status(200).json({ "message": "user created" })
-            }
-        } catch (error) {
-            handelErrorResponse(res, error)
+        // try {
+        const user: createUser = createUserDto.parse(req.body)
+        const userCreated = await userService.createUser(user)
+        if (userCreated) {
+            res.status(200).json({ "message": "user created" })
         }
+        // } catch (error) {
+        //     handelErrorResponse(res, error)
+        // }
     })
 
     /**
@@ -297,12 +297,12 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   description: List of usernames mentioned in the post
+    *                   description: List of usernames mentioned in the post. Can be an empty array if no usernames are mentioned.
     *                   example: ["aashshshaa"]
     *               required:
     *                 - images
     *                 - caption
-    *                 - mentionsUsernames
+    *               additionalProperties: false
     *       responses:
     *         200:
     *           description: Post created successfully
@@ -321,6 +321,8 @@ export const UserRoute = (userService: UserService) => {
     */
     router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
+
+            console.log(req.body);
 
             const username = req.user.username
 
@@ -384,12 +386,11 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   description: List of usernames mentioned in the post
+    *                   description: List of usernames mentioned in the post. Can be an empty array if no usernames are mentioned.
     *                   example: ["mentionedUsername"]
     *               required:
     *                 - images
     *                 - caption
-    *                 - mentionsUsernames
     *       responses:
     *         200:
     *           description: Post updated successfully
@@ -515,7 +516,7 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
-    	
+
     /**
      * @swagger
      * /user-info/{username}:
@@ -582,7 +583,7 @@ export const UserRoute = (userService: UserService) => {
 
             res.status(200).json(userInfo);
         } catch (error) {
-            res.status(500).json({ message: "server error"});
+            res.status(500).json({ message: "server error" });
         }
     });
 

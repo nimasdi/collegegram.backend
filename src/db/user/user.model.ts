@@ -15,7 +15,6 @@ export interface IUser extends Document {
   private: boolean;
   imageUrl: string;
   bio?: string;
-  posts: mongoose.Types.ObjectId[];
 }
 
 
@@ -79,11 +78,6 @@ const UserSchema: Schema<IUser> = new Schema({
   bio: {
     type: String,
   },
-  posts: [{
-    type: mongoose.Schema.Types.ObjectId,  
-    ref: 'Post',
-    default: []
-  }],
 }, {
   timestamps: true,
 });

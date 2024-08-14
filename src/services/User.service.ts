@@ -16,13 +16,13 @@ import { Types } from "mongoose";
 export type userCreatePostData = {
     images: string[],
     caption: string,
-    mentionsUsernames: string[],
+    mentionsUsernames: string,
 }
 
 export type userUpdatePost = {
     images: string[],
     caption: string,
-    mentionsUsernames: string[]
+    mentionsUsernames: string
 }
 
 type UsernameOrEmail = Username | Email;
@@ -135,10 +135,12 @@ export class UserService {
             throw new HttpError(400, "You haven't uploaded any images");
         }
 
+        const mentionsUsernames = this.convertToArray(postData.mentionsUsernames)
+
         // Validate mentions
         const mentions: Username[] = [];
-        if (postData.mentionsUsernames && postData.mentionsUsernames.length > 0) {
-            for (const mentionedUsername of postData.mentionsUsernames) {
+        if (mentionsUsernames && mentionsUsernames.length > 0) {
+            for (const mentionedUsername of mentionsUsernames) {
                 if (!isUsername(mentionedUsername)) {
                     throw new HttpError(400, `Invalid username: ${mentionedUsername}`);
                 }
@@ -162,17 +164,19 @@ export class UserService {
             mentions,
         };
 
-        const createdPost = await this.postRepo.createPost(postData2);
+        const userId = await this.userRepo.getUserIdByUsername(username);
+
+        if (!userId) {
+            throw new HttpError(500, "User ID not found");
+        }
+
+
+        const createdPost = await this.postRepo.createPost(postData2, userId);
 
         if (createdPost) {
-
-            const postId = (createdPost._id as Types.ObjectId)
-            const userUpdated = await this.userRepo.addPostToUser(username, postId);
-
-            if (userUpdated) {
-                return true;
-            }
+            return true;
         }
+
 
         return null;
     }
@@ -189,13 +193,13 @@ export class UserService {
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
-            throw new HttpError(404 ,'User not found');
+            throw new HttpError(404, 'User not found');
         }
 
         if (imageFile) {
 
             if (imageFile.size > MAX_IMAGE_SIZE) {
-                throw new HttpError(413 , 'Image exceeds maximum size of 5MB');
+                throw new HttpError(413, 'Image exceeds maximum size of 5MB');
             }
 
             const imageDir = path.join(__dirname, '..', '..', 'uploads', 'images');
@@ -215,18 +219,18 @@ export class UserService {
 
         return updatedUser;
     }
-    
+
     async getUserInfoWithoutPosts(username: Username): Promise<UserWithoutPosts | null> {
         const user = await this.userRepo.getUserByUsername(username);
 
         if (!user) {
-            throw new HttpError(404 ,'User not found');
+            throw new HttpError(404, 'User not found');
         }
-        const { posts, ...userWithoutPosts } = user;
+        const {...userWithoutPosts } = user;
 
         return userWithoutPosts as UserWithoutPosts;
-    }   
-    
+    }
+
     async updatePost(username: string, postId: string, postData: userUpdatePost) {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
@@ -254,15 +258,19 @@ export class UserService {
 
         // Assign new images
         if (postData.images && postData.images.length > 0) {
-            postData.images = postData.images; 
+            postData.images = postData.images;
         } else {
             throw new HttpError(400, "you cant have a post with  no images");
         }
 
+        const mentionsUsernames = this.convertToArray(postData.mentionsUsernames)
+
+        console.log(mentionsUsernames)
+
         // Validate and process mentions
         const mentions: Username[] = [];
-        if (postData.mentionsUsernames && postData.mentionsUsernames.length > 0) {
-            for (const mentionedUsername of postData.mentionsUsernames) {
+        if (mentionsUsernames && mentionsUsernames.length > 0) {
+            for (const mentionedUsername of mentionsUsernames) {
                 if (!isUsername(mentionedUsername)) {
                     throw new HttpError(400, `Invalid username: ${mentionedUsername}`);
                 }
@@ -293,6 +301,11 @@ export class UserService {
         }
 
         return true;
+    }
+
+
+    convertToArray(commaSeparatedString:string) : string[] {
+        return commaSeparatedString.split(',').map(item => item.trim());
     }
 
 
