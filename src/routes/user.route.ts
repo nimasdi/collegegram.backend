@@ -11,6 +11,7 @@ import { HttpError } from '../utility/error-handler';
 import multer from 'multer';
 import { updatePostDto } from '../dto/updatePostdto';
 import { upload as uploadMiddleware } from "../utility/multer"
+import { followDto } from '../dto/follow.dto';
 
 
 export const UserRoute = (userService: UserService) => {
@@ -453,18 +454,15 @@ export const UserRoute = (userService: UserService) => {
      *       200:
      *         description: followed
      */
-       router.put("/follow", async (req, res, next) => {
+    router.put("/follow", authMiddleware, async (req, res, next) => {
         try {
-            const followerUser: Username = "baharHAHA" as Username
-            // if(!req?.user) {
-            //     throw new HttpError(400, "user not found.") 
-            // }
-
-            const { followingUser } = req.body
-            if(!isUsername(followingUser)){
-                throw new HttpError(400, "user name is wrong.")
+            const followerUser: Username = req.user.username
+            if(!followerUser) {
+                throw new HttpError(400, "user not found.") 
             }
-            const followed = userService.follow(followingUser, followerUser)
+
+            const followingUser = followDto.parse(req.body)
+            await userService.follow(followingUser.followingUsername, followerUser)
             res.status(200).json({message:"user added."})
         } catch (error) {
             handelErrorResponse(res, error)
@@ -494,18 +492,15 @@ export const UserRoute = (userService: UserService) => {
      *       200:
      *         description: followed
      */
-    router.put("/unfollow", async (req, res, next) => {
+    router.put("/unfollow", authMiddleware, async (req, res, next) => {
         try {
-            const followerUser: Username = "baharHAHA" as Username
-            // if(!req?.user) {
-            //     throw new HttpError(400, "user not found.") 
-            // }
-
-            const { followingUser } = req.body
-            if(!isUsername(followingUser)){
-                throw new HttpError(400, "user name is wrong.")
+            const followerUser: Username = req.user.username
+            if(!followerUser) {
+                throw new HttpError(400, "user not found.") 
             }
-            const followed = userService.unfollow(followingUser, followerUser)
+
+            const followingUser = followDto.parse(req.body)
+            await userService.unfollow(followingUser.followingUsername, followerUser)
             res.status(200).json({message:"user removed."})
         } catch (error) {
             handelErrorResponse(res, error)
