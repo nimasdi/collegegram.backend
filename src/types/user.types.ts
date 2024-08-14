@@ -11,8 +11,8 @@ export const zodName = z.coerce.string().refine(isName, {message:"name length sh
 // type for username
 export type Username = Brand<string, 'Username'>;
 export const isUsername = (x: string): x is Username =>
-    x.length >= 8 && x.length <= 50 
-export const zodUsername = z.coerce.string().refine(isUsername, {message:"username length should be btween 8 and 50 char"});
+    x.length >= 5 && x.length <= 50 
+export const zodUsername = z.coerce.string().refine(isUsername, {message:"username length should be btween 5 and 50 char"});
 
 
 // type for password

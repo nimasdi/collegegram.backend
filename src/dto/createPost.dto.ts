@@ -9,7 +9,7 @@ interface userCreatePostData{
 export const createPostDto = z.object({
     images : z.array(z.string()),
     caption: z.string(),
-    mentionsUsernames: z.array(z.string())
+    mentionsUsernames: z.string()
 })
 
 export type CreatePostDto = z.infer<typeof createPostDto>;
