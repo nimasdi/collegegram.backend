@@ -1,4 +1,4 @@
-import { Model, Types } from "mongoose";
+import mongoose, {  ClientSession, Model, Types } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
 import { HttpError } from "../../utility/error-handler";
@@ -54,9 +54,9 @@ export class UserRepository {
         this.model = model;
     }
 
-
-    private handleDBError = () => {
-        throw new HttpError(500, 'خطای شبکه رخ داده است.')
+    private handleDBError = (error : any) => {
+        console.log(error)
+        throw new HttpError(500,'خطای شبکه رخ داده است.')
     }
 
     // private async populateUserPosts(user: IUser): Promise<IUser> {
@@ -93,19 +93,15 @@ export class UserRepository {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
-        
-        const user = new this.model({
-            ...userData,
-        });
-
-        await user.save().catch((err) => this.handleDBError());
+        const user = new this.model(userData);
+        await user.save().catch((err) => this.handleDBError(err));
 
         return true
     }
 
     async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model.findOne({ username }, { _id: 0, password: 0 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return this.generateDataUserResponse(user)
@@ -116,7 +112,7 @@ export class UserRepository {
 
     async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({ username }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -132,7 +128,7 @@ export class UserRepository {
                 { email: identifier }
             ]
         }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return true
@@ -143,7 +139,7 @@ export class UserRepository {
 
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({ email }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -154,7 +150,7 @@ export class UserRepository {
 
     async updateUser(username: string, updateData: updateUser): Promise<dataUserResponse | null> {
         const user = await this.model.findOneAndUpdate({ username }, updateData)
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateDataUserResponse(user)
@@ -165,7 +161,7 @@ export class UserRepository {
 
     async UpdatePassword(username: Username, password: Password): Promise<loginUserResponse | null> {
         const user = await this.model.findOneAndUpdate({ username }, { password })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -174,9 +170,71 @@ export class UserRepository {
         return null
     }
 
+
+    async addFollowerAndFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
+
+        // get follower and following
+        const followerUser = await this.model.findOne({ username: followerUsername })
+        if (!followerUser) {
+            throw new HttpError(404,`User with username ${followerUsername} not found`);
+        }
+        const followingUser = await this.model.findOne({ username: followingUsername })
+        if (!followingUser) {
+            throw new HttpError(404,`User with username ${followingUsername} not found`);
+        }
+
+        // add follower
+         if (!followingUser.followers.includes(followerUser.username)) {
+            const followers = [...followingUser.followers];
+            followers.push(followerUser.username)
+            followingUser.followers = followers;
+        }else{
+            throw new HttpError(404,`followed before`);
+        }
+
+
+        //add following
+        if (!followerUser.followings.includes(followingUser.username)) {
+            const followings = [...followerUser.followings]
+            followings.push(followingUser.username)
+            followerUser.followings = followings;
+        }else{
+            throw new HttpError(404,`followed before`);
+        }
+
+        await followingUser.save();
+        await followerUser.save();
+        
+    }
+
+    async removeFollowerAndFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
+
+        // get follower and following
+        const followerUser = await this.model.findOne({ username: followerUsername })
+        if (!followerUser) {
+            throw new HttpError(404,`User with username ${followerUsername} not found`);
+        }
+        const followingUser = await this.model.findOne({ username: followingUsername })
+        if (!followingUser) {
+            throw new HttpError(404,`User with username ${followingUsername} not found`);
+        }
+
+        //remove follower
+        followerUser.followings = followerUser.followings.filter(user => user !== followerUser.username);
+
+        //remove following
+        followingUser.followers = followingUser.followers.filter(user => user !== followerUser.username);
+
+
+        await followingUser.save();
+        await followerUser.save();
+        
+    }
+ 
+
     async getUserIdByUsername(username: Username): Promise<Types.ObjectId | null> {
         const user = await this.model.findOne({ username }, { _id: 1 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return user._id as Types.ObjectId;
@@ -184,7 +242,6 @@ export class UserRepository {
 
         return null;
     }
-
 
 }
 

@@ -308,7 +308,22 @@ export class UserService {
         return commaSeparatedString.split(',').map(item => item.trim());
     }
 
+    async follow(followingUsername: Username, followerUsername: Username) : Promise<void> {
+        const follwingUserExist = this.userRepo.getUserByUsername(followingUsername)
+        if(!follwingUserExist){
+            throw new HttpError(400,"user not found")
+        }
+        await this.userRepo.addFollowerAndFollowing(followerUsername, followingUsername)
+    }
 
+    async unfollow(followingUsername: Username, followerUsername: Username) : Promise<void> {
+        const follwingUserExist = this.userRepo.getUserByUsername(followingUsername)
+        if(!follwingUserExist){
+            throw new HttpError(400,"user not found")
+        }
+        await this.userRepo.removeFollowerAndFollowing(followerUsername, followingUsername)
+
+    }
 }
 
 
