@@ -15,7 +15,7 @@ export interface IUser extends Document {
   private: boolean;
   imageUrl: string;
   bio?: string;
-  posts: IPost[];
+  posts: mongoose.Types.ObjectId[];
 }
 
 
@@ -36,7 +36,7 @@ const UserSchema: Schema<IUser> = new Schema({
     type: String,
     required: true,
     unique: true,
-    minlength: 8,
+    minlength: 5,
     maxlength: 50,
   },
   password: {
@@ -71,10 +71,11 @@ const UserSchema: Schema<IUser> = new Schema({
   bio: {
     type: String,
   },
-  posts: {
-    type: [postSchema],
+  posts: [{
+    type: mongoose.Schema.Types.ObjectId,  
+    ref: 'Post',
     default: []
-  },
+  }],
 }, {
   timestamps: true,
 });

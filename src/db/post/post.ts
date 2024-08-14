@@ -1,31 +1,34 @@
-import { Schema } from "mongoose";
+import mongoose, { Model,Document , Schema } from "mongoose";
 import { Username } from "../../types/user.types";
-
-export interface IPost {
-    id: string;
-    images: Array<string>;
+import { v4 as uuidv4 } from 'uuid';
+export interface IPost extends Document {
+    images: string[];
     caption: string;
-    tags: Array<string>;
-    mentions: Array<Username>;
-    createdAt: Date;
-    editedAt?: Date;
+    tags: string[];
+    mentions: Username[];
 }
 
+
 export const postSchema: Schema<IPost> = new Schema({
-    id: {
+    images: {
+        type: [String],
+        required: true,
+    },
+    caption: {
         type: String,
-        unique: true
+        required: true,
     },
-    images: Array<String>,
-    caption: String,
-    tags: Array<string>,
-    mentions: Array<Username>,
-    createdAt: {
-        type: Date,
-        required: true
+    tags: {
+        type: [String],
+        required: true,
     },
-    editedAt: {
-        type: Date,
-        required: false
-    }
-})
+    mentions: {
+        type: [String],
+        required: true,
+    },
+}, {
+    timestamps: true,
+});
+
+
+export const Post: Model<IPost> = mongoose.model<IPost>('Post', postSchema);

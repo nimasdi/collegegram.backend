@@ -31,3 +31,12 @@ export const isEmail = (x: string): x is Email =>
     )
 export const zodEmail = z.coerce.string().refine(isEmail, {message:"email format is not correct"});
 
+export interface UserWithoutPosts {
+    firstName: Name;
+    lastName: Name;
+    username: Username;
+    email: Email;
+    private: boolean;
+    imageUrl: string;
+    bio?: string;
+}
