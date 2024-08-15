@@ -220,7 +220,7 @@ export class UserRepository {
         }
 
         //remove follower
-        followerUser.followings = followerUser.followings.filter(user => user !== followerUser.username);
+        followerUser.followings = followerUser.followings.filter(user => user !== followingUser.username);
 
         //remove following
         followingUser.followers = followingUser.followers.filter(user => user !== followerUser.username);
