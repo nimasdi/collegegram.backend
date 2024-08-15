@@ -7,9 +7,11 @@ import authMiddleware from '../utility/authorization';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
 import { ZodError } from 'zod';
 import { createPostDto } from '../dto/createPost.dto';
+import { HttpError } from '../utility/error-handler';
 import multer from 'multer';
 import { updatePostDto } from '../dto/updatePostdto';
 import { upload as uploadMiddleware } from "../utility/multer"
+import { followDto } from '../dto/follow.dto';
 
 
 export const UserRoute = (userService: UserService) => {
@@ -49,15 +51,15 @@ export const UserRoute = (userService: UserService) => {
      *         description: Invalid input data
      */
     router.post("/signup", async (req, res, next) => {
-        try {
-            const user: createUser = createUserDto.parse(req.body)
-            const userCreated = await userService.createUser(user)
-            if (userCreated) {
-                res.status(200).json({ "message": "user created" })
-            }
-        } catch (error) {
-            handelErrorResponse(res, error)
+        // try {
+        const user: createUser = createUserDto.parse(req.body)
+        const userCreated = await userService.createUser(user)
+        if (userCreated) {
+            res.status(200).json({ "message": "user created" })
         }
+        // } catch (error) {
+        //     handelErrorResponse(res, error)
+        // }
     })
 
     /**
@@ -297,12 +299,12 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   description: List of usernames mentioned in the post
+    *                   description: List of usernames mentioned in the post. Can be an empty array if no usernames are mentioned.
     *                   example: ["aashshshaa"]
     *               required:
     *                 - images
     *                 - caption
-    *                 - mentionsUsernames
+    *               additionalProperties: false
     *       responses:
     *         200:
     *           description: Post created successfully
@@ -321,6 +323,8 @@ export const UserRoute = (userService: UserService) => {
     */
     router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
+
+            console.log(req.body);
 
             const username = req.user.username
 
@@ -384,12 +388,11 @@ export const UserRoute = (userService: UserService) => {
     *                   type: array
     *                   items:
     *                     type: string
-    *                   description: List of usernames mentioned in the post
+    *                   description: List of usernames mentioned in the post. Can be an empty array if no usernames are mentioned.
     *                   example: ["mentionedUsername"]
     *               required:
     *                 - images
     *                 - caption
-    *                 - mentionsUsernames
     *       responses:
     *         200:
     *           description: Post updated successfully
@@ -430,6 +433,80 @@ export const UserRoute = (userService: UserService) => {
         }
     })
 
+       /**
+     * @swagger
+     * /follow:
+     *   put:
+     *     summary: follow a user
+     *     description: follow a user
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - followingUsername
+     *             properties:
+     *               followingUsername:
+     *                 type: string
+     *                 example: johndoe
+     *     responses:
+     *       200:
+     *         description: followed
+     */
+    router.put("/follow", authMiddleware, async (req, res, next) => {
+        try {
+            const followerUser: Username = req.user.username
+            if(!followerUser) {
+                throw new HttpError(400, "user not found.") 
+            }
+
+            const followingUser = followDto.parse(req.body)
+            await userService.follow(followingUser.followingUsername, followerUser)
+            res.status(200).json({message:"user added."})
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+
+    
+      /**
+     * @swagger
+     * /unfollow:
+     *   put:
+     *     summary: unfollow a user
+     *     description: unfollow a user
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - followingUsername
+     *             properties:
+     *               followingUsername:
+     *                 type: string
+     *                 example: johndoe
+     *     responses:
+     *       200:
+     *         description: followed
+     */
+    router.put("/unfollow", authMiddleware, async (req, res, next) => {
+        try {
+            const followerUser: Username = req.user.username
+            if(!followerUser) {
+                throw new HttpError(400, "user not found.") 
+            }
+
+            const followingUser = followDto.parse(req.body)
+            await userService.unfollow(followingUser.followingUsername, followerUser)
+            res.status(200).json({message:"user removed."})
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
 
     /**
      * @swagger
@@ -515,7 +592,7 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
-    	
+
     /**
      * @swagger
      * /user-info/{username}:
@@ -582,7 +659,7 @@ export const UserRoute = (userService: UserService) => {
 
             res.status(200).json(userInfo);
         } catch (error) {
-            res.status(500).json({ message: "server error"});
+            res.status(500).json({ message: "server error" });
         }
     });
 

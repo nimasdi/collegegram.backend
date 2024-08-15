@@ -1,4 +1,4 @@
-import { Model, Types } from "mongoose";
+import mongoose, {  ClientSession, Model, Types } from "mongoose";
 import { IUser } from "../../db/user/user.model";
 import { Email, Name, Password, Username } from "../../types/user.types";
 import { HttpError } from "../../utility/error-handler";
@@ -43,7 +43,6 @@ export interface dataUserResponse {
     private: boolean;
     imageUrl: string;
     bio?: string;
-    posts: IPost[];
 }
 
 
@@ -55,20 +54,20 @@ export class UserRepository {
         this.model = model;
     }
 
-
-    private handleDBError = () => {
-        throw new HttpError(500, 'خطای شبکه رخ داده است.')
+    private handleDBError = (error : any) => {
+        console.log(error)
+        throw new HttpError(500,'خطای شبکه رخ داده است.')
     }
 
-    private async populateUserPosts(user: IUser): Promise<IUser> {
-        return await this.model
-            .findById(user._id)
-            .populate('posts')
-            .exec() as IUser;
-    }
+    // private async populateUserPosts(user: IUser): Promise<IUser> {
+    //     return await this.model
+    //         .findById(user._id)
+    //         .populate('posts')
+    //         .exec() as IUser;
+    // }
 
     private generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
-        const populatedUser = this.populateUserPosts(user);
+
         const userResponse: dataUserResponse = {
             firstName: user.firstName,
             lastName: user.lastName,
@@ -78,7 +77,6 @@ export class UserRepository {
             private: user.private,
             imageUrl: user.imageUrl,
             bio: user.bio,
-            posts: user.posts as unknown as IPost[],
         };
         // console.log(userResponse)
         return userResponse;
@@ -95,19 +93,15 @@ export class UserRepository {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
-        
-        const user = new this.model({
-            ...userData,
-        });
-
-        await user.save().catch((err) => this.handleDBError());
+        const user = new this.model(userData);
+        await user.save().catch((err) => this.handleDBError(err));
 
         return true
     }
 
     async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model.findOne({ username }, { _id: 0, password: 0 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return this.generateDataUserResponse(user)
@@ -118,7 +112,7 @@ export class UserRepository {
 
     async getUserPasswordByUsername(username: Username): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({ username }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -134,7 +128,7 @@ export class UserRepository {
                 { email: identifier }
             ]
         }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());
+            .exec().catch((err) => this.handleDBError(err));
 
         if (user) {
             return true
@@ -145,7 +139,7 @@ export class UserRepository {
 
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
         const user = await this.model.findOne({ email }, { _id: 0, password: 1, username: 1, email: 1 })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -156,7 +150,7 @@ export class UserRepository {
 
     async updateUser(username: string, updateData: updateUser): Promise<dataUserResponse | null> {
         const user = await this.model.findOneAndUpdate({ username }, updateData)
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateDataUserResponse(user)
@@ -167,7 +161,7 @@ export class UserRepository {
 
     async UpdatePassword(username: Username, password: Password): Promise<loginUserResponse | null> {
         const user = await this.model.findOneAndUpdate({ username }, { password })
-            .exec().catch((err) => this.handleDBError());;
+            .exec().catch((err) => this.handleDBError(err));;
 
         if (user) {
             return this.generateLoginUserResponse(user)
@@ -176,71 +170,78 @@ export class UserRepository {
         return null
     }
 
-    async addPostToUser(username: string, postId: Types.ObjectId): Promise<boolean> {
-        try {
-            const user = await this.model.findOne({ username }).exec();
 
-            if (!user) {
-                return false;
-            }
+    async addFollowerAndFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
 
-            user.posts.push(postId);
-            await user.save();
-            return true;
-        } catch (err) {
-            this.handleDBError();
-            return false;
+        // get follower and following
+        const followerUser = await this.model.findOne({ username: followerUsername })
+        if (!followerUser) {
+            throw new HttpError(404,`User with username ${followerUsername} not found`);
         }
+        const followingUser = await this.model.findOne({ username: followingUsername })
+        if (!followingUser) {
+            throw new HttpError(404,`User with username ${followingUsername} not found`);
+        }
+
+        // add follower
+         if (!followingUser.followers.includes(followerUser.username)) {
+            const followers = [...followingUser.followers];
+            followers.push(followerUser.username)
+            followingUser.followers = followers;
+        }else{
+            throw new HttpError(404,`followed before`);
+        }
+
+
+        //add following
+        if (!followerUser.followings.includes(followingUser.username)) {
+            const followings = [...followerUser.followings]
+            followings.push(followingUser.username)
+            followerUser.followings = followings;
+        }else{
+            throw new HttpError(404,`followed before`);
+        }
+
+        await followingUser.save();
+        await followerUser.save();
+        
     }
 
+    async removeFollowerAndFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
 
-    // async createPost(username: Username, postData: createPost): Promise<boolean> {
-    //     const user = await this.model.findOne({ username }).exec().catch((err) => {
-    //         this.handleDBError();
-    //         return null;
-    //     });
+        // get follower and following
+        const followerUser = await this.model.findOne({ username: followerUsername })
+        if (!followerUser) {
+            throw new HttpError(404,`User with username ${followerUsername} not found`);
+        }
+        const followingUser = await this.model.findOne({ username: followingUsername })
+        if (!followingUser) {
+            throw new HttpError(404,`User with username ${followingUsername} not found`);
+        }
 
-    //     if (!user) {
-    //         return false;
-    //     }
+        //remove follower
+        followerUser.followings = followerUser.followings.filter(user => user !== followerUser.username);
 
-    //     const post = await this.postRepo.createPost({
-    //         ...postData,
-    //     });
-
-    //     if (post) {
-    //         user.posts.push(post._id as Types.ObjectId);
-    //         await user.save().catch((err) => this.handleDBError());
-
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
-
-    // async updatePost(username: Username, postId: string, updateData: updatePost): Promise<boolean> {
-
-    //     const user = await this.model.findOne({ username }).exec().catch((err) => {
-    //         this.handleDBError();
-    //         return null;
-    //     });
-
-    //     if (!user) {
-    //         return false;
-    //     }
-
-    //     const updatedPost = await this.postRepo.updatePost(postId, {
-    //         ...updateData,
-    //     });
-
-    //     if (updatedPost) {
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
+        //remove following
+        followingUser.followers = followingUser.followers.filter(user => user !== followerUser.username);
 
 
+        await followingUser.save();
+        await followerUser.save();
+        
+    }
+ 
+
+    async getUserIdByUsername(username: Username): Promise<Types.ObjectId | null> {
+        const user = await this.model.findOne({ username }, { _id: 1 })
+            .exec().catch((err) => this.handleDBError(err));
+
+        if (user) {
+            return user._id as Types.ObjectId;
+        }
+
+        return null;
+    }
 
 }
 

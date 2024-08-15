@@ -9,13 +9,12 @@ export interface IUser extends Document {
   username: Username;
   password: Password;
   email: Email;
-  followerCount: number;
-  followingCount: number;
+  followers: Array<Username>;
+  followings: Array<Username>;
   postCount: number;
   private: boolean;
   imageUrl: string;
   bio?: string;
-  posts: mongoose.Types.ObjectId[];
 }
 
 
@@ -52,16 +51,8 @@ const UserSchema: Schema<IUser> = new Schema({
     minlength: 8,
     maxlength: 50,
   },
-  followerCount: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-  followingCount: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
+  followers: Array<Username>,
+  followings: Array<Username>,
   postCount: {
     type: Number,
     required: true,
@@ -79,11 +70,6 @@ const UserSchema: Schema<IUser> = new Schema({
   bio: {
     type: String,
   },
-  posts: [{
-    type: mongoose.Schema.Types.ObjectId,  
-    ref: 'Post',
-    default: []
-  }],
 }, {
   timestamps: true,
 });
