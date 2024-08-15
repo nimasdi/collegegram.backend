@@ -22,6 +22,7 @@ export interface PostResponse{
     caption: string,
     tags: string[],
     mentions: Username[],
+    id: Types.ObjectId
 }
 
 export class PostRepository {
@@ -41,6 +42,7 @@ export class PostRepository {
             caption: post.caption,
             tags: post.tags,
             mentions: post.mentions,
+            id: post.id
         };
 
         return postResponse;
