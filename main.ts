@@ -13,7 +13,7 @@ const postRepo = new PostRepository(Post)
 const userRepo = new UserRepository(User);
 const userService = new UserService(userRepo, postRepo);
 
-const uri = process.env.MONGO_URIME || '';
+const uri = process.env.MONGO_URI || '';
 
 const dbConnection = new MongoDBConnection(uri);
 
