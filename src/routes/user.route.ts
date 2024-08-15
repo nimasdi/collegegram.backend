@@ -323,29 +323,24 @@ export const UserRoute = (userService: UserService) => {
     */
     router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
-
-            console.log(req.body);
-
-            const username = req.user.username
-
+            const username = req.user.username;
             const files = req.files as Express.Multer.File[];
-
-            const images = files?.map((file: Express.Multer.File) => file.path) || [];
-
+            
+            const images = files?.map(file => file.path) || [];
+    
             const postData = createPostDto.parse({
                 ...req.body,
                 images: images
             });
-
-
-            userService.createPost(username, postData);
-
-            res.status(200).send({ message: 'Post created successfully' })
-
+    
+            await userService.createPost(username, postData);
+    
+            res.status(200).send({ message: 'Post created successfully' });
         } catch (error) {
-            handelErrorResponse(res, error)
+            handelErrorResponse(res, error);
         }
-    })
+    });
+    
 
     /**
     * @swagger
