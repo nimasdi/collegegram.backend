@@ -460,7 +460,7 @@ export const UserRoute = (userService: UserService) => {
 
     /**
     * @swagger
-    * /images/{imageName}:
+    * /images/{type}/{imageName}:
     *   get:
     *     summary: Get post image file
     *     description: Retrieve image file
@@ -474,10 +474,11 @@ export const UserRoute = (userService: UserService) => {
     *       500:
     *         description: Internal server error
     */
-    router.get("/images/:imageName", (req, res) => {
+    router.get("/images/:type/:imageName", (req, res) => {
+        const type = req.params.type === 'post' ? 'posts' : 'images'
         let url = path.join(
           __dirname,
-          `../../src/uploads/posts/${req.params.imageName}`
+          `../../src/uploads/${type}/${req.params.imageName}`
         );
         res.sendFile(url);
     });

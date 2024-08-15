@@ -136,7 +136,7 @@ export class UserService {
         }
 
         const imageUrls = postData.images.map(image => {
-            return `http://5.34.195.108:3000/images/${path.basename(image)}`;
+            return `http://5.34.195.108:3000/images/post/${path.basename(image)}`;
         });
 
         const mentionsUsernames = this.convertToArray(postData.mentionsUsernames)
@@ -261,7 +261,7 @@ export class UserService {
         let imageUrls: string[] = [];
         if (postData.images && postData.images.length > 0) {
             imageUrls = postData.images.map(image => {
-                return `http://5.34.195.108:3000/images/${path.basename(image)}`;
+                return `http://5.34.195.108:3000/images/post/${path.basename(image)}`;
             });
         } else {
             throw new HttpError(400, "You can't have a post without any images");
