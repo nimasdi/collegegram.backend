@@ -51,15 +51,15 @@ export const UserRoute = (userService: UserService) => {
      *         description: Invalid input data
      */
     router.post("/signup", async (req, res, next) => {
-        // try {
-        const user: createUser = createUserDto.parse(req.body)
-        const userCreated = await userService.createUser(user)
-        if (userCreated) {
-            res.status(200).json({ "message": "user created" })
+        try {
+            const user: createUser = createUserDto.parse(req.body)
+            const userCreated = await userService.createUser(user)
+            if (userCreated) {
+                res.status(200).json({ "message": "user created" })
+            }
+        } catch (error) {
+            handelErrorResponse(res, error)
         }
-        // } catch (error) {
-        //     handelErrorResponse(res, error)
-        // }
     })
 
     /**
@@ -432,6 +432,35 @@ export const UserRoute = (userService: UserService) => {
             handelErrorResponse(res, error)
         }
     })
+
+    /**
+    * @swagger
+    * /posts:
+    *   get:
+    *     summary: Get user posts
+    *     description: Retrieve detailed information for a posts of a user by username.
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get('/posts', authMiddleware, async (req: Request, res: Response) => {
+        const username = req.user.username;
+        try {
+            const posts  = await userService.getUserPosts(username);
+            res.status(200).json({
+                posts
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    });
+
 
        /**
      * @swagger

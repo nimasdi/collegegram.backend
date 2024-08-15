@@ -9,7 +9,7 @@ import path from "path";
 import fs from 'fs';
 import { HttpError } from "../utility/error-handler";
 import { extractTags } from "../utility/extractTags";
-import { createPost, PostRepository, updatePost } from "../repositrory/post/post.repository";
+import { createPost, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
 import { Types } from "mongoose";
 
 
@@ -301,6 +301,20 @@ export class UserService {
         }
 
         return true;
+    }
+
+
+    async getUserPosts(username: Username) : Promise<PostResponse[]>{
+
+        const userId = await this.userRepo.getUserIdByUsername(username)
+        if(!userId) 
+            throw new HttpError(404,"user not found.")
+
+        const posts = await this.postRepo.getAll(userId)
+        if(posts.length === 0)
+            throw new HttpError(400,"user dosent have any post")
+
+        return posts
     }
 
 

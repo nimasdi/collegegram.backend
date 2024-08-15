@@ -17,6 +17,13 @@ export interface updatePost {
     mentions: Username[]
 }
 
+export interface PostResponse{
+    images: string[],
+    caption: string,
+    tags: string[],
+    mentions: Username[],
+}
+
 export class PostRepository {
     private postModel: Model<IPost & Document>;
 
@@ -26,6 +33,17 @@ export class PostRepository {
 
     private handleDBError = () => {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
+    }
+
+    private generatePostResponse : (post: IPost) => PostResponse = (post) => {
+        const postResponse: PostResponse = {
+            images: post.images,
+            caption: post.caption,
+            tags: post.tags,
+            mentions: post.mentions,
+        };
+
+        return postResponse;
     }
 
     async createPost(postData: createPost, userId: Types.ObjectId): Promise<IPost | null> {
@@ -70,5 +88,15 @@ export class PostRepository {
             });
     }
 
+    async getAll(userId: Types.ObjectId) : Promise< PostResponse[] | []>{
+        const userPosts = await this.postModel.find({userId})
+
+        const responsePosts : PostResponse[] = []
+        for(const post of userPosts){
+            responsePosts.push(this.generatePostResponse(post))
+        }
+
+        return responsePosts
+    }
 
 }
