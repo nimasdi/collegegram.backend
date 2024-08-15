@@ -181,9 +181,6 @@ export class UserService {
         return null;
     }
 
-
-
-
     async updateUserInformation(username: string, updatedData: updateUser, imageFile?: Express.Multer.File): Promise<updateUser | null> {
 
         if (!isUsername(username)) {
@@ -302,7 +299,6 @@ export class UserService {
 
         return true;
     }
-
 
     async getUserPosts(username: Username) : Promise<PostResponse[]>{
 

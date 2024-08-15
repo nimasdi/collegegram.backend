@@ -12,6 +12,7 @@ import multer from 'multer';
 import { updatePostDto } from '../dto/updatePostdto';
 import { upload as uploadMiddleware } from "../utility/multer"
 import { followDto } from '../dto/follow.dto';
+import path from 'path';
 
 
 export const UserRoute = (userService: UserService) => {
@@ -460,6 +461,34 @@ export const UserRoute = (userService: UserService) => {
             handelErrorResponse(res, error)
         }
     });
+
+
+    /**
+    * @swagger
+    * /images/{imageName}:
+    *   get:
+    *     summary: Get post image file
+    *     description: Retrieve image file
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get("/images/:imageName", (req, res) => {
+        let url = path.join(
+          __dirname,
+          `../../src/uploads/posts/${req.params.imageName}`
+        );
+        res.sendFile(url);
+    });
+
+
+
 
 
        /**
