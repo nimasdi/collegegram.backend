@@ -214,7 +214,7 @@ export class UserService {
 
             fs.renameSync(imageFile.path, imagePath);
 
-            updatedData.imageUrl = `/uploads/images/${filename}`;
+            updatedData.imageUrl = `http://5.34.195.108:3000/images/profile/${filename}`;
         }
 
         const updatedUser = await this.userRepo.updateUser(username, updatedData);
