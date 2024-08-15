@@ -135,6 +135,10 @@ export class UserService {
             throw new HttpError(400, "You haven't uploaded any images");
         }
 
+        const imageUrls = postData.images.map(image => {
+            return `http://5.34.195.108:3000/images/${path.basename(image)}`;
+        });
+
         const mentionsUsernames = this.convertToArray(postData.mentionsUsernames)
 
         // Validate mentions
@@ -161,6 +165,7 @@ export class UserService {
         const postData2: Omit<createPost, 'createdAt'> = {
             ...postData,
             tags,
+            images: imageUrls,
             mentions,
         };
 
@@ -235,18 +240,18 @@ export class UserService {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
-
+    
         const user = await this.userRepo.getUserByUsername(username);
         if (!user) {
             throw new HttpError(400, "User not found");
         }
-
+    
         const post = await this.postRepo.findById(postId);
         if (!post) {
             throw new HttpError(400, "Post not found");
         }
-
-        /// Delete old images
+    
+        // Delete old images
         if (post.images && post.images.length > 0) {
             for (const oldImagePath of post.images) {
                 const absolutePath = path.join(__dirname, '..', oldImagePath);
@@ -255,18 +260,18 @@ export class UserService {
                 }
             }
         }
-
-        // Assign new images
+    
+        let imageUrls: string[] = [];
         if (postData.images && postData.images.length > 0) {
-            postData.images = postData.images;
+            imageUrls = postData.images.map(image => {
+                return `http://5.34.195.108:3000/images/${path.basename(image)}`;
+            });
         } else {
-            throw new HttpError(400, "you cant have a post with  no images");
+            throw new HttpError(400, "You can't have a post without any images");
         }
-
-        const mentionsUsernames = this.convertToArray(postData.mentionsUsernames)
-
-        console.log(mentionsUsernames)
-
+    
+        const mentionsUsernames = this.convertToArray(postData.mentionsUsernames);
+    
         // Validate and process mentions
         const mentions: Username[] = [];
         if (mentionsUsernames && mentionsUsernames.length > 0) {
@@ -274,37 +279,41 @@ export class UserService {
                 if (!isUsername(mentionedUsername)) {
                     throw new HttpError(400, `Invalid username: ${mentionedUsername}`);
                 }
-
+    
                 const mentionedUser = await this.userRepo.getUserByUsername(mentionedUsername);
                 if (!mentionedUser) {
                     throw new HttpError(400, `User not found: ${mentionedUsername}`);
                 }
-
+    
                 mentions.push(mentionedUsername);
             }
         }
-
+    
+        // Extract tags from caption
         const tags = extractTags(postData.caption);
-
-
+    
         const updateData: updatePost = {
-            images: postData.images,
+            images: imageUrls, 
             caption: postData.caption,
             tags,
             mentions,
         };
-
+    
 
         const result = await this.postRepo.updatePost(postId, updateData);
         if (!result) {
             throw new HttpError(400, 'Failed to update the post');
         }
-
+    
         return true;
     }
+    
 
 
     convertToArray(commaSeparatedString:string) : string[] {
+        if (commaSeparatedString === '') {
+            return [];
+        }
         return commaSeparatedString.split(',').map(item => item.trim());
     }
 
