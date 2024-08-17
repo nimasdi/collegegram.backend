@@ -186,38 +186,30 @@ export class UserService {
         return null;
     }
 
-    async updateUserInformation(username: string, updatedData: updateUser, imageFile?: Express.Multer.File): Promise<updateUser | null> {
+    async updateUserInformation(username: string, updatedData: updateUser, imageFile?: string): Promise<updateUser | null> {
 
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
 
-        const user = await this.userRepo.getUserByUsername(username);
+        // const user = await this.userRepo.getUserByUsername(username);
 
-        if (!user) {
-            throw new HttpError(404, 'User not found');
+        // if (!user) {
+        //     throw new HttpError(404, 'User not found');
+        // }
+
+        const dataaaa = {
+            ...updatedData,
+            imageUrl: ""
         }
 
         if (imageFile) {
+    
+            dataaaa.imageUrl = `http://5.34.195.108:3000/images/profile/${path.basename(imageFile)}`
 
-            if (imageFile.size > MAX_IMAGE_SIZE) {
-                throw new HttpError(413, 'Image exceeds maximum size of 5MB');
-            }
-
-            const imageDir = path.join(__dirname, '..', '..', 'uploads', 'images');
-            if (!fs.existsSync(imageDir)) {
-                fs.mkdirSync(imageDir, { recursive: true });
-            }
-
-            const filename = `${username}-${Date.now()}${path.extname(imageFile.originalname)}`;
-            const imagePath = path.join(imageDir, filename);
-
-            fs.renameSync(imageFile.path, imagePath);
-
-            updatedData.imageUrl = `http://5.34.195.108:3000/images/profile/${filename}`;
         }
 
-        const updatedUser = await this.userRepo.updateUser(username, updatedData);
+        const updatedUser = await this.userRepo.updateUser(username, dataaaa);
 
         return updatedUser;
     }
