@@ -314,7 +314,7 @@ export class UserService {
 
         const posts = await this.postRepo.getAll(userId)
         if(posts.length === 0)
-            throw new HttpError(400,"user dosent have any post")
+            return []
 
         return posts
     }
