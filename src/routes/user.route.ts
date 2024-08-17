@@ -1,8 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
-import { createUserDto } from "../dto/createUser.dto";
-import { Username, isEmail, isUsername } from '../types/user.types';
 import authMiddleware from '../utility/authorization';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
 import { ZodError } from 'zod';
@@ -10,9 +8,11 @@ import { createPostDto } from '../dto/createPost.dto';
 import { HttpError } from '../utility/error-handler';
 import multer from 'multer';
 import { updatePostDto } from '../dto/updatePostdto';
-import { upload as uploadMiddleware } from "../utility/multer"
+import { upload as uploadMiddleware , upload1 as profileMid } from "../utility/multer"
 import { followDto } from '../dto/follow.dto';
 import path from 'path';
+import { createUserDto } from '../dto/createUser.dto';
+import { isEmail, isUsername, Username } from '../types/user.types';
 
 
 export const UserRoute = (userService: UserService) => {
@@ -600,20 +600,13 @@ export const UserRoute = (userService: UserService) => {
 
     /**
      * @swagger
-     * /userUpdate/{username}:
+     * /userUpdate:
      *   put:
      *     summary: Update user information
      *     description: Update the user information including an optional profile image.
-     *     parameters:
-     *       - in: path
-     *         name: username
-     *         required: true
-     *         schema:
-     *           type: string
-     *         description: Username of the user to update
      *     requestBody:
      *       content:
-     *         application/json:
+     *         multipart/form-data:
      *           schema:
      *             type: object
      *             properties:
@@ -663,24 +656,50 @@ export const UserRoute = (userService: UserService) => {
      *                   type: string
      *                   example: server error
      */
-    const upload = multer({ dest: 'uploads/images/' });
-    router.put('/userUpdate/:username', authMiddleware, upload.single('image'), async (req: Request, res: Response) => {
+    router.put('/userUpdate', authMiddleware, profileMid, async (req: Request, res: Response) => {
         try {
-            const username = req.params.username as Username;
+            const username = req.user.username;
             const updatedData = JSON.parse(req.body.otherData);
-            const file = req.file;
-
-            const updatedUser = await userService.updateUserInformation(username, updatedData, file);
+            const file = req.file as Express.Multer.File;
+            
+            const image = file.path
+            const updatedUser = await userService.updateUserInformation(username, updatedData, image);
 
             if (updatedUser) {
                 res.status(200).json(updatedUser);
             } else {
                 res.status(404).json({ message: 'User not found' });
             }
-        } catch (error) {
-            res.status(500).json({ message: "server error" });
+        } 
+        catch (error) {
+            console.log(error);
+            res.status(500).json(error);
         }
     });
+
+///updateUser {
+//     firstName: Name;
+//     lastName: Name;
+//     username: Username;
+//     password: Password;
+//     email: Email;
+//     private: boolean;
+//     imageUrl: string;
+//     bio?: string;
+// }
+
+/*
+"{
+    "firstName": "nima",
+    "lastName": "nima",
+    "username": "nima1",
+    "password": "12345678",
+    "email": "randceem@gmail.com",
+    "private": "false",
+    "bio": "string"
+}"
+*/
+
 
 
     /**
