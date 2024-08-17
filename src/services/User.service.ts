@@ -119,7 +119,7 @@ export class UserService {
         return user;
     }
 
-    async createPost(username: string, postData: userCreatePostData): Promise<true | null> {
+    async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
@@ -183,7 +183,7 @@ export class UserService {
         }
 
 
-        return null;
+        return false;
     }
 
     async updateUserInformation(username: string, updatedData: updateUser, imageFile?: string): Promise<updateUser | null> {
