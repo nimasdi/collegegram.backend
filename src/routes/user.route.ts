@@ -178,7 +178,7 @@ export const UserRoute = (userService: UserService) => {
 
     /**
      * @swagger
-     * /resetPassword
+     * /resetPassword:
      *   post:
      *     summary: Reset user password
      *     description: Sends an email to reset the password for the user identified by username or email.
@@ -484,8 +484,44 @@ export const UserRoute = (userService: UserService) => {
     });
 
 
+    /**
+    * @swagger
+    * /checkFollow/{username}:
+    *   get:
+    *     summary: check follow 
+    *     description: check follow
+    *     parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: The ID of the post to be updated.
+    *           schema:
+    *             type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get("/checkFollow/:username", authMiddleware, async(req, res) => {
+        try {
+            const followerUser = req.user.username
+            const followingUser = req.params.username.trim()
+            if(!isUsername(followingUser)){
+                throw new HttpError(400, "check user name Field")
+            }
 
+            const followed = await userService.checkFollow(followingUser, followerUser)
 
+            return res.status(200).json({followed})
+        } catch (error) {
+            handelErrorResponse(res,error)
+        }
+    });
 
        /**
      * @swagger
@@ -525,7 +561,7 @@ export const UserRoute = (userService: UserService) => {
     })
 
     
-      /**
+    /**
      * @swagger
      * /unfollow:
      *   put:

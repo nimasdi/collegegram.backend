@@ -231,6 +231,18 @@ export class UserRepository {
         
     }
  
+    async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
+        const followerUser = await this.model.findOne({ username: followerUsername })
+        if (!followerUser) {
+            throw new HttpError(404,`User with username ${followerUsername} not found`);
+        }
+
+        if(!followerUser.followings.includes(followingUsername)){
+            return false
+        }
+
+        return true
+    }
 
     async getUserIdByUsername(username: Username): Promise<Types.ObjectId | null> {
         const user = await this.model.findOne({ username }, { _id: 1 })
