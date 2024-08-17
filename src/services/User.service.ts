@@ -11,6 +11,8 @@ import { HttpError } from "../utility/error-handler";
 import { extractTags } from "../utility/extractTags";
 import { createPost, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
 import { Types } from "mongoose";
+import { createCommentDto } from "../dto/createComment.dto";
+import { CommentRepository } from "../repositrory/comment/comment.repository";
 
 
 export type userCreatePostData = {
@@ -40,7 +42,7 @@ if (!JWT_SECRET) {
 
 export class UserService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository , private commentRepo: CommentRepository) {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
@@ -204,7 +206,7 @@ export class UserService {
         }
 
         if (imageFile) {
-    
+
             dataaaa.imageUrl = `http://5.34.195.108:3000/images/profile/${path.basename(imageFile)}`
 
         }
@@ -220,7 +222,7 @@ export class UserService {
         if (!user) {
             throw new HttpError(404, 'User not found');
         }
-        const {...userWithoutPosts } = user;
+        const { ...userWithoutPosts } = user;
 
         return userWithoutPosts as UserWithoutPosts;
     }
@@ -229,17 +231,17 @@ export class UserService {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
-    
+
         const user = await this.userRepo.getUserByUsername(username);
         if (!user) {
             throw new HttpError(400, "User not found");
         }
-    
+
         const post = await this.postRepo.findById(postId);
         if (!post) {
             throw new HttpError(400, "Post not found");
         }
-    
+
         // Delete old images
         if (post.images && post.images.length > 0) {
             for (const oldImagePath of post.images) {
@@ -249,7 +251,7 @@ export class UserService {
                 }
             }
         }
-    
+
         let imageUrls: string[] = [];
         if (postData.images && postData.images.length > 0) {
             imageUrls = postData.images.map(image => {
@@ -258,9 +260,9 @@ export class UserService {
         } else {
             throw new HttpError(400, "You can't have a post without any images");
         }
-    
+
         const mentionsUsernames = this.convertToArray(postData.mentionsUsernames);
-    
+
         // Validate and process mentions
         const mentions: Username[] = [];
         if (mentionsUsernames && mentionsUsernames.length > 0) {
@@ -268,78 +270,133 @@ export class UserService {
                 if (!isUsername(mentionedUsername)) {
                     throw new HttpError(400, `Invalid username: ${mentionedUsername}`);
                 }
-    
+
                 const mentionedUser = await this.userRepo.getUserByUsername(mentionedUsername);
                 if (!mentionedUser) {
                     throw new HttpError(400, `User not found: ${mentionedUsername}`);
                 }
-    
+
                 mentions.push(mentionedUsername);
             }
         }
-    
+
         // Extract tags from caption
         const tags = extractTags(postData.caption);
-    
+
         const updateData: updatePost = {
-            images: imageUrls, 
+            images: imageUrls,
             caption: postData.caption,
             tags,
             mentions,
         };
-    
+
 
         const result = await this.postRepo.updatePost(postId, updateData);
         if (!result) {
             throw new HttpError(400, 'Failed to update the post');
         }
-    
+
         return true;
     }
-    
 
-    async getUserPosts(username: Username) : Promise<PostResponse[]>{
+
+    async getUserPosts(username: Username): Promise<PostResponse[]> {
 
         const userId = await this.userRepo.getUserIdByUsername(username)
-        if(!userId) 
-            throw new HttpError(404,"user not found.")
+        if (!userId)
+            throw new HttpError(404, "user not found.")
 
         const posts = await this.postRepo.getAll(userId)
-        if(posts.length === 0)
+        if (posts.length === 0)
             return []
 
         return posts
     }
 
 
-    convertToArray(commaSeparatedString:string) : string[] {
+    convertToArray(commaSeparatedString: string): string[] {
         if (commaSeparatedString === '') {
             return [];
         }
         return commaSeparatedString.split(',').map(item => item.trim());
     }
 
-    async follow(followingUsername: Username, followerUsername: Username) : Promise<void> {
+    async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
         const follwingUserExist = this.userRepo.getUserByUsername(followingUsername)
-        if(!follwingUserExist){
-            throw new HttpError(400,"user not found")
+        if (!follwingUserExist) {
+            throw new HttpError(400, "user not found")
         }
         await this.userRepo.addFollowerAndFollowing(followerUsername, followingUsername)
     }
 
-    async unfollow(followingUsername: Username, followerUsername: Username) : Promise<void> {
+    async unfollow(followingUsername: Username, followerUsername: Username): Promise<void> {
         const follwingUserExist = this.userRepo.getUserByUsername(followingUsername)
-        if(!follwingUserExist){
-            throw new HttpError(400,"user not found")
+        if (!follwingUserExist) {
+            throw new HttpError(400, "user not found")
         }
         await this.userRepo.removeFollowerAndFollowing(followerUsername, followingUsername)
 
     }
 
-    async checkFollow(followingUsername: Username, followerUsername: Username) : Promise<Boolean>{
+    async checkFollow(followingUsername: Username, followerUsername: Username): Promise<Boolean> {
         const followed = await this.userRepo.checkFollow(followerUsername, followingUsername)
-        return followed 
+        return followed
     }
+
+
+    async createComment(username: Username, createComment: createCommentDto) {
+
+        const { post_id, text } = createComment;
+
+        const postExists = await this.postRepo.findById(createComment.post_id)
+        if (!postExists) {
+            throw new HttpError(400,'Post not found');
+        }
+
+        const commentData = {
+            text,
+            username,
+        };
+
+        await this.commentRepo.createComment(post_id , commentData)
+
+        return true;
+
+
+    }
+
+    async replyToComment(parentId: Types.ObjectId, replyCommentData: replyComment): Promise<createCommentResponse | null> {
+        // Check if the parent comment exists
+        const parentComment = await CommentModel.findById(parentId).exec();
+        if (!parentComment) {
+            return {
+                success: false,
+                message: "Invalid parent comment"
+            };
+        }
+
+        // Prepare reply comment data
+        const commentData = {
+            ...replyCommentData,
+            parentId
+        };
+
+        // Create and save the reply comment
+        const replyComment = new CommentModel(commentData);
+        await replyComment.save().catch((err) => {
+            console.error("Error saving reply comment:", err.message);
+            return {
+                success: false,
+                message: "Failed to create reply comment"
+            };
+        });
+
+        return {
+            success: true,
+            message: "Reply comment was successfully created"
+        };
+    }
+
 }
 
 
