@@ -25,7 +25,6 @@ declare global {
     }
 };
 
-
 dbConnection.connect().then(async () => {
 
     const app = makeApp(userService)

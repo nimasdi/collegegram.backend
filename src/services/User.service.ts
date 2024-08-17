@@ -343,6 +343,11 @@ export class UserService {
         await this.userRepo.removeFollowerAndFollowing(followerUsername, followingUsername)
 
     }
+
+    async checkFollow(followingUsername: Username, followerUsername: Username) : Promise<Boolean>{
+        const followed = await this.userRepo.checkFollow(followerUsername, followingUsername)
+        return followed 
+    }
 }
 
 
