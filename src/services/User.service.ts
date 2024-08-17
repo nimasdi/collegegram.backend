@@ -1,6 +1,6 @@
 import { md5 } from "js-md5";
 import { createUser, dataUserResponse, loginUser, loginUserResponse, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
-import { Email, isEmail, isPassword, isUsername, Name, Password, Username, UserWithoutPosts } from "../types/user.types";
+import { Email, isEmail, isPassword, isUsername, Name, Password, PostId, Username, UserWithoutPosts } from "../types/user.types";
 import dotenv from 'dotenv';
 import { sign } from "jsonwebtoken";
 import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
@@ -12,7 +12,8 @@ import { extractTags } from "../utility/extractTags";
 import { createPost, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
 import { Types } from "mongoose";
 import { createCommentDto } from "../dto/createComment.dto";
-import { CommentRepository } from "../repositrory/comment/comment.repository";
+import { CommentRepository, createCommentResponse } from "../repositrory/comment/comment.repository";
+import { replyCommentDto } from "../dto/replyComment.dto";
 
 
 export type userCreatePostData = {
@@ -42,7 +43,7 @@ if (!JWT_SECRET) {
 
 export class UserService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository , private commentRepo: CommentRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository) {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
@@ -350,7 +351,7 @@ export class UserService {
 
         const postExists = await this.postRepo.findById(createComment.post_id)
         if (!postExists) {
-            throw new HttpError(400,'Post not found');
+            throw new HttpError(400, 'Post not found');
         }
 
         const commentData = {
@@ -358,38 +359,29 @@ export class UserService {
             username,
         };
 
-        await this.commentRepo.createComment(post_id , commentData)
+        await this.commentRepo.createComment(post_id, commentData)
 
         return true;
 
 
     }
 
-    async replyToComment(parentId: Types.ObjectId, replyCommentData: replyComment): Promise<createCommentResponse | null> {
-        // Check if the parent comment exists
-        const parentComment = await CommentModel.findById(parentId).exec();
-        if (!parentComment) {
+    async replyToComment(username: Username, post_id: PostId, replyCommentData: replyCommentDto): Promise<createCommentResponse | null> {
+
+        const post = await this.postRepo.findById(post_id);
+        if (!post) {
             return {
                 success: false,
-                message: "Invalid parent comment"
+                message: "Post not found"
             };
         }
 
-        // Prepare reply comment data
         const commentData = {
             ...replyCommentData,
-            parentId
+            username, 
         };
 
-        // Create and save the reply comment
-        const replyComment = new CommentModel(commentData);
-        await replyComment.save().catch((err) => {
-            console.error("Error saving reply comment:", err.message);
-            return {
-                success: false,
-                message: "Failed to create reply comment"
-            };
-        });
+        await this.commentRepo.replyToComment(post_id, commentData);
 
         return {
             success: true,
@@ -397,10 +389,8 @@ export class UserService {
         };
     }
 
+
 }
-
-
-
 
 
 

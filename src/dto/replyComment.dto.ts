@@ -1,21 +1,20 @@
 import {z} from 'zod'
-import { isUsername, zodPostId, zodUsername } from '../types/user.types';
+import { isUsername, zodCommentId, zodPostId, zodUsername } from '../types/user.types';
 import { checkRequired } from './createUser.dto';
 
 interface userReplyComment{
     text: string;
     post_id: string;
-    parent_id: string;
+    parentId: string;
 }
 
-export const createComment = z.object({
+export const replyComment = z.object({
     text: z.string().min(1),
-    post_id: zodPostId,
-    
+    parentId: zodCommentId
 })
-.refine(data => checkRequired(data,"post_id"), {
-    message: "post_id is required",
-    path: ['post_id'],
+.refine(data => checkRequired(data,"parentId"), {
+    message: "parentId is required",
+    path: ['parentId'],
   });
-
-export type createCommentDto = z.infer<typeof createComment>;
+  
+export type replyCommentDto = z.infer<typeof replyComment>;
