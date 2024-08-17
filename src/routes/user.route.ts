@@ -178,7 +178,7 @@ export const UserRoute = (userService: UserService) => {
 
     /**
      * @swagger
-     * /resetPassword:
+     * /resetPassword
      *   post:
      *     summary: Reset user password
      *     description: Sends an email to reset the password for the user identified by username or email.
