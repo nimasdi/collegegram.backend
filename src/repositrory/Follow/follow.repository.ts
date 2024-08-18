@@ -25,6 +25,8 @@ export class FollowRepository {
  
     async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
         const followExist = await this.model.findOne({ followingUsername , followerUsername })
+        .catch((err) => this.handleDBError(err))
+        
         if (!followExist) {
             return false
         }
