@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Brand } from './Brand';
+import mongoose from 'mongoose';
 
 
 // type for firstname and lastname
@@ -30,6 +31,18 @@ export const isEmail = (x: string): x is Email =>
       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     )
 export const zodEmail = z.coerce.string().refine(isEmail, {message:"email format is not correct"});
+
+// Type for post id
+export type PostId = Brand<string, 'PostId'>;
+export const isPostId = (x: string): x is PostId =>
+    mongoose.Types.ObjectId.isValid(x); 
+export const zodPostId = z.coerce.string().refine(isPostId, { message: "Invalid post ID" });
+
+// Type for comment ID
+export type CommentId = Brand<string, 'CommentId'>;
+export const isCommentId = (x: string): x is CommentId =>
+    mongoose.Types.ObjectId.isValid(x); 
+export const zodCommentId = z.coerce.string().refine(isCommentId, { message: "Invalid comment ID" });
 
 export interface UserWithoutPosts {
     firstName: Name;
