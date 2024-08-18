@@ -3,18 +3,18 @@ import { Username } from '../../types/user.types';
 
 // Interface for User attributes
 export interface IFollow extends Document {
-    followingUserName : Username,
-    followerUserName : Username,
+    followingUsername : Username,
+    followerUsername : Username,
 }
 
 // Follow Schema
 const FollowSchema: Schema<IFollow> = new Schema({
-    followingUserName: {
+    followingUsername: {
         type: String,
         ref: 'User',
         required: true, 
     },
-    followerUserName: {
+    followerUsername: {
         type: String,
         ref: 'User',
         required: true, 
