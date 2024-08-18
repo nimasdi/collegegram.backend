@@ -12,7 +12,7 @@ import { upload as uploadMiddleware , upload1 as profileMid } from "../utility/m
 import { followDto } from '../dto/follow.dto';
 import path from 'path';
 import { createUserDto } from '../dto/createUser.dto';
-import { isEmail, isUsername, Username } from '../types/user.types';
+import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
 
 
 export const UserRoute = (userService: UserService) => {
@@ -341,6 +341,44 @@ export const UserRoute = (userService: UserService) => {
             handelErrorResponse(res, error);
         }
     });
+
+    /**
+    * @swagger
+    * /posts/{postId}:
+    *   get:
+    *     summary: Get user posts
+    *     description: Retrieve detailed information for a post.
+    *     parameters:
+    *         - in: path
+    *           name: postId
+    *           required: true
+    *           description: postID
+    *           schema:
+    *             type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get('/posts/:postId', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const postId = req.params.postId;
+            if(!isPostId(postId)){
+                throw new HttpError(400, "check postid Field")
+            }
+            const post = await userService.getPostById(postId)
+            res.status(200).json({
+                post
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    }); 
     
 
     /**
@@ -457,6 +495,44 @@ export const UserRoute = (userService: UserService) => {
         }
     });
 
+
+    /**
+    * @swagger
+    * /{username}/posts:
+    *   get:
+    *     summary: Get user posts
+    *     description: Retrieve detailed information for a posts of a user by username.
+    *     parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: username
+    *           schema:
+    *             type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.params.username;
+            if(!isUsername(username)){
+                throw new HttpError(400, "check user name Field")
+            }
+            const posts  = await userService.getUserPosts(username);
+            res.status(200).json({
+                posts
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    }); 
 
     /**
     * @swagger
@@ -676,31 +752,6 @@ export const UserRoute = (userService: UserService) => {
             res.status(500).json(error);
         }
     });
-
-///updateUser {
-//     firstName: Name;
-//     lastName: Name;
-//     username: Username;
-//     password: Password;
-//     email: Email;
-//     private: boolean;
-//     imageUrl: string;
-//     bio?: string;
-// }
-
-/*
-"{
-    "firstName": "nima",
-    "lastName": "nima",
-    "username": "nima1",
-    "password": "12345678",
-    "email": "randceem@gmail.com",
-    "private": "false",
-    "bio": "string"
-}"
-*/
-
-
 
     /**
      * @swagger

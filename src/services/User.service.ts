@@ -300,6 +300,13 @@ export class UserService {
         return true;
     }
 
+    async getPostById(postId: PostId): Promise<PostResponse>{
+        const post = await this.postRepo.findById(postId)
+        if(!post){
+            throw new HttpError(404, "post not found.")
+        }
+        return post
+    } 
 
     async getUserPosts(username: Username): Promise<PostResponse[]> {
 
