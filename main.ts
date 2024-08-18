@@ -18,7 +18,7 @@ const commentRepo = new CommentRepository(Comment)
 const userService = new UserService(userRepo, postRepo, commentRepo);
 const commentService = new CommentService(userRepo, postRepo, commentRepo)
 
-const uri = process.env.MONGO_URI || '';
+const uri = process.env.MONGO_URIME || '';
 
 const dbConnection = new MongoDBConnection(uri);
 

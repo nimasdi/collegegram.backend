@@ -365,7 +365,7 @@ export const UserRoute = (userService: UserService) => {
     *       500:
     *         description: Internal server error
     */
-    router.get('/posts/:postId', async (req: Request, res: Response) => {
+    router.get('/posts/:postId', authMiddleware, async (req: Request, res: Response) => {
         try {
             const postId = req.params.postId;
             if(!isPostId(postId)){
@@ -519,7 +519,7 @@ export const UserRoute = (userService: UserService) => {
     *       500:
     *         description: Internal server error
     */
-    router.get('/:username/posts', async (req: Request, res: Response) => {
+    router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
         try {
             const username = req.params.username;
             if(!isUsername(username)){
