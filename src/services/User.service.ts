@@ -12,7 +12,7 @@ import { extractTags } from "../utility/extractTags";
 import { createPost, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
 import { Types } from "mongoose";
 import { createCommentDto } from "../dto/createComment.dto";
-import { CommentRepository, createCommentResponse } from "../repositrory/comment/comment.repository";
+import { CommentRepository, createCommentResponse, replyCommentResponse } from "../repositrory/comment/comment.repository";
 import { replyCommentDto } from "../dto/replyComment.dto";
 
 
@@ -345,49 +345,7 @@ export class UserService {
     }
 
 
-    async createComment(username: Username, createComment: createCommentDto) {
-
-        const { post_id, text } = createComment;
-
-        const postExists = await this.postRepo.findById(createComment.post_id)
-        if (!postExists) {
-            throw new HttpError(400, 'Post not found');
-        }
-
-        const commentData = {
-            text,
-            username,
-        };
-
-        await this.commentRepo.createComment(post_id, commentData)
-
-        return true;
-
-
-    }
-
-    async replyToComment(username: Username, post_id: PostId, replyCommentData: replyCommentDto): Promise<createCommentResponse | null> {
-
-        const post = await this.postRepo.findById(post_id);
-        if (!post) {
-            return {
-                success: false,
-                message: "Post not found"
-            };
-        }
-
-        const commentData = {
-            ...replyCommentData,
-            username, 
-        };
-
-        await this.commentRepo.replyToComment(post_id, commentData);
-
-        return {
-            success: true,
-            message: "Reply comment was successfully created"
-        };
-    }
+   
 
 
 }

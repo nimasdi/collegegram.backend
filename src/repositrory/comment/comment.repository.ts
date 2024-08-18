@@ -14,8 +14,12 @@ export interface replyComment {
     username: Username,
 }
 
-
 export interface createCommentResponse {
+    success: boolean,
+    message: string
+}
+
+export interface replyCommentResponse {
     success: boolean,
     message: string
 }
@@ -30,7 +34,7 @@ export class CommentRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    async createComment(postId: PostId, createCommentData: createComment): Promise<createCommentResponse> {
+    async createComment(postId: PostId, createCommentData: createComment): Promise<boolean> {
         
         const commentData = {
             ...createCommentData,
@@ -42,22 +46,16 @@ export class CommentRepository {
         const comment = new this.model(commentData);
         await comment.save().catch((err) => this.handleDBError(err));
 
-        return {
-            success:true,
-            message:"comment was successfully created"
-        };
+        return true;
     }
 
 
 
-    async replyToComment(postId: PostId, replyCommentData: replyComment): Promise<createCommentResponse | null> {
+    async replyToComment(postId: PostId, replyCommentData: replyComment): Promise<boolean> {
         
         const parentComment = await this.model.findById(replyCommentData.parentId).exec();
         if (!parentComment) {
-            return {
-                success: false,
-                message: "invalid parent comment"
-            }
+            return false;
         }
 
         const commentData = {
@@ -68,10 +66,7 @@ export class CommentRepository {
         const replyComment = new this.model(commentData);
         await replyComment.save().catch((err) => this.handleDBError(err));
 
-        return {
-            success:true,
-            message:"reply was successfully created"
-        };
+        return true;
     }
 
 }
