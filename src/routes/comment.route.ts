@@ -1,21 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { UserService } from '../services/User.service';
-import { createUser } from "../repositrory/user/user.repositroy";
 import authMiddleware from '../utility/authorization';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
-import { ZodError } from 'zod';
-import { createPostDto } from '../dto/createPost.dto';
-import { HttpError } from '../utility/error-handler';
-import multer from 'multer';
-import { updatePostDto } from '../dto/updatePostdto';
-import { upload as uploadMiddleware, upload1 as profileMid } from "../utility/multer"
-import { followDto } from '../dto/follow.dto';
-import path from 'path';
-import { createUserDto } from '../dto/createUser.dto';
-import { isEmail, isUsername, Username } from '../types/user.types';
 import { CommentService } from '../services/Comment.service';
 import { createComment } from '../dto/createComment.dto';
 import { replyComment } from '../dto/replyComment.dto';
+import { likeComment } from '../dto/likeComment.dto';
 
 
 export const CommentRoute = (commentService: CommentService) => {
@@ -65,8 +54,10 @@ export const CommentRoute = (commentService: CommentService) => {
 
             const result = await commentService.createComment(username , commentData)
 
+            if(!result.success){
+                res.status(400).send(result);
+            }
             res.status(200).send(result);
-
 
         } catch (error) {
             handelErrorResponse(res, error)
@@ -122,7 +113,117 @@ export const CommentRoute = (commentService: CommentService) => {
 
             const result = await commentService.replyToComment(username, replyData.postId, replyData);
 
+            if(!result.success){
+                res.status(400).send(result);
+            }
             res.status(200).send(result);
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
+    /**
+     * @swagger
+     * /likeComment:
+     *   post:
+     *     summary: Like a comment
+     *     description: Allows authenticated users to like a comment.
+     *     tags:
+     *       - Comments
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               commentId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7f01"
+     *                 description: The ID of the comment to like.
+     *               postId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7d20"
+     *                 description: The ID of the post where the comment is located.
+     *             required:
+     *               - commentId
+     *               - postId
+     *     responses:
+     *       200:
+     *         description: Comment liked successfully
+     *       400:
+     *         description: Invalid input data or comment not found
+     *       500:
+     *         description: Server error
+     */
+    router.post('/likeComment', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            
+            const username = req.user.username;
+            const data = {...req.body ,username }
+
+            const likeCommentData = likeComment.parse(data); 
+
+            const result = await commentService.likeAComment(likeCommentData);
+
+            res.status(200).send("Comment liked successfully");
+
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
+
+    /**
+     * @swagger
+     * /unlikeComment:
+     *   post:
+     *     summary: Unlike a comment
+     *     description: Allows authenticated users to unlike a comment.
+     *     tags:
+     *       - Comments
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               commentId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7f01"
+     *                 description: The ID of the comment to unlike.
+     *               postId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7d20"
+     *                 description: The ID of the post where the comment is located.
+     *             required:
+     *               - commentId
+     *               - postId
+     *     responses:
+     *       200:
+     *         description: Comment unliked successfully
+     *       400:
+     *         description: Invalid input data or comment not found
+     *       500:
+     *         description: Server error
+     */
+    router.post('/unlikeComment', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            
+            const username = req.user.username;
+            const data = {...req.body ,username }
+
+            const likeCommentData = likeComment.parse(data); 
+
+            const result = await commentService.unlikeAComment(likeCommentData);
+
+            res.status(200).send("Comment unliked successfully");
+
         } catch (error) {
             handelErrorResponse(res, error);
         }

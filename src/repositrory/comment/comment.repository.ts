@@ -69,4 +69,12 @@ export class CommentRepository {
         return true;
     }
 
+    async doesThisCommentExist(commentId: CommentId): Promise<boolean> {
+        const comment =  await this.model.find({ commentId }).exec();
+        if (!comment) {
+            return false;
+        }
+        return true;
+    }
+
 }

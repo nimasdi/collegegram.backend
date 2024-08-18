@@ -1,20 +1,12 @@
-import { md5 } from "js-md5";
-import { createUser, dataUserResponse, loginUser, loginUserResponse, updateUser, UserRepository } from "../repositrory/user/user.repositroy";
-import { Email, isEmail, isPassword, isUsername, Name, Password, PostId, Username, UserWithoutPosts } from "../types/user.types";
-import dotenv from 'dotenv';
-import { sign } from "jsonwebtoken";
-import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/decode";
-import { sendEmail } from "../utility/mailer";
-import path from "path";
-import fs from 'fs';
+import { PostId, Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
-import { extractTags } from "../utility/extractTags";
-import { createPost, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
-import { Types } from "mongoose";
+import { PostRepository } from "../repositrory/post/post.repository";
 import { createCommentDto } from "../dto/createComment.dto";
 import { CommentRepository, createCommentResponse, replyCommentResponse } from "../repositrory/comment/comment.repository";
+import { LikeCommentRepository } from "../repositrory/comment/likeComment.repository";
+import { UserRepository } from "../repositrory/user/user.repositroy";
 import { replyCommentDto } from "../dto/replyComment.dto";
-
+import { likeCommentDto } from "../dto/likeComment.dto";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -25,7 +17,7 @@ if (!JWT_SECRET) {
 
 export class CommentService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository) {
+    constructor(private userRepo: UserRepository,private postRepo: PostRepository, private commentRepo: CommentRepository , private likeCommentRepository: LikeCommentRepository) {
     }
 
 
@@ -74,6 +66,51 @@ export class CommentService {
             message: "Reply comment was successfully created"
         };
     }
+
+    async likeAComment(likeCommentDto : likeCommentDto) {
+
+        const comment = await this.commentRepo.doesThisCommentExist(likeCommentDto.commentId);
+        if (!comment) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.checkUserExist(likeCommentDto.username);
+        if (!user) {
+            throw new HttpError(400 , "user does not exist")
+        }
+
+        const userHasLiked = await this.likeCommentRepository.hasUserLikedComment(likeCommentDto.username, likeCommentDto.commentId);
+        if (userHasLiked) {
+            throw new HttpError(400, "User has already liked this comment");
+        }
+
+        await this.likeCommentRepository.likeComment(likeCommentDto);
+
+        return true;
+    }
+
+    async unlikeAComment(likeCommentDto: likeCommentDto): Promise<boolean> {
+
+        const commentExists = await this.commentRepo.doesThisCommentExist(likeCommentDto.commentId);
+        if (!commentExists) {
+            throw new HttpError(400, "This comment does not exist");
+        }
+
+        const userExists = await this.userRepo.checkUserExist(likeCommentDto.username);
+        if (!userExists) {
+            throw new HttpError(400, "User does not exist");
+        }
+
+        const userHasLiked = await this.likeCommentRepository.hasUserLikedComment(likeCommentDto.username, likeCommentDto.commentId);
+        if (!userHasLiked) {
+            throw new HttpError(400, "User has not liked this comment");
+        }
+
+        await this.likeCommentRepository.unlikeComment(likeCommentDto.username, likeCommentDto.commentId);
+
+        return true;
+    }
+
 }
 
 

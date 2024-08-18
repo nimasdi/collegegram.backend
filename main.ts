@@ -9,14 +9,17 @@ import { UserService } from "./src/services/User.service";
 import { Comment } from "./src/db/comment/comment";
 import dotenv from 'dotenv';
 import { CommentService } from "./src/services/Comment.service";
+import { LikeCommentRepository } from "./src/repositrory/comment/likeComment.repository";
+import { LikeComment } from "./src/db/comment/likeComment";
 
 dotenv.config();
 
 const postRepo = new PostRepository(Post)
 const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
+const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const userService = new UserService(userRepo, postRepo, commentRepo);
-const commentService = new CommentService(userRepo, postRepo, commentRepo)
+const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 
 const uri = process.env.MONGO_URI || '';
 

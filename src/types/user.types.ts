@@ -44,6 +44,12 @@ export const isCommentId = (x: string): x is CommentId =>
     mongoose.Types.ObjectId.isValid(x); 
 export const zodCommentId = z.coerce.string().refine(isCommentId, { message: "Invalid comment ID" });
 
+// Type for user ID
+export type UserId = Brand<string, 'UserId'>;
+export const isUserId = (x: string): x is UserId =>
+    mongoose.Types.ObjectId.isValid(x); 
+export const zodUserId = z.coerce.string().refine(isUserId, { message: "Invalid user ID" });
+
 export interface UserWithoutPosts {
     firstName: Name;
     lastName: Name;
