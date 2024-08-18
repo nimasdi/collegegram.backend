@@ -1,25 +1,26 @@
-import {z} from 'zod'
-import { isUsername, zodCommentId, zodPostId, zodUsername } from '../types/user.types';
+import { z } from 'zod'
+import { CommentId, isUsername, PostId, UserId, zodCommentId, zodPostId, zodUserId, zodUsername } from '../types/user.types';
 import { checkRequired } from './createUser.dto';
+import { Types } from 'mongoose';
 
-interface userReplyComment{
-    text: string;
-    post_id: string;
-    parentId: string;
+interface likeComment {
+  userId: UserId,
+  postId: PostId,
+  commentId: CommentId
 }
 
-export const replyComment = z.object({
-    text: z.string().min(1),
-    parentId: zodCommentId,
-    postId: zodPostId
+export const likeComment = z.object({
+  userId: zodUserId,
+  postId: zodPostId,
+  commentId: zodCommentId
 })
-.refine(data => checkRequired(data,"parentId"), {
+  .refine(data => checkRequired(data, "parentId"), {
     message: "parentId is required",
     path: ['parentId'],
   })
-  .refine(data => checkRequired(data,"postId"), {
+  .refine(data => checkRequired(data, "postId"), {
     message: "postId is required",
     path: ['postId'],
   });
-  
-export type replyCommentDto = z.infer<typeof replyComment>;
+
+export type likeCommentDto = z.infer<typeof likeComment>;

@@ -1,6 +1,6 @@
 import mongoose, {  ClientSession, Model, Types } from "mongoose";
 import { IUser } from "../../db/user/user.model";
-import { Email, Name, Password, Username } from "../../types/user.types";
+import { Email, Name, Password, UserId, Username } from "../../types/user.types";
 import { HttpError } from "../../utility/error-handler";
 import { IPost, postSchema } from "../../db/post/post";
 
@@ -245,6 +245,11 @@ export class UserRepository {
         }
 
         return true
+    }
+
+    async doesThisUserExist(userId: UserId): Promise<boolean> {
+        const user = await this.model.findById(userId).exec();
+        return !!user;
     }
 
     async getUserIdByUsername(username: Username): Promise<Types.ObjectId | null> {

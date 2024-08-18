@@ -1,18 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { UserService } from '../services/User.service';
-import { createUser } from "../repositrory/user/user.repositroy";
 import authMiddleware from '../utility/authorization';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
-import { ZodError } from 'zod';
-import { createPostDto } from '../dto/createPost.dto';
-import { HttpError } from '../utility/error-handler';
-import multer from 'multer';
-import { updatePostDto } from '../dto/updatePostdto';
-import { upload as uploadMiddleware, upload1 as profileMid } from "../utility/multer"
-import { followDto } from '../dto/follow.dto';
-import path from 'path';
-import { createUserDto } from '../dto/createUser.dto';
-import { isEmail, isUsername, Username } from '../types/user.types';
 import { CommentService } from '../services/Comment.service';
 import { createComment } from '../dto/createComment.dto';
 import { replyComment } from '../dto/replyComment.dto';
@@ -65,8 +53,10 @@ export const CommentRoute = (commentService: CommentService) => {
 
             const result = await commentService.createComment(username , commentData)
 
+            if(!result.success){
+                res.status(400).send(result);
+            }
             res.status(200).send(result);
-
 
         } catch (error) {
             handelErrorResponse(res, error)
@@ -122,6 +112,9 @@ export const CommentRoute = (commentService: CommentService) => {
 
             const result = await commentService.replyToComment(username, replyData.postId, replyData);
 
+            if(!result.success){
+                res.status(400).send(result);
+            }
             res.status(200).send(result);
         } catch (error) {
             handelErrorResponse(res, error);

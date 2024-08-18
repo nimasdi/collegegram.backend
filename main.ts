@@ -16,7 +16,7 @@ const postRepo = new PostRepository(Post)
 const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const userService = new UserService(userRepo, postRepo, commentRepo);
-const commentService = new CommentService(userRepo, postRepo, commentRepo)
+const commentService = new CommentService(postRepo, commentRepo)
 
 const uri = process.env.MONGO_URI || '';
 

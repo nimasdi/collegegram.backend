@@ -1,0 +1,29 @@
+import mongoose, { Model, Document, Schema, Types } from "mongoose";
+
+export interface ILikeComment extends Document {
+    userId: Types.ObjectId;
+    postId: Types.ObjectId;
+    commentId: Types.ObjectId;
+}
+
+export const likeCommentSchema: Schema<ILikeComment> = new Schema({
+    postId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Post',
+        required: true,
+    },
+    commentId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Comment',
+        required: true,
+    },
+    userId: { 
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+}, {
+    timestamps: true,
+});
+
+export const LikeComment: Model<ILikeComment> = mongoose.model<ILikeComment>('LikeComment', likeCommentSchema);
