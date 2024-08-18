@@ -88,6 +88,29 @@ export class CommentService {
 
         return true;
     }
+
+    async unlikeAComment(likeCommentDto: likeCommentDto): Promise<boolean> {
+
+        const commentExists = await this.commentRepo.doesThisCommentExist(likeCommentDto.commentId);
+        if (!commentExists) {
+            throw new HttpError(400, "This comment does not exist");
+        }
+
+        const userExists = await this.userRepo.checkUserExist(likeCommentDto.username);
+        if (!userExists) {
+            throw new HttpError(400, "User does not exist");
+        }
+
+        const userHasLiked = await this.likeCommentRepository.hasUserLikedComment(likeCommentDto.username, likeCommentDto.commentId);
+        if (!userHasLiked) {
+            throw new HttpError(400, "User has not liked this comment");
+        }
+
+        await this.likeCommentRepository.unlikeComment(likeCommentDto.username, likeCommentDto.commentId);
+
+        return true;
+    }
+
 }
 
 

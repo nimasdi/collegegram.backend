@@ -33,11 +33,17 @@ export class LikeCommentRepository {
     async likeComment(likeCommentData: likeComment): Promise<boolean> {
 
         const like = new this.model(likeCommentData);
+        await like.save().catch((err) => this.handleDBError(err));
         
         if (!like) {
             return false;
         }
         return true;
+    }
+
+    async unlikeComment(username: Username, commentId: CommentId): Promise<boolean> {
+        const result = await this.model.deleteOne({ username, commentId }).exec();
+        return result.deletedCount > 0;
     }
 
 }
