@@ -4,10 +4,9 @@ import authMiddleware from "../utility/authorization";
 import { Username, isUsername } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { handelErrorResponse } from "../utility/habdle-errResponse";
-import { UserService } from "../services/User.service";
 import { followDto } from "../dto/follow.dto";
 
-export const UserRoute = (followService: FollowService) => {
+export const FollowRoute = (followService: FollowService) => {
     const router = Router();
 
      /**
@@ -123,5 +122,7 @@ export const UserRoute = (followService: FollowService) => {
             handelErrorResponse(res, error)
         }
     })
+
+    return router
 }
  
