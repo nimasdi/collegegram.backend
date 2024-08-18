@@ -18,7 +18,7 @@ import { createComment } from '../dto/createComment.dto';
 import { replyComment } from '../dto/replyComment.dto';
 
 
-export const UserRoute = (commentService: CommentService) => {
+export const CommentRoute = (commentService: CommentService) => {
     const router = Router();
 
     /**
@@ -57,7 +57,7 @@ export const UserRoute = (commentService: CommentService) => {
      *       500:
      *         description: Server error
      */
-    router.post('/createComment', async (req: Request, res: Response) => {
+    router.post('/createComment',authMiddleware ,async (req: Request, res: Response) => {
         try {
 
             const username = req.user.username;
@@ -91,7 +91,7 @@ export const UserRoute = (commentService: CommentService) => {
      *           schema:
      *             type: object
      *             properties:
-     *               post_id:
+     *               postId:
      *                 type: string
      *                 example: "64e2c20b5c1d4b3c1a1e7d20"
      *                 description: The ID of the post where the comment is being replied to.
@@ -104,7 +104,7 @@ export const UserRoute = (commentService: CommentService) => {
      *                 example: "I totally agree with your point!"
      *                 description: The content of the reply comment.
      *             required:
-     *               - post_id
+     *               - postId
      *               - parentId
      *               - text
      *     responses:

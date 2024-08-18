@@ -6,8 +6,10 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerOptions from '../swaggerOptions';
 import path from "path";
 import cors from "cors"
+import { CommentService } from "./services/Comment.service";
+import { CommentRoute } from "./routes/comment.route";
 
-export const makeApp = (userService:UserService) => {
+export const makeApp = (userService:UserService , commentService:CommentService) => {
 
     const app = express()
 
@@ -34,6 +36,9 @@ export const makeApp = (userService:UserService) => {
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
     app.use('/' , UserRoute(userService))
+
+    //comments
+    app.use('/', CommentRoute(commentService));
 
     const errorHandling: express.ErrorRequestHandler = (error, req, res, next) => {
 
