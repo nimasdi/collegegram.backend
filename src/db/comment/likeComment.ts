@@ -1,7 +1,8 @@
 import mongoose, { Model, Document, Schema, Types } from "mongoose";
+import { Username } from "../../types/user.types";
 
 export interface ILikeComment extends Document {
-    userId: Types.ObjectId;
+    username: Username;
     postId: Types.ObjectId;
     commentId: Types.ObjectId;
 }
@@ -17,10 +18,10 @@ export const likeCommentSchema: Schema<ILikeComment> = new Schema({
         ref: 'Comment',
         required: true,
     },
-    userId: { 
-        type: Schema.Types.ObjectId,
+    username: {
+        type: String,
         ref: 'User',
-        required: true,
+        required: true, 
     },
 }, {
     timestamps: true,

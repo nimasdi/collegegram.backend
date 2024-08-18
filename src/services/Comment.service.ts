@@ -3,11 +3,10 @@ import { HttpError } from "../utility/error-handler";
 import { PostRepository } from "../repositrory/post/post.repository";
 import { createCommentDto } from "../dto/createComment.dto";
 import { CommentRepository, createCommentResponse, replyCommentResponse } from "../repositrory/comment/comment.repository";
-import { likeCommentDto} from "../dto/replyComment.dto";
 import { LikeCommentRepository } from "../repositrory/comment/likeComment.repository";
-import { replyCommentDto } from "../dto/likeComment.dto";
 import { UserRepository } from "../repositrory/user/user.repositroy";
-
+import { replyCommentDto } from "../dto/replyComment.dto";
+import { likeCommentDto } from "../dto/likeComment.dto";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -75,12 +74,12 @@ export class CommentService {
             throw new HttpError(400, "this comment does not exist");
         }
 
-        const user = await this.userRepo.doesThisUserExist(likeCommentDto.userId);
+        const user = await this.userRepo.checkUserExist(likeCommentDto.username);
         if (!user) {
             throw new HttpError(400 , "user does not exist")
         }
 
-        const userHasLiked = await this.likeCommentRepository.hasUserLikedComment(likeCommentDto.userId, likeCommentDto.commentId);
+        const userHasLiked = await this.likeCommentRepository.hasUserLikedComment(likeCommentDto.username, likeCommentDto.commentId);
         if (userHasLiked) {
             throw new HttpError(400, "User has already liked this comment");
         }

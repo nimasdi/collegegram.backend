@@ -5,7 +5,7 @@ import { IComment } from '../../db/comment/comment';
 import { ILikeComment } from '../../db/comment/likeComment';
 
 export interface likeComment {
-    userId: UserId;
+    username: Username;
     postId: PostId;
     commentId: CommentId;
 }
@@ -21,9 +21,9 @@ export class LikeCommentRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    async hasUserLikedComment(userId: UserId, commentId: CommentId): Promise<boolean> {
+    async hasUserLikedComment(username: Username, commentId: CommentId): Promise<boolean> {
         const existingLike = await this.model.findOne({
-            userId,
+            username,
             commentId
         }).exec().catch((err) => this.handleDBError(err));
 
@@ -31,11 +31,6 @@ export class LikeCommentRepository {
     }
 
     async likeComment(likeCommentData: likeComment): Promise<boolean> {
-
-        // const existingLike = await this.likeCommentRepo.findByUserAndComment(userId, commentId);
-        // if (existingLike) {
-        //     throw new HttpError(400, "User has already liked this comment");
-        // }
 
         const like = new this.model(likeCommentData);
         

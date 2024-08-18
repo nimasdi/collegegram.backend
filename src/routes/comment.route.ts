@@ -121,6 +121,21 @@ export const CommentRoute = (commentService: CommentService) => {
         }
     });
 
+    router.post('/replyToComment', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.user.username;
+            const replyData = replyComment.parse(req.body); 
+
+            const result = await commentService.replyToComment(username, replyData.postId, replyData);
+
+            if(!result.success){
+                res.status(400).send(result);
+            }
+            res.status(200).send(result);
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
 
     return router;
 
