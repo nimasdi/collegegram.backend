@@ -76,8 +76,8 @@ export class PostRepository {
             });
     }
 
-    async findById(postId: string): Promise<IPost | null> {
-        return this.postModel.findById(postId).exec()
+    async findById(postId: string): Promise<PostResponse | null> {
+        const post = await this.postModel.findById(postId).exec()
             .then((post) => {
                 if (!post) {
                     console.warn(`Post with id ${postId} not found.`);
@@ -88,6 +88,10 @@ export class PostRepository {
                 console.error("Error finding post by ID:", err.message);
                 return null;
             });
+        if (post === null) {
+            return null
+        }
+        return this.generatePostResponse(post)
     }
 
     async getAll(userId: Types.ObjectId) : Promise< PostResponse[] | []>{
