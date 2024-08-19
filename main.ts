@@ -14,6 +14,7 @@ import { LikeComment } from "./src/db/comment/likeComment";
 import { FollowService } from "./src/services/Follow.service";
 import { FollowRepository } from "./src/repositrory/Follow/follow.repository";
 import { Follow } from "./src/db/Follow/follow.model";
+import { PostService } from "./src/services/Post.service";
 
 dotenv.config();
 
@@ -22,11 +23,14 @@ const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const followRepo = new FollowRepository(Follow)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
-const userService = new UserService(userRepo, postRepo, commentRepo);
+const userService = new UserService(userRepo)
+const postService = new PostService(userRepo , postRepo)
 const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 const followService = new FollowService(followRepo,userRepo)
 
+
 const uri = process.env.MONGO_URI || '';
+
 
 const dbConnection = new MongoDBConnection(uri);
 
@@ -40,7 +44,7 @@ declare global {
 
 dbConnection.connect().then(async () => {
 
-    const app = makeApp(userService, commentService, followService)
+    const app = makeApp(userService, commentService, followService , postService)
 
     const PORT = 3000
 
