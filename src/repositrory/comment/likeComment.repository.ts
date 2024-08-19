@@ -46,4 +46,9 @@ export class LikeCommentRepository {
         return result.deletedCount > 0;
     }
 
+    async getCommentLikes(commentId: CommentId){
+        
+        
+    }
+
 }
