@@ -11,10 +11,12 @@ export const FollowRoute = (followService: FollowService) => {
 
      /**
     * @swagger
-    * /{username}:
+    * /follow/{username}:
     *   get:
     *     summary: check follow 
     *     description: check follow
+    *     tags:
+    *       - Follow
     *     parameters:
     *         - in: path
     *           name: username
@@ -50,10 +52,12 @@ export const FollowRoute = (followService: FollowService) => {
 
    /**
  * @swagger
- * /:
+ * /follow:
  *   post:
  *     summary: follow a user
  *     description: follow a user
+ *     tags:
+ *       - Follow
  *     requestBody:
  *       required: true
  *       content:
@@ -88,10 +92,12 @@ export const FollowRoute = (followService: FollowService) => {
 
     /**
      * @swagger
-     * /unfollow:
-     *   put:
+     * /follow:
+     *   delete:
      *     summary: unfollow a user
      *     description: unfollow a user
+     *     tags:
+     *       - Follow
      *     requestBody:
      *       required: true
      *       content:
