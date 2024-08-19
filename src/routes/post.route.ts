@@ -27,6 +27,8 @@ export const MakePostRoute = (postService: PostService) => {
     *     post:
     *       summary: Create a new post for a user
     *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
+    *       tags:
+    *           - Posts
     *       requestBody:
     *         description: Data required to create a new post, including images and other metadata.
     *         required: true

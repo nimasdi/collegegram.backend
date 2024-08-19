@@ -29,8 +29,7 @@ const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCom
 const followService = new FollowService(followRepo,userRepo)
 
 
-// const uri = process.env.MONGO_URI || '';
-const uri = "mongodb://localhost:27017/zoooo"
+const uri = process.env.MONGO_URI || '';
 
 
 const dbConnection = new MongoDBConnection(uri);

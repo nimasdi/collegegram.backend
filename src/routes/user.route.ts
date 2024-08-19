@@ -3,13 +3,7 @@ import { UserService } from '../services/User.service';
 import { createUser } from "../repositrory/user/user.repositroy";
 import authMiddleware from '../utility/authorization';
 import { handelErrorResponse } from '../utility/habdle-errResponse';
-import { ZodError } from 'zod';
-import { createPostDto } from '../dto/createPost.dto';
-import { HttpError } from '../utility/error-handler';
-import multer from 'multer';
-import { updatePostDto } from '../dto/updatePostdto';
 import { upload as uploadMiddleware , upload1 as profileMid } from "../utility/multer"
-import { followDto } from '../dto/follow.dto';
 import path from 'path';
 import { createUserDto } from '../dto/createUser.dto';
 import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
@@ -24,6 +18,8 @@ export const UserRoute = (userService: UserService) => {
      *   post:
      *     summary: User signup
      *     description: Create a new user account.
+     *     tags:
+     *       - Users
      *     requestBody:
      *       required: true
      *       content:
@@ -69,6 +65,8 @@ export const UserRoute = (userService: UserService) => {
      *   post:
      *     summary: User login
      *     description: Authenticate a user and return a JWT token.
+     *     tags:
+     *       - Users
      *     requestBody:
      *       required: true
      *       content:
@@ -114,34 +112,36 @@ export const UserRoute = (userService: UserService) => {
     });
 
     /**
-     * @swagger
-     * /setPassword/{hashedUsername}:
-     *   post:
-     *     summary: Set user password
-     *     description: Set a new password for a user identified by a hashed username.
-     *     parameters:
-     *       - in: path
-     *         name: hashedUsername
-     *         required: true
-     *         schema:
-     *           type: string
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               password:
-     *                 type: string
-     *     responses:
-     *       200:
-     *         description: Password updated successfully
-     *       400:
-     *         description: Missing or invalid data
-     *       500:
-     *         description: Internal server error
-     */
+    * @swagger
+    * /setPassword/{hashedUsername}:
+    *   post:
+    *     summary: Set user password
+    *     description: Set a new password for a user identified by a hashed username.
+    *     tags:
+    *       - Users
+    *     parameters:
+    *       - in: path
+    *         name: hashedUsername
+    *         required: true
+    *         schema:
+    *           type: string
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               password:
+    *                 type: string
+    *     responses:
+    *       200:
+    *         description: Password updated successfully
+    *       400:
+    *         description: Missing or invalid data
+    *       500:
+    *         description: Internal server error
+    */
     router.post("/setPassword/:hashedUsername", async (req: Request, res: Response) => {
         try {
             const { hashedUsername } = req.params;
@@ -177,28 +177,30 @@ export const UserRoute = (userService: UserService) => {
     });
 
     /**
-     * @swagger
-     * /resetPassword:
-     *   post:
-     *     summary: Reset user password
-     *     description: Sends an email to reset the password for the user identified by username or email.
-     *     requestBody:
-     *       required: true
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             required:
-     *               - identifier
-     *             properties:
-     *               identifier:
-     *                 type: string
-     *     responses:
-     *       200:
-     *         description: Email sent successfully
-     *       400:
-     *         description: Invalid identifier provided
-     */
+    * @swagger
+    * /resetPassword:
+    *   post:
+    *     summary: Reset user password
+    *     description: Sends an email to reset the password for the user identified by username or email.
+    *     tags:
+    *       - Users
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             required:
+    *               - identifier
+    *             properties:
+    *               identifier:
+    *                 type: string
+    *     responses:
+    *       200:
+    *         description: Email sent successfully
+    *       400:
+    *         description: Invalid identifier provided
+    */
     router.post("/resetPassword", async (req: Request, res: Response) => {
         const { identifier } = req.body;
 
@@ -235,6 +237,8 @@ export const UserRoute = (userService: UserService) => {
     *   get:
     *     summary: Get user information
     *     description: Retrieve detailed information for a user by username.
+    *     tags:
+    *       - Users
     *     parameters:
     *       - in: path
     *         name: username
@@ -299,6 +303,8 @@ export const UserRoute = (userService: UserService) => {
      *   put:
      *     summary: Update user information
      *     description: Update the user information including an optional profile image.
+     *     tags:
+     *       - Users
      *     requestBody:
      *       content:
      *         multipart/form-data:
