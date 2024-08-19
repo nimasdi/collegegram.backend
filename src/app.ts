@@ -8,8 +8,10 @@ import path from "path";
 import cors from "cors"
 import { CommentService } from "./services/Comment.service";
 import { CommentRoute } from "./routes/comment.route";
+import { FollowRoute } from "./routes/follow.route";
+import { FollowService } from "./services/Follow.service";
 
-export const makeApp = (userService:UserService , commentService:CommentService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService) => {
 
     const app = express()
 
@@ -36,6 +38,7 @@ export const makeApp = (userService:UserService , commentService:CommentService)
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
     app.use('/' , UserRoute(userService))
+    app.use('/follow', FollowRoute(followService))
 
     //comments
     app.use('/', CommentRoute(commentService));
