@@ -24,6 +24,12 @@ export interface replyCommentResponse {
     message: string
 }
 
+export interface getComment{
+    parentId?: CommentId,
+    text : string,
+    username: Username
+}
+
 export class CommentRepository {
 
     constructor(private model: Model<IComment>) {
@@ -33,6 +39,17 @@ export class CommentRepository {
         console.log(error)
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
+
+    private makeCommentResponse(comment: IComment): getComment {
+        const commentResponse: getComment = {
+            parentId: comment.parentId ? (comment.parentId.toString() as CommentId) : undefined,
+            text: comment.text,
+            username: comment.username as Username,
+        };
+    
+        return commentResponse;
+    }
+    
 
     async createComment(postId: PostId, createCommentData: createComment): Promise<boolean> {
         
