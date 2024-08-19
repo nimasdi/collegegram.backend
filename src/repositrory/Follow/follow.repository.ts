@@ -42,5 +42,17 @@ export class FollowRepository {
         }
         return true
     }
+
+    async getFollowerCount(user: Username): Promise<Number>{
+        const followerCount = await this.model.countDocuments({followingUsername: user})
+        .catch(err => this.handleDBError(err))
+        return followerCount
+    }
+
+    async getFollowingCount(user: Username): Promise<Number>{
+        const followingCount = await this.model.countDocuments({followerUsername: user})
+        .catch(err => this.handleDBError(err))
+        return followingCount
+    }
 }
 

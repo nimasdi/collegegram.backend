@@ -26,7 +26,7 @@ const userService = new UserService(userRepo, postRepo, commentRepo);
 const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 const followService = new FollowService(followRepo,userRepo)
 
-const uri = process.env.MONGO_URI || '';
+const uri = process.env.MONGO_URIME || '';
 
 const dbConnection = new MongoDBConnection(uri);
 
