@@ -705,7 +705,60 @@ export const UserRoute = (userService: UserService) => {
 
             res.status(200).json(userInfo);
         } catch (error) {
-            res.status(500).json({ message: "server error" });
+            handelErrorResponse(res, error)
+        }
+    });
+
+
+    /**
+    * @swagger
+    * /post/{postid}:
+    *   get:
+    *     summary: Get post details by ID
+    *     description: Retrieves post details by its ID, including the username of the author.
+    *     tags:
+    *       - Posts
+    *     parameters:
+    *       - in: path
+    *         name: postid
+    *         required: true
+    *         description: The ID of the post to retrieve.
+    *         schema:
+    *           type: string
+    *     responses:
+    *       200:
+    *         description: Successful response with post details
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 postId:
+    *                   type: string
+    *                   example: "64a1f8e4e3b6f3c8b7a8b3a9"
+    *                 title:
+    *                   type: string
+    *                   example: "Post Title"
+    *                 content:
+    *                   type: string
+    *                   example: "This is the content of the post."
+    *                 author:
+    *                   type: string
+    *                   example: "johndoe"
+    *       404:
+    *         description: Post not found
+    *       500:
+    *         description: Server error
+    */
+    router.get('/post/:postid', async (req: Request, res: Response) => {
+        try {
+            const { postid } = req.params;
+
+            const post = await userService.getPostByIdWithUsername(postid);
+
+            res.status(200).send(post);
+        } catch (error) {
+            handelErrorResponse(res, error)
         }
     });
 

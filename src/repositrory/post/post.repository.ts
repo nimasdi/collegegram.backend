@@ -30,7 +30,7 @@ export interface GetPostResponse {
     caption: string,
     tags: string[],
     mentions: Username[],
-    id: Types.ObjectId,
+    postId: Types.ObjectId,
     userId: Types.ObjectId
 }
 
@@ -62,7 +62,7 @@ export class PostRepository {
             caption: post.caption,
             tags: post.tags,
             mentions: post.mentions,
-            id: post._id as Types.ObjectId,
+            postId: post._id as Types.ObjectId,
             userId: post.userId,
         };
 

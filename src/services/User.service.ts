@@ -9,7 +9,7 @@ import path from "path";
 import fs from 'fs';
 import { HttpError } from "../utility/error-handler";
 import { extractTags } from "../utility/extractTags";
-import { createPost, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
+import { createPost, GetPostResponse, PostRepository, PostResponse, updatePost } from "../repositrory/post/post.repository";
 import { Types } from "mongoose";
 import { createCommentDto } from "../dto/createComment.dto";
 import { CommentRepository, createCommentResponse, replyCommentResponse } from "../repositrory/comment/comment.repository";
@@ -26,6 +26,15 @@ export type userUpdatePost = {
     images: string[],
     caption: string,
     mentionsUsernames: string
+}
+
+export interface UserGetPostResponse {
+    images: string[],
+    caption: string,
+    tags: string[],
+    mentions: Username[],
+    postId: Types.ObjectId,
+    username: Username
 }
 
 type UsernameOrEmail = Username | Email;
@@ -320,6 +329,32 @@ export class UserService {
 
         return posts
     }
+
+    async getPostByIdWithUsername(postId: string): Promise<UserGetPostResponse> {
+
+        if (!Types.ObjectId.isValid(postId)) {
+            throw new HttpError(400, "Invalid post ID format.");
+        }
+
+        const post = await this.postRepo.getPostById(postId);
+    
+        if (!post) {
+            throw new HttpError(404, "Post not found.");
+        }
+    
+        const username = await this.userRepo.getUsernameById(post.userId);
+    
+        if (!username) {
+            throw new HttpError(404, "User associated with this post not found.");
+        }
+    
+        return {
+            ...post,
+            username: username,
+        };
+    }
+    
+    
 
 
     convertToArray(commaSeparatedString: string): string[] {
