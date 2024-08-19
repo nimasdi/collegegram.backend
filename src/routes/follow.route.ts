@@ -159,6 +159,45 @@ export const FollowRoute = (followService: FollowService) => {
         }
     });
 
+    /**
+    * @swagger
+    * /follow/{username}/list:
+    *   get:
+    *     summary: follower and followers list
+    *     description: check followers and following
+    *     tags:
+    *       - Follow
+    *     parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: The ID of the post to be updated.
+    *           schema:
+    *             type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get("/:username/list", authMiddleware, async(req, res) => {
+        try {
+            const username = req.params.username
+            if(!isUsername(username)){
+                throw new HttpError(400, "check user name Field")
+            }
+            const followersAndFollowings = await followService.getConnections(username)
+
+            res.status(200).json(followersAndFollowings)
+        } catch (error) {
+            handelErrorResponse(res,error)
+        }
+    });
+
     return router
 }
  

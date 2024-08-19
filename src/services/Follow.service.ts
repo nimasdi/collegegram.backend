@@ -56,6 +56,10 @@ export class FollowService {
             followingCount
         }
     }
+
+    async getConnections(username:Username): Promise<Number>{
+        return 2
+    }
 }
 
 
