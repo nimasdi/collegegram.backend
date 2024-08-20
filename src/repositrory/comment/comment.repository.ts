@@ -27,7 +27,14 @@ export interface replyCommentResponse {
 export interface getCommentResponse {
     parentId?: CommentId,
     text : string,
-    username: Username
+    username: Username,
+}
+
+export interface getCommentsWithLikes {
+    parentId?: CommentId,
+    text : string,
+    username: Username,
+    likeCount: number
 }
 
 export class CommentRepository {
@@ -49,6 +56,7 @@ export class CommentRepository {
 
         return commentResponse;
     }
+
 
 
     async createComment(postId: PostId, createCommentData: createComment): Promise<boolean> {
@@ -94,16 +102,50 @@ export class CommentRepository {
         return true;
     }
 
-    async getComments(postId: PostId): Promise<getCommentResponse[]> {
+    async getCommentsWithLikes(postId: PostId, page: number = 1, pageSize: number = 10): Promise<{ comments: getCommentResponse[], total: number }> {
 
-        const comments = await this.model.find({ postId }).exec()
-        .catch((err) => 
-            this.handleDBError(err)
-        );
-
-        const commentsResponse = comments.map((comment) => this.makeCommentResponse(comment));
-
-        return commentsResponse
+        const [comments, totalComments] = await Promise.all([
+            this.model.aggregate([
+                { $match: { postId } }, // Match comments for the specific post
+                {
+                    $lookup: {
+                        from: 'likecomments', // Collection name for likes
+                        localField: '_id',
+                        foreignField: 'commentId',
+                        as: 'likes'
+                    }
+                },
+                {
+                    $addFields: {
+                        likesCount: { $size: '$likes' } // Count the number of likes
+                    }
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        text: 1,
+                        username: 1,
+                        likesCount: 1
+                    }
+                },
+                { $sort: { createdAt: -1 } }, // Sort comments by creation date (newest first)
+                { $limit: pageSize } // Limit the number of documents returned
+            ]).exec(),
+    
+            this.model.countDocuments({ postId }).exec() // Count the total number of comments
+        ]);
+    
+        const commentsResponse: getCommentResponse[] = comments.map(comment => ({
+            parentId: comment.parentId ? (comment.parentId.toString() as CommentId) : undefined,
+            text: comment.text,
+            username: comment.username as Username,
+            likesCount: comment.likesCount
+        }));
+    
+        return {
+            comments: commentsResponse,
+            total: totalComments
+        };
     }
-
+    
 }
