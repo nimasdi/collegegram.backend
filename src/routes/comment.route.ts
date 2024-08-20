@@ -46,15 +46,15 @@ export const CommentRoute = (commentService: CommentService) => {
      *       500:
      *         description: Server error
      */
-    router.post('/createComment',authMiddleware ,async (req: Request, res: Response) => {
+    router.post('/createComment', authMiddleware, async (req: Request, res: Response) => {
         try {
 
             const username = req.user.username;
             const commentData = createComment.parse(req.body)
 
-            const result = await commentService.createComment(username , commentData)
+            const result = await commentService.createComment(username, commentData)
 
-            if(!result.success){
+            if (!result.success) {
                 res.status(400).send(result);
             }
             res.status(200).send(result);
@@ -109,11 +109,11 @@ export const CommentRoute = (commentService: CommentService) => {
     router.post('/replyToComment', authMiddleware, async (req: Request, res: Response) => {
         try {
             const username = req.user.username;
-            const replyData = replyComment.parse(req.body); 
+            const replyData = replyComment.parse(req.body);
 
             const result = await commentService.replyToComment(username, replyData.postId, replyData);
 
-            if(!result.success){
+            if (!result.success) {
                 res.status(400).send(result);
             }
             res.status(200).send(result);
@@ -160,11 +160,11 @@ export const CommentRoute = (commentService: CommentService) => {
      */
     router.post('/likeComment', authMiddleware, async (req: Request, res: Response) => {
         try {
-            
-            const username = req.user.username;
-            const data = {...req.body ,username }
 
-            const likeCommentData = likeComment.parse(data); 
+            const username = req.user.username;
+            const data = { ...req.body, username }
+
+            const likeCommentData = likeComment.parse(data);
 
             const result = await commentService.likeAComment(likeCommentData);
 
@@ -214,15 +214,67 @@ export const CommentRoute = (commentService: CommentService) => {
      */
     router.post('/unlikeComment', authMiddleware, async (req: Request, res: Response) => {
         try {
-            
-            const username = req.user.username;
-            const data = {...req.body ,username }
 
-            const likeCommentData = likeComment.parse(data); 
+            const username = req.user.username;
+            const data = { ...req.body, username }
+
+            const likeCommentData = likeComment.parse(data);
 
             const result = await commentService.unlikeAComment(likeCommentData);
 
             res.status(200).send("Comment unliked successfully");
+
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
+
+    /**
+    * @swagger
+    * /userLikes:
+    *   get:
+    *     summary: Get all liked comments of the user on a specific post
+    *     description: Retrieves all the comments liked by the user on a specific post.
+    *     tags:
+    *       - Comments
+    *     security:
+    *       - bearerAuth: []
+    *     parameters:
+    *       - in: query
+    *         name: postId
+    *         schema:
+    *           type: string
+    *           example: "64e2c20b5c1d4b3c1a1e7d20"
+    *         required: true
+    *         description: The ID of the post to retrieve liked comments for.
+    *     responses:
+    *       200:
+    *         description: Liked comments retrieved successfully
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: array
+    *               items:
+    *                 type: string
+    *                 description: The ID of the liked comment
+    *       400:
+    *         description: Invalid input data or post not found
+    *       500:
+    *         description: Server error
+    */
+    router.get('/userLikes', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.user.username;
+
+            const postId = req.query.postId as string;
+            if (!postId) {
+                return res.status(400).send("Post ID is required");
+            }
+
+            const result = await commentService.getUserLikedComments(username, postId);
+
+            res.status(200).json(result);
 
         } catch (error) {
             handelErrorResponse(res, error);

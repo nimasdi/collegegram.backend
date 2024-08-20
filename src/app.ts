@@ -10,8 +10,10 @@ import { CommentService } from "./services/Comment.service";
 import { CommentRoute } from "./routes/comment.route";
 import { FollowRoute } from "./routes/follow.route";
 import { FollowService } from "./services/Follow.service";
+import { PostService } from "./services/Post.service";
+import { MakePostRoute } from "./routes/post.route";
 
-export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService) => {
 
     const app = express()
 
@@ -37,7 +39,13 @@ export const makeApp = (userService:UserService , commentService:CommentService 
     const swaggerDocs = swaggerJsDoc(swaggerOptions);
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
+    // users
     app.use('/' , UserRoute(userService))
+
+    // posts
+    app.use('/' , MakePostRoute(postService))
+
+    // follow
     app.use('/follow', FollowRoute(followService))
 
     //comments
