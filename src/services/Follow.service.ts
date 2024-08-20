@@ -1,4 +1,4 @@
-import { FollowRepository } from "../repositrory/Follow/follow.repository";
+import { FollowRepository, followingAndFollowers } from "../repositrory/Follow/follow.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
@@ -57,8 +57,9 @@ export class FollowService {
         }
     }
 
-    async getConnections(username:Username): Promise<Number>{
-        return 2
+    async getFollowersAndFollowing(username:Username): Promise<followingAndFollowers>{
+        const followingAndFollowers  = this.followRepo.getFollowersAndFollowing(username)
+        return followingAndFollowers
     }
 }
 

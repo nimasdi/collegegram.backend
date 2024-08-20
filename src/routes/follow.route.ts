@@ -190,7 +190,7 @@ export const FollowRoute = (followService: FollowService) => {
             if(!isUsername(username)){
                 throw new HttpError(400, "check user name Field")
             }
-            const followersAndFollowings = await followService.getConnections(username)
+            const followersAndFollowings = await followService.getFollowersAndFollowing(username)
 
             res.status(200).json(followersAndFollowings)
         } catch (error) {

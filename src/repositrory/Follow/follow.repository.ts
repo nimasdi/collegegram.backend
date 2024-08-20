@@ -8,7 +8,12 @@ export interface Follow {
     followerUserName : Username,
 }
 
-
+export interface followingAndFollowers {
+    followers: { username: Username, followerCount: number, followingCount: number }[];
+    following: { username: Username, followerCount: number, followingCount: number }[];
+    followerCount: number;
+    followingCount: number;
+}
 
 export class FollowRepository {
 
@@ -53,6 +58,80 @@ export class FollowRepository {
         const followingCount = await this.model.countDocuments({followerUsername: user})
         .catch(err => this.handleDBError(err))
         return followingCount
+    }
+
+    async getFollowersAndFollowing(user: Username): Promise<followingAndFollowers> {
+        // Aggregation for followers
+        const followersPipeline = [
+            { $match: { followingUsername: user } },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followerUsername',
+                    foreignField: 'followingUsername',
+                    as: 'followers'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followerUsername',
+                    foreignField: 'followerUsername',
+                    as: 'following'
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    username: '$followerUsername',
+                    followerCount: { $size: '$followers' },
+                    followingCount: { $size: '$following' }
+                }
+            }
+        ];
+
+        const followers = await this.model.aggregate(followersPipeline).exec().catch(err => this.handleDBError(err));
+
+        // Aggregation for following
+        const followingPipeline = [
+            { $match: { followerUsername: user } },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followingUsername',
+                    foreignField: 'followingUsername',
+                    as: 'followers'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followingUsername',
+                    foreignField: 'followerUsername',
+                    as: 'following'
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    username: '$followingUsername',
+                    followerCount: { $size: '$followers' },
+                    followingCount: { $size: '$following' }
+                }
+            }
+        ];
+
+        const following = await this.model.aggregate(followingPipeline).exec().catch(err => this.handleDBError(err));
+
+        const followerCount = followers.length;
+        const followingCount = following.length;
+
+        return {
+            followers,
+            following,
+            followerCount,
+            followingCount,
+        };
     }
 }
 
