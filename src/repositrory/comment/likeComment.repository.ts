@@ -46,8 +46,15 @@ export class LikeCommentRepository {
         return result.deletedCount > 0;
     }
 
-    async getUserLikedCommentsOnPost(username: Username, postId: PostId) {
-        return this.model.find({ username, postId }).exec().catch((err) => this.handleDBError(err));
+    async getUserLikedCommentIdsOnPost(username: Username, postId: PostId): Promise<CommentId[]> {
+        const likedComments = await this.model
+            .find({ username, postId })
+            .select('commentId -_id') 
+            .lean() 
+            .exec()
+            .catch((err) => this.handleDBError(err));
+
+        return (likedComments as unknown as CommentId[]);
     }
 
 
