@@ -103,22 +103,14 @@ export class CommentRepository {
     }
 
 
-    // we use a cursor for the pagination and the cursor is the created at
-    async getCommentsWithLikes(
-        postId: PostId,
-        lastCreatedAt?: Date,
-        pageSize: number = 10
-    ): Promise<{ comments: getCommentsWithLikes[], total: number }> {
-    
-        const matchQuery: any = { postId };
-    
-        if (lastCreatedAt) {
-            matchQuery.createdAt = { $lt: lastCreatedAt };
-        }
-    
+    async getCommentsWithLikes(postId: PostId, username: string, pageNumber: number = 1, pageSize: number = 10):
+        Promise<{ comments: getCommentsWithLikes[], total: number }> {
+
+        const skip = (pageNumber - 1) * pageSize;
+
         const [comments, totalComments] = await Promise.all([
             this.model.aggregate([
-                { $match: matchQuery }, // Match comments for the specific post and cursor
+                { $match: { postId: new Types.ObjectId(postId) } },
                 {
                     $lookup: {
                         from: 'likecomments', // Collection name for likes
@@ -129,7 +121,10 @@ export class CommentRepository {
                 },
                 {
                     $addFields: {
-                        likesCount: { $size: '$likes' } // Count the number of likes
+                        likesCount: { $size: '$likes' }, // Count the number of likes
+                        isLikedByUser: {
+                            $in: [username, '$likes.username'] // Check if the username is in the likes array
+                        }
                     }
                 },
                 {
@@ -138,19 +133,21 @@ export class CommentRepository {
                         text: 1,
                         username: 1,
                         likesCount: 1,
-                        createdAt: 1 // Include this for pagination cursor
+                        isLikedByUser: 1,
+                        createdAt: 1
                     }
                 },
-                { $sort: { createdAt: -1 } }, // Sort by createdAt in descending order (latest first)
-                { $limit: pageSize } // Apply pagination limit
+                { $sort: { createdAt: -1 } }, // Sort by createdAt in descending order
+                { $skip: skip },
+                { $limit: pageSize }
             ]).exec(),
-    
-            this.model.countDocuments({ postId }).exec() 
+
+            this.model.countDocuments({ postId }).exec()
         ]);
-    
+
         return { comments, total: totalComments };
     }
-    
+
 
 
 }

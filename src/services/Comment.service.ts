@@ -114,9 +114,9 @@ export class CommentService {
 
     async getCommentsWithLikes(commentData: GetCommentDto) {    
 
-        const { postId, lastCreatedAt, pageSize } = commentData;
+        const { postId, username, pageNumber, pageSize } = commentData;
 
-        const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, lastCreatedAt, pageSize);
+        const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, username ,pageNumber , pageSize);
 
         return { comments, total };
     }

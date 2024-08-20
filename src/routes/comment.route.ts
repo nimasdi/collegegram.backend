@@ -48,15 +48,15 @@ export const CommentRoute = (commentService: CommentService) => {
      *       500:
      *         description: Server error
      */
-    router.post('/createComment',authMiddleware ,async (req: Request, res: Response) => {
+    router.post('/createComment', authMiddleware, async (req: Request, res: Response) => {
         try {
 
             const username = req.user.username;
             const commentData = createComment.parse(req.body)
 
-            const result = await commentService.createComment(username , commentData)
+            const result = await commentService.createComment(username, commentData)
 
-            if(!result.success){
+            if (!result.success) {
                 res.status(400).send(result);
             }
             res.status(200).send(result);
@@ -111,11 +111,11 @@ export const CommentRoute = (commentService: CommentService) => {
     router.post('/replyToComment', authMiddleware, async (req: Request, res: Response) => {
         try {
             const username = req.user.username;
-            const replyData = replyComment.parse(req.body); 
+            const replyData = replyComment.parse(req.body);
 
             const result = await commentService.replyToComment(username, replyData.postId, replyData);
 
-            if(!result.success){
+            if (!result.success) {
                 res.status(400).send(result);
             }
             res.status(200).send(result);
@@ -162,11 +162,11 @@ export const CommentRoute = (commentService: CommentService) => {
      */
     router.post('/likeComment', authMiddleware, async (req: Request, res: Response) => {
         try {
-            
-            const username = req.user.username;
-            const data = {...req.body ,username }
 
-            const likeCommentData = likeComment.parse(data); 
+            const username = req.user.username;
+            const data = { ...req.body, username }
+
+            const likeCommentData = likeComment.parse(data);
 
             const result = await commentService.likeAComment(likeCommentData);
 
@@ -216,11 +216,11 @@ export const CommentRoute = (commentService: CommentService) => {
      */
     router.post('/unlikeComment', authMiddleware, async (req: Request, res: Response) => {
         try {
-            
-            const username = req.user.username;
-            const data = {...req.body ,username }
 
-            const likeCommentData = likeComment.parse(data); 
+            const username = req.user.username;
+            const data = { ...req.body, username }
+
+            const likeCommentData = likeComment.parse(data);
 
             const result = await commentService.unlikeAComment(likeCommentData);
 
@@ -231,53 +231,52 @@ export const CommentRoute = (commentService: CommentService) => {
         }
     });
 
-     /**
-     * @swagger
-     * /getCommentsWithLikes:
-     *   get:
-     *     summary: Get comments with likes for a post
-     *     description: Retrieves a paginated list of comments along with their like counts for a specific post.
-     *     tags:
-     *       - Comments
-     *     security:
-     *       - bearerAuth: []
-     *     parameters:
-     *       - in: query
-     *         name: postId
-     *         schema:
-     *           type: string
-     *           example: "64e2c20b5c1d4b3c1a1e7d20"
-     *         required: true
-     *         description: The ID of the post to retrieve comments for.
-     *       - in: query
-     *         name: lastCreatedAt
-     *         schema:
-     *           type: string
-     *           format: date-time
-     *           example: "2023-08-01T00:00:00Z"
-     *         required: false
-     *         description: The timestamp of the last fetched comment for cursor-based pagination.
-     *       - in: query
-     *         name: pageSize
-     *         schema:
-     *           type: number
-     *           example: 10
-     *         required: false
-     *         description: The number of comments to retrieve.
-     *     responses:
-     *       200:
-     *         description: Comments retrieved successfully
-     *       400:
-     *         description: Invalid input data or post not found
-     *       500:
-     *         description: Server error
-     */
+    /**
+    * @swagger
+    * /getCommentsWithLikes:
+    *   get:
+    *     summary: Get comments with likes for a post
+    *     description: Retrieves a paginated list of comments along with their like counts and whether the current user liked each comment.
+    *     tags:
+    *       - Comments
+    *     security:
+    *       - bearerAuth: []
+    *     parameters:
+    *       - in: query
+    *         name: postId
+    *         schema:
+    *           type: string
+    *           example: "64e2c20b5c1d4b3c1a1e7d20"
+    *         required: true
+    *         description: The ID of the post to retrieve comments for.
+    *       - in: query
+    *         name: pageNumber
+    *         schema:
+    *           type: number
+    *           example: 1
+    *         required: false
+    *         description: The page number to retrieve, defaults to 1.
+    *       - in: query
+    *         name: pageSize
+    *         schema:
+    *           type: number
+    *           example: 10
+    *         required: false
+    *         description: The number of comments to retrieve per page, defaults to 10.
+    *     responses:
+    *       200:
+    *         description: Comments retrieved successfully
+    *       400:
+    *         description: Invalid input data or post not found
+    *       500:
+    *         description: Server error
+    */
     router.get('/getCommentsWithLikes', authMiddleware, async (req: Request, res: Response) => {
         try {
-
             const queryParams = GetComment.parse({
                 postId: req.query.postId,
-                lastCreatedAt: req.query.lastCreatedAt ? new Date(req.query.lastCreatedAt as string) : undefined,
+                username: req.user.username,
+                pageNumber: req.query.pageNumber ? parseInt(req.query.pageNumber as string) : undefined,
                 pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
             });
 
@@ -288,6 +287,8 @@ export const CommentRoute = (commentService: CommentService) => {
             handelErrorResponse(res, error);
         }
     });
+
+
 
 
 
