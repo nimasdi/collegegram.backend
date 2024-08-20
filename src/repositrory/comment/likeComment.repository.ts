@@ -58,4 +58,9 @@ export class LikeCommentRepository {
     }
 
 
+    async getCommentLikes(commentId: CommentId){
+        
+        
+    }
+
 }

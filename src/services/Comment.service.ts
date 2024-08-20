@@ -7,6 +7,7 @@ import { LikeCommentRepository } from "../repositrory/comment/likeComment.reposi
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { replyCommentDto } from "../dto/replyComment.dto";
 import { likeCommentDto } from "../dto/likeComment.dto";
+import { GetCommentDto } from "../dto/getCommentWithLikes";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -120,6 +121,15 @@ export class CommentService {
         const comments  = await this.likeCommentRepository.getUserLikedCommentIdsOnPost(username , postId)
 
         return comments;
+    }
+
+    async getCommentsWithLikes(commentData: GetCommentDto) {    
+
+        const { postId, username, pageNumber, pageSize } = commentData;
+
+        const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, username ,pageNumber , pageSize);
+
+        return { comments, total };
     }
 
 }
