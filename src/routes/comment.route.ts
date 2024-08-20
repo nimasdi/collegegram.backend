@@ -5,6 +5,8 @@ import { CommentService } from '../services/Comment.service';
 import { createComment } from '../dto/createComment.dto';
 import { replyComment } from '../dto/replyComment.dto';
 import { likeComment } from '../dto/likeComment.dto';
+import { getCommentsWithLikes } from '../repositrory/comment/comment.repository';
+import { GetComment, GetCommentDto } from '../dto/getCommentWithLikes';
 
 
 export const CommentRoute = (commentService: CommentService) => {
@@ -228,6 +230,65 @@ export const CommentRoute = (commentService: CommentService) => {
             handelErrorResponse(res, error);
         }
     });
+
+     /**
+     * @swagger
+     * /getCommentsWithLikes:
+     *   get:
+     *     summary: Get comments with likes for a post
+     *     description: Retrieves a paginated list of comments along with their like counts for a specific post.
+     *     tags:
+     *       - Comments
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: postId
+     *         schema:
+     *           type: string
+     *           example: "64e2c20b5c1d4b3c1a1e7d20"
+     *         required: true
+     *         description: The ID of the post to retrieve comments for.
+     *       - in: query
+     *         name: lastCreatedAt
+     *         schema:
+     *           type: string
+     *           format: date-time
+     *           example: "2023-08-01T00:00:00Z"
+     *         required: false
+     *         description: The timestamp of the last fetched comment for cursor-based pagination.
+     *       - in: query
+     *         name: pageSize
+     *         schema:
+     *           type: number
+     *           example: 10
+     *         required: false
+     *         description: The number of comments to retrieve.
+     *     responses:
+     *       200:
+     *         description: Comments retrieved successfully
+     *       400:
+     *         description: Invalid input data or post not found
+     *       500:
+     *         description: Server error
+     */
+    router.get('/getCommentsWithLikes', authMiddleware, async (req: Request, res: Response) => {
+        try {
+
+            const queryParams = GetComment.parse({
+                postId: req.query.postId,
+                lastCreatedAt: req.query.lastCreatedAt ? new Date(req.query.lastCreatedAt as string) : undefined,
+                pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+            });
+
+            const result = await commentService.getCommentsWithLikes(queryParams);
+
+            res.status(200).json(result);
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
 
 
     return router;

@@ -109,14 +109,13 @@ export class CommentRepository {
         lastCreatedAt?: Date,
         pageSize: number = 10
     ): Promise<{ comments: getCommentsWithLikes[], total: number }> {
-
+    
         const matchQuery: any = { postId };
-
-        // if we have a cursor filter documents created before that timestamp
+    
         if (lastCreatedAt) {
             matchQuery.createdAt = { $lt: lastCreatedAt };
         }
-
+    
         const [comments, totalComments] = await Promise.all([
             this.model.aggregate([
                 { $match: matchQuery }, // Match comments for the specific post and cursor
@@ -142,15 +141,16 @@ export class CommentRepository {
                         createdAt: 1 // Include this for pagination cursor
                     }
                 },
-                { $sort: { createdAt: -1 } },
-                { $limit: pageSize }
+                { $sort: { createdAt: -1 } }, // Sort by createdAt in descending order (latest first)
+                { $limit: pageSize } // Apply pagination limit
             ]).exec(),
-
-            this.model.countDocuments({ postId }).exec() // Count the total number of comments
+    
+            this.model.countDocuments({ postId }).exec() 
         ]);
-
+    
         return { comments, total: totalComments };
     }
+    
 
 
 }
