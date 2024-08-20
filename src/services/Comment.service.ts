@@ -1,4 +1,4 @@
-import { PostId, Username } from "../types/user.types";
+import { CommentId, isPostId, PostId, Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { PostRepository } from "../repositrory/post/post.repository";
 import { createCommentDto } from "../dto/createComment.dto";
@@ -109,6 +109,17 @@ export class CommentService {
         await this.likeCommentRepository.unlikeComment(likeCommentDto.username, likeCommentDto.commentId);
 
         return true;
+    }
+
+    async getUserLikedComments(username : Username , postId: string) : Promise<CommentId[]> {
+
+        if(!isPostId(postId)) {
+            throw new HttpError(400, "post id is not valid");
+        }
+
+        const comments  = await this.likeCommentRepository.getUserLikedCommentIdsOnPost(username , postId)
+
+        return comments;
     }
 
 }

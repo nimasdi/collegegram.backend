@@ -34,7 +34,7 @@ export class LikeCommentRepository {
 
         const like = new this.model(likeCommentData);
         await like.save().catch((err) => this.handleDBError(err));
-        
+
         if (!like) {
             return false;
         }
@@ -45,5 +45,17 @@ export class LikeCommentRepository {
         const result = await this.model.deleteOne({ username, commentId }).exec();
         return result.deletedCount > 0;
     }
+
+    async getUserLikedCommentIdsOnPost(username: Username, postId: PostId): Promise<CommentId[]> {
+        const likedComments = await this.model
+            .find({ username, postId })
+            .select('commentId -_id') 
+            .lean() 
+            .exec()
+            .catch((err) => this.handleDBError(err));
+
+        return (likedComments as unknown as CommentId[]);
+    }
+
 
 }
