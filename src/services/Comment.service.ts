@@ -111,7 +111,7 @@ export class CommentService {
         return true;
     }
 
-    async getUserLikedComment(username : Username , postId: string) : Promise<CommentId[]> {
+    async getUserLikedComments(username : Username , postId: string) : Promise<CommentId[]> {
 
         if(!isPostId(postId)) {
             throw new HttpError(400, "post id is not valid");
