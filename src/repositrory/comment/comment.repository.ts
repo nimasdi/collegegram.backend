@@ -26,13 +26,13 @@ export interface replyCommentResponse {
 
 export interface getCommentResponse {
     parentId?: CommentId,
-    text : string,
+    text: string,
     username: Username,
 }
 
 export interface getCommentsWithLikes {
     parentId?: CommentId,
-    text : string,
+    text: string,
     username: Username,
     likeCount: number
 }
@@ -102,11 +102,24 @@ export class CommentRepository {
         return true;
     }
 
-    async getCommentsWithLikes(postId: PostId, page: number = 1, pageSize: number = 10): Promise<{ comments: getCommentResponse[], total: number }> {
+
+    // we use a cursor for the pagination and the cursor is the created at
+    async getCommentsWithLikes(
+        postId: PostId,
+        lastCreatedAt?: Date,
+        pageSize: number = 10
+    ): Promise<{ comments: getCommentsWithLikes[], total: number }> {
+
+        const matchQuery: any = { postId };
+
+        // if we have a cursor filter documents created before that timestamp
+        if (lastCreatedAt) {
+            matchQuery.createdAt = { $lt: lastCreatedAt };
+        }
 
         const [comments, totalComments] = await Promise.all([
             this.model.aggregate([
-                { $match: { postId } }, // Match comments for the specific post
+                { $match: matchQuery }, // Match comments for the specific post and cursor
                 {
                     $lookup: {
                         from: 'likecomments', // Collection name for likes
@@ -125,27 +138,19 @@ export class CommentRepository {
                         _id: 1,
                         text: 1,
                         username: 1,
-                        likesCount: 1
+                        likesCount: 1,
+                        createdAt: 1 // Include this for pagination cursor
                     }
                 },
-                { $sort: { createdAt: -1 } }, // Sort comments by creation date (newest first)
-                { $limit: pageSize } // Limit the number of documents returned
+                { $sort: { createdAt: -1 } },
+                { $limit: pageSize }
             ]).exec(),
-    
+
             this.model.countDocuments({ postId }).exec() // Count the total number of comments
         ]);
-    
-        const commentsResponse: getCommentResponse[] = comments.map(comment => ({
-            parentId: comment.parentId ? (comment.parentId.toString() as CommentId) : undefined,
-            text: comment.text,
-            username: comment.username as Username,
-            likesCount: comment.likesCount
-        }));
-    
-        return {
-            comments: commentsResponse,
-            total: totalComments
-        };
+
+        return { comments, total: totalComments };
     }
-    
+
+
 }
