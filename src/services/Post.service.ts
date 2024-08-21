@@ -7,11 +7,12 @@ import { extractTags } from "../utility/extractTags";
 import { userCreatePostData, userUpdatePost } from "./User.service";
 import { convertToArray } from "../utility/convertToArray";
 import fs from 'fs';
+import { LikePostRepository } from "../repositrory/post/savePost.repository";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository , private savePostRepository: LikePostRepository) {
     }
 
 
