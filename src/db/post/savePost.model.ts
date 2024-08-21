@@ -22,4 +22,4 @@ export const savePostSchema: Schema<ISavePost> = new Schema({
 });
 
 
-export const LikePost: Model<ISavePost> = mongoose.model<ISavePost>('LikePost', savePostSchema);
+export const SavePost: Model<ISavePost> = mongoose.model<ISavePost>('SavePost', savePostSchema);
