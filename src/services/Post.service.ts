@@ -213,8 +213,8 @@ export class PostService {
         }
 
         const userHasLiked = await this.likePostRepo.hasUserLikedPost(unlikePostData.username, unlikePostData.postId);
-        if (userHasLiked) {
-            throw new HttpError(400, "User has not liked this comment");
+        if (!userHasLiked) {
+            throw new HttpError(400, "User has not liked this post");
         }
 
         await this.likePostRepo.unlikePost(unlikePostData);
