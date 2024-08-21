@@ -238,7 +238,7 @@ export class PostService {
 
         const userHasLiked = await this.likePostRepo.hasUserLikedPost(likePostData.username, likePostData.postId);
         if (userHasLiked) {
-            throw new HttpError(400, "User has already liked this comment");
+            throw new HttpError(400, "User has already saved this comment");
         }
 
         await this.likePostRepo.likePost(likePostData);
@@ -260,7 +260,7 @@ export class PostService {
 
         const userHasLiked = await this.likePostRepo.hasUserLikedPost(unlikePostData.username, unlikePostData.postId);
         if (!userHasLiked) {
-            throw new HttpError(400, "User has not liked this post");
+            throw new HttpError(400, "User has not saved this post");
         }
 
         await this.likePostRepo.unlikePost(unlikePostData);
