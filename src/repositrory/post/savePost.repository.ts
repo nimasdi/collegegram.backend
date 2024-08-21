@@ -1,7 +1,7 @@
 import { Model, Document, Types } from 'mongoose';
 import { PostId, UserId, Username } from '../../types/user.types';
 import { HttpError } from '../../utility/error-handler';
-import { ISavePost } from '../../db/post/bookmarkPost.model';
+import { ISavePost } from '../../db/post/savePost.model';
 
 export interface savePost {
     username: Username,
