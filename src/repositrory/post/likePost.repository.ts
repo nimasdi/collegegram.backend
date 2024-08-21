@@ -1,23 +1,23 @@
 import { Model, Document, Types } from 'mongoose';
+import { IPost } from '../../db/post/post';
 import { PostId, UserId, Username } from '../../types/user.types';
 import { HttpError } from '../../utility/error-handler';
-import { ISavePost } from '../../db/post/bookmarkPost.model';
+import { ILikePost } from '../../db/post/likePost';
 
-export interface savePost {
+export interface LikePost {
     username: Username,
     postId: PostId
 }
 
-export interface unSavePost {
+export interface unLikePost {
     username: Username,
     postId: PostId
 }
+export class LikePostRepository {
 
-export class SavePostRepository {
+    private model: Model<ILikePost>;
 
-    private model: Model<ISavePost>;
-
-    constructor(model: Model<ISavePost>) {
+    constructor(model: Model<ILikePost>) {
         this.model = model;
     }
 
@@ -27,34 +27,34 @@ export class SavePostRepository {
     }
 
 
-    async savePost(data: savePost): Promise<boolean> {
+    async likePost(data: LikePost): Promise<boolean> {
 
-        const savedPost = new this.model(data);
+        const like = new this.model(data);
 
-        await savedPost.save().catch((err) => this.handleDBError(err));
+        await like.save().catch((err) => this.handleDBError(err));
 
-        if (!savedPost) {
+        if (!like) {
             return false;
         }
         return true;
     }
 
-    async unSavePost(data: unSavePost): Promise<boolean> {
+    async unlikePost(data: unLikePost): Promise<boolean> {
 
-        const { username, postId } = data
+        const { username , postId } = data
 
         const result = await this.model.deleteOne({ username, postId }).exec();
 
         return result.deletedCount > 0;
     }
 
-    async hasUserSavedPost(username: Username, postId: PostId): Promise<boolean> {
-        const existingSavedPost = await this.model.findOne({
+    async hasUserLikedPost(username: Username, postId: PostId): Promise<boolean> {
+        const existingLike = await this.model.findOne({
             username,
             postId
         }).exec().catch((err) => this.handleDBError(err));
 
-        return !!existingSavedPost;
+        return !!existingLike;
     }
 
 }
