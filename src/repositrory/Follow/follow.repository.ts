@@ -81,6 +81,14 @@ export class FollowRepository {
                 }
             },
             {
+                $lookup: {  
+                    from: 'users',  
+                    localField: 'followerUsername',
+                    foreignField: 'username',
+                    as: 'userData'
+                }
+            },
+            {
                 $project: {
                     _id: 0,
                     username: '$followerUsername',
@@ -112,9 +120,23 @@ export class FollowRepository {
                 }
             },
             {
+                $lookup: {  
+                    from: 'users',  
+                    localField: 'followingUsername',
+                    foreignField: 'username',
+                    as: 'userData'
+                }
+            },
+            {
+                $unwind: '$userData'
+            },
+            {
                 $project: {
                     _id: 0,
                     username: '$followingUsername',
+                    imageUrl: '$userData.imageUrl',
+                    name: '$userData.firstName',
+                    private: '$userData.private',
                     followerCount: { $size: '$followers' },
                     followingCount: { $size: '$following' }
                 }
