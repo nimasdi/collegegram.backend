@@ -9,6 +9,10 @@ export interface LikePost {
     postId: PostId
 }
 
+export interface unLikePost {
+    username: Username,
+    postId: PostId
+}
 export class LikePostRepository {
 
     private model: Model<ILikePost>;
@@ -35,7 +39,7 @@ export class LikePostRepository {
         return true;
     }
 
-    async unlikePost(data: LikePost): Promise<boolean> {
+    async unlikePost(data: unLikePost): Promise<boolean> {
 
         const { username , postId } = data
 

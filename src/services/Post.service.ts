@@ -7,7 +7,7 @@ import { extractTags } from "../utility/extractTags";
 import { userCreatePostData, userUpdatePost } from "./User.service";
 import { convertToArray } from "../utility/convertToArray";
 import fs from 'fs';
-import { likePostDto } from "../dto/likepPost.dto";
+import { likePostDto, unlikePostDto } from "../dto/likepPost.dto";
 import { LikePostRepository } from "../repositrory/post/likePost.repository";
 
 
@@ -196,6 +196,28 @@ export class PostService {
         }
 
         await this.likePostRepo.likePost(likePostData);
+
+        return true;
+    }
+
+    async unlikePost(unlikePostData: unlikePostDto): Promise<boolean> {
+
+        const post = await this.postRepo.findById(unlikePostData.postId);
+        if (!post) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.getUserByUsername(unlikePostData.username);
+        if (!user) {
+            throw new HttpError(400, "user does not exist")
+        }
+
+        const userHasLiked = await this.likePostRepo.hasUserLikedPost(unlikePostData.username, unlikePostData.postId);
+        if (userHasLiked) {
+            throw new HttpError(400, "User has not liked this comment");
+        }
+
+        await this.likePostRepo.unlikePost(unlikePostData);
 
         return true;
     }

@@ -12,9 +12,9 @@ export const likePost = z.object({
     username: zodUsername,
     postId: zodPostId,
 })
-    .refine(data => checkRequired(data, "commentId"), {
-        message: "commentId is required",
-        path: ['commentId'],
+    .refine(data => checkRequired(data, "username"), {
+        message: "username is required",
+        path: ['username'],
     })
     .refine(data => checkRequired(data, "postId"), {
         message: "postId is required",
@@ -22,3 +22,18 @@ export const likePost = z.object({
     });
 
 export type likePostDto = z.infer<typeof likePost>;
+
+export const unlikePost = z.object({
+    username: zodUsername,
+    postId: zodPostId,
+})
+    .refine(data => checkRequired(data, "username"), {
+        message: "username is required",
+        path: ['username'],
+    })
+    .refine(data => checkRequired(data, "postId"), {
+        message: "postId is required",
+        path: ['postId'],
+    });
+
+export type unlikePostDto = z.infer<typeof unlikePost>;
