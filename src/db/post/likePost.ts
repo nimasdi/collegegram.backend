@@ -2,13 +2,13 @@ import mongoose, { Model,Document , Schema, Types } from "mongoose";
 import { Username } from "../../types/user.types";
 
 export interface ILikePost extends Document {
-    username: Types.ObjectId;
+    username: Username;
     postId: Types.ObjectId;
 }
 
 export const likePostSchema: Schema<ILikePost> = new Schema({
     username: {
-        type: Schema.Types.ObjectId,
+        type: String,
         ref: 'User',
         required: true,
     },

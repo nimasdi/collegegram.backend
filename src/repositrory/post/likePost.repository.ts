@@ -5,7 +5,7 @@ import { HttpError } from '../../utility/error-handler';
 import { ILikePost } from '../../db/post/likePost';
 
 export interface LikePost {
-    userId: UserId,
+    username: Username,
     postId: PostId
 }
 
@@ -33,6 +33,15 @@ export class LikePostRepository {
             return false;
         }
         return true;
+    }
+
+    async unlikePost(data: LikePost): Promise<boolean> {
+
+        const { username , postId } = data
+
+        const result = await this.model.deleteOne({ username, postId }).exec();
+
+        return result.deletedCount > 0;
     }
 
 
