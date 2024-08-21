@@ -20,7 +20,7 @@ export const savePost = z.object({
         path: ['postId'],
     });
 
-export type likePostDto = z.infer<typeof savePost>;
+export type savePostDto = z.infer<typeof savePost>;
 
 export const unSavePost = z.object({
     username: zodUsername,

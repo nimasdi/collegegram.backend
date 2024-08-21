@@ -8,6 +8,7 @@ import { userCreatePostData, userUpdatePost } from "./User.service";
 import { convertToArray } from "../utility/convertToArray";
 import fs from 'fs';
 import { LikePostRepository } from "../repositrory/post/savePost.repository";
+import { savePostDto, unSavePostDto } from "../dto/savePost";
 
 
 export class PostService {
@@ -175,6 +176,50 @@ export class PostService {
             return []
 
         return posts
+    }
+
+    async savePost(savePostData: savePostDto): Promise<boolean> {
+
+        const post = await this.postRepo.findById(savePostData.postId);
+        if (!post) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.getUserByUsername(savePostData.username);
+        if (!user) {
+            throw new HttpError(400, "user does not exist")
+        }
+
+        const userHasSaved = await this.savePostRepository.hasUserSavedPost(savePostData.username, savePostData.postId);
+        if (userHasSaved) {
+            throw new HttpError(400, "User has already liked this comment");
+        }
+
+        await this.savePostRepository.savePost(savePostData);
+
+        return true;
+    }
+
+    async unSavePost(unSavePostData: unSavePostDto): Promise<boolean> {
+
+        const post = await this.postRepo.findById(unSavePostData.postId);
+        if (!post) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.getUserByUsername(unSavePostData.username);
+        if (!user) {
+            throw new HttpError(400, "user does not exist")
+        }
+
+        const userHasLiked = await this.savePostRepository.hasUserSavedPost(unSavePostData.username, unSavePostData.postId);
+        if (!userHasLiked) {
+            throw new HttpError(400, "User has not liked this post");
+        }
+
+        await this.savePostRepository.unSavePost(unSavePostData);
+
+        return true;
     }
 
 }
