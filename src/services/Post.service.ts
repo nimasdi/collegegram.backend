@@ -7,11 +7,13 @@ import { extractTags } from "../utility/extractTags";
 import { userCreatePostData, userUpdatePost } from "./User.service";
 import { convertToArray } from "../utility/convertToArray";
 import fs from 'fs';
+import { likePostDto } from "../dto/likepPost.dto";
+import { LikePostRepository } from "../repositrory/post/likePost.repository";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository , private likePostRepo : LikePostRepository) {
     }
 
 
@@ -154,15 +156,15 @@ export class PostService {
         return true;
     }
 
-    async getPostById(postId: PostId): Promise<PostResponse>{
+    async getPostById(postId: PostId): Promise<PostResponse> {
         const post = await this.postRepo.findById(postId)
-        if(!post){
+        if (!post) {
             throw new HttpError(404, "post not found.")
         }
         return post
-    } 
+    }
 
-    
+
     async getUserPosts(username: Username): Promise<PostResponse[]> {
 
         const userId = await this.userRepo.getUserIdByUsername(username)
@@ -176,7 +178,31 @@ export class PostService {
         return posts
     }
 
+    async likePost(likePostData: likePostDto): Promise<boolean> {
+
+        const post = await this.postRepo.findById(likePostData.postId);
+        if (!post) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.getUserByUsername(likePostData.username);
+        if (!user) {
+            throw new HttpError(400, "user does not exist")
+        }
+
+        const userHasLiked = await this.likePostRepo.hasUserLikedPost(likePostData.username, likePostData.postId);
+        if (userHasLiked) {
+            throw new HttpError(400, "User has already liked this comment");
+        }
+
+        await this.likePostRepo.likePost(likePostData);
+
+        return true;
+    }
+
 }
+
+
 
 
 

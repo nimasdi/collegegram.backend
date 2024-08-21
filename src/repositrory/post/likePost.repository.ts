@@ -44,5 +44,13 @@ export class LikePostRepository {
         return result.deletedCount > 0;
     }
 
+    async hasUserLikedPost(username: Username, postId: PostId): Promise<boolean> {
+        const existingLike = await this.model.findOne({
+            username,
+            postId
+        }).exec().catch((err) => this.handleDBError(err));
+
+        return !!existingLike;
+    }
 
 }

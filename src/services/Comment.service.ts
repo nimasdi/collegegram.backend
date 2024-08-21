@@ -68,7 +68,7 @@ export class CommentService {
         };
     }
 
-    async likeAComment(likeCommentDto : likeCommentDto) {
+    async likeAComment(likeCommentDto : likeCommentDto):Promise<boolean> {
 
         const comment = await this.commentRepo.doesThisCommentExist(likeCommentDto.commentId);
         if (!comment) {
