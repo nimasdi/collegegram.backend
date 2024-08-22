@@ -9,11 +9,13 @@ import { convertToArray } from "../utility/convertToArray";
 import fs from 'fs';
 import { likePostDto, unlikePostDto } from "../dto/likepPost.dto";
 import { LikePostRepository } from "../repositrory/post/likePost.repository";
+import { savePostDto, unSavePostDto } from "../dto/savePost";
+import { SavePostRepository } from "../repositrory/post/savePost.repository";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository , private likePostRepo : LikePostRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository) {
     }
 
 
@@ -178,6 +180,50 @@ export class PostService {
         return posts
     }
 
+    async savePost(savePostData: savePostDto): Promise<boolean> {
+
+        const post = await this.postRepo.findById(savePostData.postId);
+        if (!post) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.getUserByUsername(savePostData.username);
+        if (!user) {
+            throw new HttpError(400, "user does not exist")
+        }
+
+        const userHasSaved = await this.savePostRepository.hasUserSavedPost(savePostData.username, savePostData.postId);
+        if (userHasSaved) {
+            throw new HttpError(400, "User has already liked this comment");
+        }
+
+        await this.savePostRepository.savePost(savePostData);
+
+        return true;
+    }
+
+    async unSavePost(unSavePostData: unSavePostDto): Promise<boolean> {
+
+        const post = await this.postRepo.findById(unSavePostData.postId);
+        if (!post) {
+            throw new HttpError(400, "this comment does not exist");
+        }
+
+        const user = await this.userRepo.getUserByUsername(unSavePostData.username);
+        if (!user) {
+            throw new HttpError(400, "user does not exist")
+        }
+
+        const userHasLiked = await this.savePostRepository.hasUserSavedPost(unSavePostData.username, unSavePostData.postId);
+        if (!userHasLiked) {
+            throw new HttpError(400, "User has not liked this post");
+        }
+
+        await this.savePostRepository.unSavePost(unSavePostData);
+
+        return true;
+    }
+
     async likePost(likePostData: likePostDto): Promise<boolean> {
 
         const post = await this.postRepo.findById(likePostData.postId);
@@ -192,7 +238,7 @@ export class PostService {
 
         const userHasLiked = await this.likePostRepo.hasUserLikedPost(likePostData.username, likePostData.postId);
         if (userHasLiked) {
-            throw new HttpError(400, "User has already liked this comment");
+            throw new HttpError(400, "User has already saved this comment");
         }
 
         await this.likePostRepo.likePost(likePostData);
@@ -214,7 +260,7 @@ export class PostService {
 
         const userHasLiked = await this.likePostRepo.hasUserLikedPost(unlikePostData.username, unlikePostData.postId);
         if (!userHasLiked) {
-            throw new HttpError(400, "User has not liked this post");
+            throw new HttpError(400, "User has not saved this post");
         }
 
         await this.likePostRepo.unlikePost(unlikePostData);
