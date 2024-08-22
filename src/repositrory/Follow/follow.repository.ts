@@ -92,6 +92,9 @@ export class FollowRepository {
                 $project: {
                     _id: 0,
                     username: '$followerUsername',
+                    imageUrl: '$userData.imageUrl',
+                    name: '$userData.firstName' + '$userData.lastName',
+                    private: '$userData.private',
                     followerCount: { $size: '$followers' },
                     followingCount: { $size: '$following' }
                 }
@@ -135,7 +138,7 @@ export class FollowRepository {
                     _id: 0,
                     username: '$followingUsername',
                     imageUrl: '$userData.imageUrl',
-                    name: '$userData.firstName',
+                    name: '$userData.firstName' + '$userData.lastName',
                     private: '$userData.private',
                     followerCount: { $size: '$followers' },
                     followingCount: { $size: '$following' }
