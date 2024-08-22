@@ -15,6 +15,11 @@ import { FollowService } from "./src/services/Follow.service";
 import { FollowRepository } from "./src/repositrory/Follow/follow.repository";
 import { Follow } from "./src/db/Follow/follow.model";
 import { PostService } from "./src/services/Post.service";
+import { LikePostRepository } from "./src/repositrory/post/likePost.repository";
+import { LikePost } from "./src/db/post/likePost";
+import { SavePostRepository } from "./src/repositrory/post/savePost.repository";
+import { SavePost } from "./src/db/post/savePost.model";
+
 
 dotenv.config();
 
@@ -23,8 +28,10 @@ const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const followRepo = new FollowRepository(Follow)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
+const likePostRepo = new LikePostRepository(LikePost)
+const savePostRepo = new SavePostRepository(SavePost)
 const userService = new UserService(userRepo)
-const postService = new PostService(userRepo , postRepo)
+const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo)
 const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 const followService = new FollowService(followRepo,userRepo)
 
