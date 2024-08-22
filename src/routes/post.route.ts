@@ -7,6 +7,7 @@ import { upload as uploadMiddleware, upload1 as profileMid } from "../utility/mu
 import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
 import { PostService } from '../services/Post.service';
 import { likePost , unlikePost} from '../dto/likepPost.dto';
+import { savePost, unSavePost } from '../dto/savePost';
 
 export const MakePostRoute = (postService: PostService) => {
 
@@ -387,6 +388,106 @@ export const MakePostRoute = (postService: PostService) => {
             handelErrorResponse(res, error);
         }
     });
+
+
+
+    /**
+     * @swagger
+     * /savePost:
+     *   post:
+     *     summary: Save a post
+     *     description: Allows authenticated users to save a specific post to their bookmarks.
+     *     tags:
+     *       - Posts
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               postId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7d20"
+     *                 description: The ID of the post to save.
+     *             required:
+     *               - postId
+     *     responses:
+     *       200:
+     *         description: Post saved successfully
+     *       400:
+     *         description: Invalid input data, post not found, or user has already saved the post
+     *       500:
+     *         description: Server error
+     */
+    router.post('/savePost', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.user.username; 
+            const savePostData = savePost.parse({
+                username,
+                postId: req.body.postId
+            });
+
+            const result = await postService.savePost(savePostData);
+
+            res.status(200).send({ success: result, message: "Post saved successfully" });
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
+
+    
+    /**
+     * @swagger
+     * /unsavePost:
+     *   delete:
+     *     summary: Unsave a post
+     *     description: Allows user to remove a specific post from their bookmarks.
+     *     tags:
+     *       - Posts
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               postId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7d20"
+     *                 description: The ID of the post to unsave.
+     *             required:
+     *               - postId
+     *     responses:
+     *       200:
+     *         description: Post unsaved successfully
+     *       400:
+     *         description: Invalid input data, post not found, or user has not saved the post
+     *       500:
+     *         description: Server error
+     */
+    router.delete('/unsavePost', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.user.username;
+
+            const unsavePostData = unSavePost.parse({
+                username,
+                postId: req.body.postId
+            });
+
+            const result = await postService.unSavePost(unsavePostData);
+
+            res.status(200).send({ success: result, message: "Post unsaved successfully" });
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
 
 
     return router;

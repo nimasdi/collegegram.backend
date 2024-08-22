@@ -102,7 +102,7 @@ export class UserService {
         }
 
         const encodedIdentifier = encodeIdentifierWithSalt(user.username);
-        const resetPassLink = `https://5.34.195.108/setPassword/${encodedIdentifier}`
+        const resetPassLink = `http://5.34.195.108/setPassword/${encodedIdentifier}`
 
         // Send a welcome email after successful registration
         await sendEmail(user.email, 'Reset Password', 'reset yout password', `<h1>${resetPassLink}</h1>`);
