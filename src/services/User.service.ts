@@ -7,6 +7,7 @@ import { sendEmail } from "../utility/mailer";
 import path from "path";
 import { HttpError } from "../utility/error-handler";
 import { UpdateUserDto } from "../dto/updateUser.dto";
+import { PostService } from "./Post.service";
 
 
 export type userCreatePostData = {
@@ -36,7 +37,7 @@ if (!JWT_SECRET) {
 
 export class UserService {
 
-    constructor(private userRepo: UserRepository) {
+    constructor(private userRepo: UserRepository, private postService: PostService) {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
@@ -110,9 +111,14 @@ export class UserService {
         return true
     };
 
-    async GetUserInformation(username: Username): Promise<loginUserResponse | null> {
+    async GetUserInformation(username: Username): Promise< dataUserResponse & { count: number } | null> {
+        const posts = await this.postService.getUserPosts(username);
+        const count = posts.length;
         const user = await this.userRepo.getUserByUsername(username);
-        return user;
+        if(user){
+            return { ...user, count };
+        }
+        return null;
     }
 
 
@@ -131,10 +137,10 @@ export class UserService {
         if (email) {
             const userWithThisEmail = await this.userRepo.checkUserExist(email);
             const thisUser = await this.userRepo.checkUserExist(username);
-            if (userWithThisEmail && userWithThisEmail != thisUser){
-                throw new HttpError(400 , "this email already exists")
+            if (userWithThisEmail && userWithThisEmail != thisUser) {
+                throw new HttpError(400, "this email already exists")
             }
-            else{
+            else {
                 newData.email = email
             }
         }
