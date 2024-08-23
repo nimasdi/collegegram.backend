@@ -57,8 +57,6 @@ export class CommentRepository {
         return commentResponse;
     }
 
-
-
     async createComment(postId: PostId, createCommentData: createComment): Promise<boolean> {
 
         const commentData = {
@@ -73,8 +71,6 @@ export class CommentRepository {
 
         return true;
     }
-
-
 
     async replyToComment(postId: PostId, replyCommentData: replyComment): Promise<boolean> {
 
@@ -101,7 +97,6 @@ export class CommentRepository {
         }
         return true;
     }
-
 
     async getCommentsWithLikes(postId: PostId, username: string, pageNumber: number = 1, pageSize: number = 10):
         Promise<{ comments: getCommentsWithLikes[], total: number }> {
@@ -147,7 +142,4 @@ export class CommentRepository {
 
         return { comments, total: totalComments };
     }
-
-
-
 }
