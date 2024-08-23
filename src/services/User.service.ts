@@ -7,6 +7,7 @@ import { sendEmail } from "../utility/mailer";
 import path from "path";
 import { HttpError } from "../utility/error-handler";
 import { UpdateUserDto } from "../dto/updateUser.dto";
+import { PostRepository } from "../repositrory/post/post.repository";
 
 
 export type userCreatePostData = {
@@ -36,7 +37,7 @@ if (!JWT_SECRET) {
 
 export class UserService {
 
-    constructor(private userRepo: UserRepository) {
+    constructor(private userRepo: UserRepository , private postRepo : PostRepository) {
     }
 
     async createUser(userData: createUser): Promise<Boolean> {
@@ -110,9 +111,18 @@ export class UserService {
         return true
     };
 
-    async GetUserInformation(username: Username): Promise<loginUserResponse | null> {
+    async GetUserInformation(username: Username): Promise< dataUserResponse & { count: number } | null> {
+        const userId = await this.userRepo.getUserIdByUsername(username)
+        if (userId == null) {
+            throw new Error("user not found")
+        }
+        const posts = await this.postRepo.getAll(userId)
+        const count = posts.length;
         const user = await this.userRepo.getUserByUsername(username);
-        return user;
+        if(user){
+            return { ...user, count };
+        }
+        return null;
     }
 
 
