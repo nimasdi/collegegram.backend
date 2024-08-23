@@ -25,6 +25,19 @@ export interface PostResponse{
     id: Types.ObjectId
 }
 
+export interface PostDataResponse{
+    images: string[],
+    caption: string,
+    tags: string[],
+    mentions: Username[],
+    id: Types.ObjectId,
+    likesCount: Number,
+    commentsCount: Number,
+    bookmarksCount: Number,
+    isLikedByUser: Boolean,
+    isBookmarksByUser: Boolean,
+}
+
 export class PostRepository {
     private postModel: Model<IPost & Document>;
 
@@ -92,6 +105,86 @@ export class PostRepository {
             return null
         }
         return this.generatePostResponse(post)
+    }
+
+    async getPostDataById(postId: string, userWatchPost: Username): Promise<PostResponse | null> {
+        const pipeLine = [
+            { $match: { _id : new Types.ObjectId(postId)  } },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'comments'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'likeposts',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'likes'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'saveposts',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'bookmarks'
+                }
+            },
+            {
+                $addFields: {
+                    commentsCount: { $size: '$comments' },
+                    likesCount: { $size: '$likes' },
+                    bookmarksCount: { $size: '$bookmarks' },
+                    isLikedByUser: {
+                        $in: [userWatchPost, '$likes.username'] 
+                    },
+                    isBookmarksByUser: {
+                        $in: [userWatchPost, '$bookmarks.username'] 
+                    }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    images: 1,
+                    caption: 1,
+                    tags: 1,
+                    mentions: 1,
+                    likesCount: 1,
+                    commentsCount: 1,
+                    bookmarksCount: 1,
+                    isLikedByUser: 1,
+                    isBookmarksByUser: 1,
+                }
+            }
+        ]
+        
+        const posts = await this.postModel.aggregate(pipeLine).exec().catch(err => this.handleDBError());
+
+
+        if (posts === null || posts.length === 0) {
+            return null
+        }
+
+        const post = posts[0]
+        const postResponse: PostDataResponse = {
+            images: post.images || [],
+            caption: post.caption,
+            tags: post.tags,
+            mentions: post.mentions,
+            id: post.id,
+            likesCount: post.likesCount,
+            commentsCount: post.commentsCount,
+            bookmarksCount: post.bookmarksCount,
+            isLikedByUser: post.isLikedByUser,
+            isBookmarksByUser: post.isBookmarksByUser,
+
+        }
+        return postResponse
     }
 
     async getAll(userId: Types.ObjectId) : Promise< PostResponse[] | []>{
