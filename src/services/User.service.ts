@@ -140,10 +140,12 @@ export class UserService {
             newData.imageUrl = `http://5.34.195.108:3000/images/profile/${path.basename(imageFile)}`
         }
 
-        if (updatedData?.password) {
-            updatedData.password = md5(updatedData.password) as Password;
+        const password = updatedData.password
+        if (password) {
+            updatedData.password = md5(password) as Password;
         }
 
+        console.log(updatedData)
         const updatedUser = await this.userRepo.updateUser(username, newData);
 
         return updatedUser != null ? true : false;
