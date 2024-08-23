@@ -7,6 +7,7 @@ import { upload as uploadMiddleware , upload1 as profileMid } from "../utility/m
 import path from 'path';
 import { createUserDto } from '../dto/createUser.dto';
 import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
+import { updateUserDto } from '../dto/updateUser.dto';
 
 
 export const UserRoute = (userService: UserService) => {
@@ -298,85 +299,100 @@ export const UserRoute = (userService: UserService) => {
 
 
     /**
-     * @swagger
-     * /userUpdate:
-     *   put:
-     *     summary: Update user information
-     *     description: Update the user information including an optional profile image.
-     *     tags:
-     *       - Users
-     *     requestBody:
-     *       content:
-     *         multipart/form-data:
-     *           schema:
-     *             type: object
-     *             properties:
-     *               otherData:
-     *                 type: string
-     *                 description: JSON string with updated user information
-     *               image:
-     *                 type: string
-     *                 format: binary
-     *                 description: Optional image file to upload
-     *       required: true
-     *     responses:
-     *       200:
-     *         description: User updated successfully
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 username:
-     *                   type: string
-     *                   example: johndoe
-     *                 updatedData:
-     *                   type: object
-     *                   additionalProperties: true
-     *                 imageUrl:
-     *                   type: string
-     *                   example: /uploads/images/johndoe-1632760000000.png
-     *       404:
-     *         description: User not found
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 message:
-     *                   type: string
-     *                   example: User not found
-     *       500:
-     *         description: Server error
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 message:
-     *                   type: string
-     *                   example: server error
-     */
+    * @swagger
+    * /userUpdate:
+    *   put:
+    *     summary: Update user information
+    *     description: Update the user information including an optional profile image.
+    *     tags:
+    *       - Users
+    *     requestBody:
+    *       content:
+    *         multipart/form-data:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               firstName:
+    *                 type: string
+    *                 description: User's first name
+    *               lastName:
+    *                 type: string
+    *                 description: User's last name
+    *               email:
+    *                 type: string
+    *                 format: email
+    *                 description: User's email
+    *               password:
+    *                 type: string
+    *                 format: password
+    *                 description: User's password
+    *               private:
+    *                 type: boolean
+    *                 description: User's privacy setting
+    *               bio:
+    *                 type: string
+    *                 description: User's bio
+    *               image:
+    *                 type: string
+    *                 format: binary
+    *                 description: Optional image file to upload
+    *     required: true
+    *     responses:
+    *       200:
+    *         description: User updated successfully
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 username:
+    *                   type: string
+    *                   example: johndoe
+    *                 updatedData:
+    *                   type: object
+    *                   properties:
+    *                     firstName:
+    *                       type: string
+    *                     lastName:
+    *                       type: string
+    *                     email:
+    *                       type: string
+    *                     private:
+    *                       type: boolean
+    *                     bio:
+    *                       type: string
+    *                 imageUrl:
+    *                   type: string
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Server error
+    */
     router.put('/userUpdate', authMiddleware, profileMid, async (req: Request, res: Response) => {
         try {
+
             const username = req.user.username;
-            const updatedData = JSON.parse(req.body.otherData);
+            
             const file = req.file as Express.Multer.File;
             
             const image = file.path
-            const updatedUser = await userService.updateUserInformation(username, updatedData, image);
+
+
+            const updatedData = updateUserDto.parse(req.body)
+
+            const updatedUser = await userService.updateUserInformation(username, updatedData,image);
 
             if (updatedUser) {
-                res.status(200).json(updatedUser);
+                res.status(200).json({message: "Ok"});
             } else {
-                res.status(404).json({ message: 'User not found' });
+                res.status(404).json({ message: 'User was not updated' });
             }
         } 
         catch (error) {
-            console.log(error);
-            res.status(500).json(error);
+            handelErrorResponse(res, error);
         }
     });
+
 
     /**
      * @swagger
