@@ -134,6 +134,9 @@ export class UserService {
             if (userWithThisEmail && userWithThisEmail != thisUser){
                 throw new HttpError(400 , "this email already exists")
             }
+            else{
+                newData.email = email
+            }
         }
 
         if (imageFile) {
@@ -142,10 +145,9 @@ export class UserService {
 
         const password = updatedData.password
         if (password) {
-            updatedData.password = md5(password) as Password;
+            newData.password = md5(password) as Password;
         }
 
-        console.log(updatedData)
         const updatedUser = await this.userRepo.updateUser(username, newData);
 
         return updatedUser != null ? true : false;
