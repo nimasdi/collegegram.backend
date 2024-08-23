@@ -2,7 +2,7 @@ import { CommentId, isPostId, PostId, Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { PostRepository } from "../repositrory/post/post.repository";
 import { createCommentDto } from "../dto/createComment.dto";
-import { CommentRepository, createCommentResponse, replyCommentResponse } from "../repositrory/comment/comment.repository";
+import { CommentRepository, createCommentResponse, getCommentsWithLikes, replyCommentResponse } from "../repositrory/comment/comment.repository";
 import { LikeCommentRepository } from "../repositrory/comment/likeComment.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { replyCommentDto } from "../dto/replyComment.dto";
@@ -15,10 +15,14 @@ if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined");
 }
 
+export interface NestedComment extends getCommentsWithLikes {
+    children?: NestedComment[];
+}
+
 
 export class CommentService {
 
-    constructor(private userRepo: UserRepository,private postRepo: PostRepository, private commentRepo: CommentRepository , private likeCommentRepository: LikeCommentRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository) {
     }
 
 
@@ -68,7 +72,7 @@ export class CommentService {
         };
     }
 
-    async likeAComment(likeCommentDto : likeCommentDto):Promise<boolean> {
+    async likeAComment(likeCommentDto: likeCommentDto): Promise<boolean> {
 
         const comment = await this.commentRepo.doesThisCommentExist(likeCommentDto.commentId);
         if (!comment) {
@@ -77,7 +81,7 @@ export class CommentService {
 
         const user = await this.userRepo.checkUserExist(likeCommentDto.username);
         if (!user) {
-            throw new HttpError(400 , "user does not exist")
+            throw new HttpError(400, "user does not exist")
         }
 
         const userHasLiked = await this.likeCommentRepository.hasUserLikedComment(likeCommentDto.username, likeCommentDto.commentId);
@@ -112,25 +116,53 @@ export class CommentService {
         return true;
     }
 
-    async getUserLikedComments(username : Username , postId: string) : Promise<CommentId[]> {
+    async getUserLikedComments(username: Username, postId: string): Promise<CommentId[]> {
 
-        if(!isPostId(postId)) {
+        if (!isPostId(postId)) {
             throw new HttpError(400, "post id is not valid");
         }
 
-        const comments  = await this.likeCommentRepository.getUserLikedCommentIdsOnPost(username , postId)
+        const comments = await this.likeCommentRepository.getUserLikedCommentIdsOnPost(username, postId)
 
         return comments;
     }
 
-    async getCommentsWithLikes(commentData: GetCommentDto) {    
+    async getCommentsWithLikes(commentData: GetCommentDto) {
 
         const { postId, username, pageNumber, pageSize } = commentData;
 
-        const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, username ,pageNumber , pageSize);
+        const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, username, pageNumber, pageSize);
 
-        return { comments, total };
+        const nestedComments = this.buildNestedComments(comments)
+
+        return { nestedComments, total };
     }
+
+    private buildNestedComments(comments: getCommentsWithLikes[]): NestedComment[] {
+        const commentMap: { [key: string]: NestedComment } = {};
+
+        comments.forEach(comment => {
+            commentMap[comment._id] = { ...comment, children: [] };
+        });
+
+        const nestedComments: NestedComment[] = [];
+
+        comments.forEach(comment => {
+            if (comment.parentId) {
+                // If the comment has a parentId, add it to the parent's children array
+                const parent = commentMap[comment.parentId];
+                if (parent) {
+                    parent.children!.push(commentMap[comment._id]);
+                }
+            } else {
+                // If the comment doesn't have a parentId, it's a top-level comment
+                nestedComments.push(commentMap[comment._id]);
+            }
+        });
+
+        return nestedComments;
+    }
+
 
 }
 

@@ -31,10 +31,12 @@ export interface getCommentResponse {
 }
 
 export interface getCommentsWithLikes {
+    _id: CommentId,
     parentId?: CommentId,
     text: string,
     username: Username,
-    likeCount: number
+    likeCount: number,
+    isLikedByUser : boolean
 }
 
 export class CommentRepository {
@@ -125,6 +127,7 @@ export class CommentRepository {
                 {
                     $project: {
                         _id: 1,
+                        parentId: 1,
                         text: 1,
                         username: 1,
                         likesCount: 1,
