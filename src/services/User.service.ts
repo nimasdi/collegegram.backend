@@ -6,6 +6,7 @@ import { decodeUsernameWithSalt, encodeIdentifierWithSalt } from "../utility/dec
 import { sendEmail } from "../utility/mailer";
 import path from "path";
 import { HttpError } from "../utility/error-handler";
+import { UpdateUserDto } from "../dto/updateUser.dto";
 
 
 export type userCreatePostData = {
@@ -115,32 +116,39 @@ export class UserService {
     }
 
 
-    async updateUserInformation(username: string, updatedData: updateUser, imageFile?: string): Promise<updateUser | null> {
+    async updateUserInformation(username: string, updatedData: UpdateUserDto, imageFile?: string): Promise<boolean> {
 
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
 
-        // const user = await this.userRepo.getUserByUsername(username);
-
-        // if (!user) {
-        //     throw new HttpError(404, 'User not found');
-        // }
-
-        const dataaaa = {
+        const newData = {
             ...updatedData,
             imageUrl: ""
         }
 
-        if (imageFile) {
-
-            dataaaa.imageUrl = `http://5.34.195.108:3000/images/profile/${path.basename(imageFile)}`
-
+        const email = updatedData.email
+        if (email) {
+            const userWithThisEmail = await this.userRepo.checkUserExist(email);
+            const thisUser = await this.userRepo.checkUserExist(username);
+            if (userWithThisEmail && userWithThisEmail != thisUser){
+                throw new HttpError(400 , "this email already exists")
+            }
         }
 
-        const updatedUser = await this.userRepo.updateUser(username, dataaaa);
+        if (imageFile) {
+            newData.imageUrl = `http://5.34.195.108:3000/images/profile/${path.basename(imageFile)}`
+        }
 
-        return updatedUser;
+        const password = updatedData.password
+        if (password) {
+            updatedData.password = md5(password) as Password;
+        }
+
+        console.log(updatedData)
+        const updatedUser = await this.userRepo.updateUser(username, newData);
+
+        return updatedUser != null ? true : false;
     }
 
     async getUserInfoWithoutPosts(username: Username): Promise<UserWithoutPosts | null> {
@@ -153,7 +161,7 @@ export class UserService {
 
         return userWithoutPosts as UserWithoutPosts;
     }
- 
+
 }
 
 

@@ -217,7 +217,11 @@ export const MakePostRoute = (postService: PostService) => {
             res.status(200).send({ message: 'Post updated successfully' })
 
         } catch (error) {
+            try{
             handelErrorResponse(res, error)
+            } catch (error) {
+                res.status(400).send({message: "invalid images"})
+            }
         }
     })
 

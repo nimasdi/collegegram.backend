@@ -11,11 +11,11 @@ export interface createUser {
 }
 
 export interface updateUser {
-    firstName: Name;
-    lastName: Name;
-    password: Password;
-    email: Email;
-    private: boolean;
+    firstName?: Name;
+    lastName?: Name;
+    password?: Password;
+    email?: Email;
+    private?: boolean;
     imageUrl?: string;
     bio?: string;
 }
@@ -151,13 +151,9 @@ export class UserRepository {
         const user = await this.model.findOneAndUpdate({ username }, updateData)
             .exec().catch((err) => this.handleDBError(err));
 
-        console.log(user)
-
         if (user) {
             return this.generateDataUserResponse(user)
         }
-
-        console.log(user)
 
         return null
     }
