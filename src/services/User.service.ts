@@ -141,10 +141,10 @@ export class UserService {
         if (email) {
             const userWithThisEmail = await this.userRepo.checkUserExist(email);
             const thisUser = await this.userRepo.checkUserExist(username);
-            if (userWithThisEmail && userWithThisEmail != thisUser){
-                throw new HttpError(400 , "this email already exists")
+            if (userWithThisEmail && userWithThisEmail != thisUser) {
+                throw new HttpError(400, "this email already exists")
             }
-            else{
+            else {
                 newData.email = email
             }
         }

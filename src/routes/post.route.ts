@@ -118,11 +118,12 @@ export const MakePostRoute = (postService: PostService) => {
    */
     router.get('/posts/:postId', authMiddleware, async (req: Request, res: Response) => {
         try {
+            const user = req.user.username;
             const postId = req.params.postId;
             if (!isPostId(postId)) {
                 throw new HttpError(400, "check postid Field")
             }
-            const post = await postService.getPostById(postId)
+            const post = await postService.getPostById(postId,user)
             res.status(200).json({
                 post
             })
