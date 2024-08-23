@@ -18,7 +18,6 @@ export class PostService {
     constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository) {
     }
 
-
     async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
@@ -158,14 +157,13 @@ export class PostService {
         return true;
     }
 
-    async getPostById(postId: PostId): Promise<PostResponse> {
-        const post = await this.postRepo.findById(postId)
+    async getPostById(postId: PostId, userWatchPost:Username): Promise<PostResponse> {
+        const post = await this.postRepo.getPostDataById(postId, userWatchPost)
         if (!post) {
             throw new HttpError(404, "post not found.")
         }
         return post
     }
-
 
     async getUserPosts(username: Username): Promise<PostResponse[]> {
 
@@ -267,7 +265,6 @@ export class PostService {
 
         return true;
     }
-
 }
 
 
