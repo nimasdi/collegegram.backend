@@ -8,6 +8,9 @@ RUN npm install
 
 COPY . .
 
+RUN mkdir -p /app/src/uploads/posts
+RUN mkdir -p /app/src/uploads/images
+
 EXPOSE 3000
 
 CMD ["npm", "start"]
