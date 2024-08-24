@@ -12,7 +12,7 @@ deploy:
   script:
     # SSH into the server, pull the latest code, and deploy using Docker Compose
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP 
-    - pwd
+    - cd /home/ubuntu/myapp
     - git pull 
     - docker compose down 
     - docker compose build 
