@@ -13,6 +13,7 @@ deploy:
     # SSH into the server, pull the latest code, and deploy using Docker Compose
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
       cd /home/ubuntu/myapp &&
+      ehco 123 &&
       git pull &&
       docker compose down &&
       docker compose build &&
