@@ -11,13 +11,13 @@ deploy:
     - chmod og= $ID_RSA
   script:
     # SSH into the server, pull the latest code, and deploy using Docker Compose
-    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
+    - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP 
     - ls
     - cd ./myapp 
     - git pull 
     - docker compose down 
     - docker compose build 
-    - docker compose up -d --remove-orphans"
+    - docker compose up -d --remove-orphans
   environment:
     name: production
     url: http://5.34.195.108
