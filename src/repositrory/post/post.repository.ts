@@ -2,7 +2,7 @@ import { Model, Document, Types } from 'mongoose';
 import { IPost } from '../../db/post/post';
 import { UserId, Username } from '../../types/user.types';
 import { HttpError } from '../../utility/error-handler';
-import { createDeflate } from 'zlib';
+import { createDeflate, inflateRaw } from 'zlib';
 
 export interface createPost {
     images: string[],
@@ -37,6 +37,19 @@ export interface PostDataResponse {
     bookmarksCount: Number,
     isLikedByUser: Boolean,
     isBookmarksByUser: Boolean,
+}
+
+export interface ExploreDataResponse {
+    postId: Types.ObjectId,
+    userId: Types.ObjectId,
+    text: string,
+    username: Username,
+    likesCount: number,
+    commentsCount: number,
+    savesCount: number,
+    isLikedByUser: boolean,
+    isSavedByUser: boolean,
+    createdAt: Date
 }
 
 export class PostRepository {
@@ -199,7 +212,7 @@ export class PostRepository {
         return responsePosts
     }
 
-    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10) {
+    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
         const skip = (pageNumber - 1) * pageSize;
 
         const posts = await this.postModel.aggregate([
@@ -210,7 +223,7 @@ export class PostRepository {
             },
             {
                 $lookup: {
-                    from: 'likecomments', 
+                    from: 'likecomments',
                     localField: '_id',
                     foreignField: 'commentId',
                     as: 'likes'
@@ -218,7 +231,7 @@ export class PostRepository {
             },
             {
                 $lookup: {
-                    from: 'saveposts', 
+                    from: 'saveposts',
                     localField: '_id',
                     foreignField: 'postId',
                     as: 'saves'
@@ -226,7 +239,7 @@ export class PostRepository {
             },
             {
                 $lookup: {
-                    from: 'comments', 
+                    from: 'comments',
                     localField: '_id',
                     foreignField: 'postId',
                     as: 'comments'
@@ -238,7 +251,7 @@ export class PostRepository {
                     isLikedByUser: {
                         $in: [username, '$likes.username']
                     },
-                    commentsCount: { $size: '$comments' }, 
+                    commentsCount: { $size: '$comments' },
                     savesCount: { $size: '$saves' },
                     isSavedByUser: {
                         $in: [username, '$saves.username']
@@ -252,19 +265,32 @@ export class PostRepository {
                     text: 1,
                     username: 1,
                     likesCount: 1,
-                    commentsCount: 1, 
+                    commentsCount: 1,
                     savesCount: 1,
                     isLikedByUser: 1,
-                    isSavedByUser: 1, 
+                    isSavedByUser: 1,
                     createdAt: 1
                 }
             },
-            { $sort: { createdAt: -1 } }, 
-            { $skip: skip }, 
-            { $limit: pageSize } 
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: pageSize }
         ]).exec();
 
-        return { posts };
+        const postResponse = posts.map((post) => ({
+            postId: post._id,
+            userId: post.userId,
+            text: post.text,
+            username: post.username, 
+            likesCount: post.likesCount,
+            commentsCount: post.commentsCount,
+            savesCount: post.savesCount,
+            isLikedByUser: post.isLikedByUser,
+            isSavedByUser: post.isSavedByUser,
+            createdAt: post.createdAt
+        }));
+    
+        return postResponse;
     }
 
 
