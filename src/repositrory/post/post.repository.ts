@@ -1,7 +1,8 @@
 import { Model, Document, Types } from 'mongoose';
 import { IPost } from '../../db/post/post';
-import { Username } from '../../types/user.types';
+import { UserId, Username } from '../../types/user.types';
 import { HttpError } from '../../utility/error-handler';
+import { createDeflate } from 'zlib';
 
 export interface createPost {
     images: string[],
@@ -17,7 +18,7 @@ export interface updatePost {
     mentions: Username[]
 }
 
-export interface PostResponse{
+export interface PostResponse {
     images: string[],
     caption: string,
     tags: string[],
@@ -25,7 +26,7 @@ export interface PostResponse{
     id: Types.ObjectId
 }
 
-export interface PostDataResponse{
+export interface PostDataResponse {
     images: string[],
     caption: string,
     tags: string[],
@@ -49,7 +50,7 @@ export class PostRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    private generatePostResponse : (post: IPost) => PostResponse = (post) => {
+    private generatePostResponse: (post: IPost) => PostResponse = (post) => {
         const postResponse: PostResponse = {
             images: post.images,
             caption: post.caption,
@@ -109,7 +110,7 @@ export class PostRepository {
 
     async getPostDataById(postId: string, userWatchPost: Username): Promise<PostResponse | null> {
         const pipeLine = [
-            { $match: { _id : new Types.ObjectId(postId)  } },
+            { $match: { _id: new Types.ObjectId(postId) } },
             {
                 $lookup: {
                     from: 'comments',
@@ -140,10 +141,10 @@ export class PostRepository {
                     likesCount: { $size: '$likes' },
                     bookmarksCount: { $size: '$bookmarks' },
                     isLikedByUser: {
-                        $in: [userWatchPost, '$likes.username'] 
+                        $in: [userWatchPost, '$likes.username']
                     },
                     isBookmarksByUser: {
-                        $in: [userWatchPost, '$bookmarks.username'] 
+                        $in: [userWatchPost, '$bookmarks.username']
                     }
                 }
             },
@@ -162,7 +163,7 @@ export class PostRepository {
                 }
             }
         ]
-        
+
         const posts = await this.postModel.aggregate(pipeLine).exec().catch(err => this.handleDBError());
 
 
@@ -187,15 +188,84 @@ export class PostRepository {
         return postResponse
     }
 
-    async getAll(userId: Types.ObjectId) : Promise< PostResponse[] | []>{
-        const userPosts = await this.postModel.find({userId})
+    async getAll(userId: Types.ObjectId): Promise<PostResponse[] | []> {
+        const userPosts = await this.postModel.find({ userId })
 
-        const responsePosts : PostResponse[] = []
-        for(const post of userPosts){
+        const responsePosts: PostResponse[] = []
+        for (const post of userPosts) {
             responsePosts.push(this.generatePostResponse(post))
         }
 
         return responsePosts
     }
+
+    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10) {
+        const skip = (pageNumber - 1) * pageSize;
+
+        const posts = await this.postModel.aggregate([
+            {
+                $match: {
+                    userId: { $in: followingUserIds }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'likecomments', 
+                    localField: '_id',
+                    foreignField: 'commentId',
+                    as: 'likes'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'saveposts', 
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'saves'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'comments', 
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'comments'
+                }
+            },
+            {
+                $addFields: {
+                    likesCount: { $size: '$likes' },
+                    isLikedByUser: {
+                        $in: [username, '$likes.username']
+                    },
+                    commentsCount: { $size: '$comments' }, 
+                    savesCount: { $size: '$saves' },
+                    isSavedByUser: {
+                        $in: [username, '$saves.username']
+                    },
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    text: 1,
+                    username: 1,
+                    likesCount: 1,
+                    commentsCount: 1, 
+                    savesCount: 1,
+                    isLikedByUser: 1,
+                    isSavedByUser: 1, 
+                    createdAt: 1
+                }
+            },
+            { $sort: { createdAt: -1 } }, 
+            { $skip: skip }, 
+            { $limit: pageSize } 
+        ]).exec();
+
+        return { posts };
+    }
+
 
 }
