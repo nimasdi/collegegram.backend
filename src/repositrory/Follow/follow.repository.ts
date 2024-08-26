@@ -1,7 +1,7 @@
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 import { HttpError } from "../../utility/error-handler";
 import { IFollow } from "../../db/Follow/follow.model";
-import { Username } from "../../types/user.types";
+import { UserId, Username } from "../../types/user.types";
 
 export interface Follow {
     followingUserName : Username,
@@ -163,5 +163,20 @@ export class FollowRepository {
             followingCount,
         };
     }
+
+    async getUserFollowingIds(username: Username): Promise<Types.ObjectId[]> {
+
+        const followings = await this.model.find({ followerUsername: username })
+            .select('followingUsername')
+            .lean()
+            .exec()
+            .catch((err) => this.handleDBError(err));
+
+        const followingUserIds = followings.map(follow => new Types.ObjectId(follow.followingUsername));
+
+        return followingUserIds;
+    }
+
+    
 }
 

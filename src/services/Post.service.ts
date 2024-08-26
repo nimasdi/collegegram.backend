@@ -269,7 +269,14 @@ export class PostService {
     }
 
     async getUserExplorePosts(data: getExplorePostsDto) {
-        
+
+        const { username, pageNumber, pageSize } = data;
+
+        const followers = await this.followRepo.getUserFollowingIds(username);
+
+        const postsForUser = await this.postRepo.getExplorePosts(username, followers, pageNumber, pageSize)
+
+        return postsForUser || [];
     }
 
 
