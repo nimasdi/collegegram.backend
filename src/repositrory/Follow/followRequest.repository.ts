@@ -55,6 +55,10 @@ export class FollowRequestRepository {
         return true;
     }
 
+    async findOne(query: Partial<followRequest & { status?: string }>): Promise<IFollowRequest | null> {
+        return await this.model.findOne(query).catch((err) => { return null })
+    }
+
 
 }
 

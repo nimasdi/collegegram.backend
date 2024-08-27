@@ -93,10 +93,27 @@ export class FollowService {
             throw new HttpError(404, "user not found")
         }
 
-        return await this.FollowRequestRepo.acceptOrDeclineFollowRequest(followRequestActionData);
+        const followRequest = await this.FollowRequestRepo.findOne({ sender, receiver, status: 'pending' });
+        if (!followRequest) {
+            throw new HttpError(400, "Follow request not found or already processed");
+        }
+
+        if (action === 'accept') {
+            await this.followRepo.follow(sender, receiver); // Establish the follow relationship
+        }
+
+        // Update the follow request status in the repository
+        const result = await this.FollowRequestRepo.acceptOrDeclineFollowRequest({
+            sender,
+            receiver,
+            action
+        });
+
+        return result;
+
     }
 
-    
+
 }
 
 
