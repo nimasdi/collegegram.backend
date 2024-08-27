@@ -247,6 +247,65 @@ export const FollowRoute = (followService: FollowService) => {
     });
 
 
+    /**
+     * @swagger
+     * /followRequest/handle:
+     *   post:
+     *     summary: Accept or decline a follow request
+     *     description: Allows a user to accept or decline a follow request.
+     *     tags:
+     *       - Follow Requests
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               sender:
+     *                 type: string
+     *                 example: "userA"
+     *                 description: The username of the user who sent the follow request.
+     *               action:
+     *                 type: string
+     *                 enum: [accept, decline]
+     *                 example: "accept"
+     *                 description: The action to take on the follow request.
+     *             required:
+     *               - sender
+     *               - action
+     *     responses:
+     *       200:
+     *         description: Follow request action completed successfully
+     *       400:
+     *         description: Invalid input data or follow request not found
+     *       500:
+     *         description: Server error
+     */
+    router.post('/followRequest/handle', authMiddleware, async (req, res) => {
+        try {
+            const followRequestAction = {
+                sender: req.body.sender,
+                receiver: req.user.username,
+                action: req.body.action,
+            };
+
+            const result = await followService.acceptOrDeclineFollowRequest(followRequestAction);
+
+            if (result) {
+                res.status(200).send({ message: `Follow request ${followRequestAction.action}ed successfully` });
+            } else {
+                res.status(400).send({ message: "Follow request not found or already processed" });
+            }
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
+
+
     return router
 }
 
