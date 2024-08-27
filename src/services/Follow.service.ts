@@ -85,16 +85,18 @@ export class FollowService {
         const { receiver, sender, action } = followRequestActionData
 
         const senderExist = this.userRepo.checkUserExist(sender)
-        if (!sender) {
+        if (!senderExist) {
             throw new HttpError(404, "user not found")
         }
         const receiverExist = this.userRepo.checkUserExist(receiver)
-        if (!receiver) {
+        if (!receiverExist) {
             throw new HttpError(404, "user not found")
         }
 
         return await this.FollowRequestRepo.acceptOrDeclineFollowRequest(followRequestActionData);
     }
+
+    
 }
 
 
