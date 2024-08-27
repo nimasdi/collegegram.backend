@@ -9,7 +9,7 @@ import { blockDto } from "../dto/block.dto";
 export const BlockRoute = (blockService:BlockService) => {
     const router = Router();
 
-     /**
+    /**
     * @swagger
     * /block/{username}:
     *   get:
@@ -39,6 +39,47 @@ export const BlockRoute = (blockService:BlockService) => {
             const blockerUser = req.user.username
             const blockingUser = req.params.username.trim()
             if(!isUsername(blockingUser)){
+                throw new HttpError(400, "check user name Field")
+            }
+
+            const blocked = await blockService.checkBlock(blockingUser, blockerUser)
+
+            return res.status(200).json({blocked})
+        } catch (error) {
+            handelErrorResponse(res,error)
+        }
+    });
+
+    /**
+    * @swagger
+    * /block/loginUser/{username}:
+    *   get:
+    *     summary: check user blocked by someone
+    *     description: check block
+    *     tags:
+    *       - Block
+    *     parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: The ID of the post to be updated.
+    *           schema:
+    *             type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get("/loginUser/:username", authMiddleware, async(req, res) => {
+        try {
+            const blockingUser = req.user.username
+            const blockerUser = req.params.username.trim()
+            if(!isUsername(blockerUser)){
                 throw new HttpError(400, "check user name Field")
             }
 

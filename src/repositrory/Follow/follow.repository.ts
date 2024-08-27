@@ -49,6 +49,11 @@ export class FollowRepository {
             .catch((err) => this.handleDBError(err));
     }
 
+    async removeFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
+        await this.model.deleteOne({ followingUsername , followerUsername })
+        .catch((err) => this.handleDBError(err));
+    }
+ 
     async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
         const followExist = await this.model.findOne({ followingUsername, followerUsername })
             .catch((err) => this.handleDBError(err))

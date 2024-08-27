@@ -40,6 +40,19 @@ export class FollowService {
 
     }
 
+    async removeFollowing(followingUsername: Username, followerUsername: Username): Promise<void> {
+        const follwerUserExist = await this.userRepo.getUserByUsername(followerUsername)
+        if (!follwerUserExist) {
+            throw new HttpError(400, "user not found")
+        }
+        const existFollow = await this.followRepo.checkFollow(followerUsername, followingUsername)
+        if(!existFollow) {
+            throw new HttpError(400, "follow relation not found")
+        }
+        await this.followRepo.removeFollowing(followerUsername, followingUsername)
+
+    }
+
     async checkFollow(followingUsername: Username, followerUsername: Username): Promise<Boolean> {
         const followed = await this.followRepo.checkFollow(followerUsername, followingUsername)
         return followed
