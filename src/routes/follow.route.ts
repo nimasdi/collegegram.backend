@@ -5,6 +5,7 @@ import { Username, isUsername } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { handelErrorResponse } from "../utility/habdle-errResponse";
 import { followDto } from "../dto/follow.dto";
+import { removeFollowerDto } from "../dto/removeFollow.dto";
 
 export const FollowRoute = (followService: FollowService) => {
     const router = Router();
@@ -160,8 +161,8 @@ export const FollowRoute = (followService: FollowService) => {
                 throw new HttpError(400, "user not found.") 
             }
 
-            const followerUser = removeFollowDto.parse(req.body)
-            await followService.unfollow(followerUser.followingUsername, followingUser)
+            const followerUser = removeFollowerDto.parse(req.body)
+            await followService.unfollow(followerUser.followerUsername, followingUser)
             res.status(200).json({message:"follower removed"})
         } catch (error) {
             handelErrorResponse(res, error)
