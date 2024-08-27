@@ -10,7 +10,7 @@ export interface followState{
 
 export class FollowService {
 
-    constructor(private followRepo: FollowRepository, private userRepo: UserRepository) {
+    constructor(private followRepo: FollowRepository, private userRepo: UserRepository , private FollowRequestRepo : FollowRepository) {
     }
 
     async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
@@ -60,6 +60,10 @@ export class FollowService {
     async getFollowersAndFollowing(username:Username): Promise<followingAndFollowers>{
         const followingAndFollowers  = this.followRepo.getFollowersAndFollowing(username)
         return followingAndFollowers
+    }
+
+    async sendFollowRequest(){
+
     }
 }
 
