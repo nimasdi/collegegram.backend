@@ -1,7 +1,6 @@
 import { FollowRequestDto } from "../dto/followRequest.dto";
 import { FollowRequestActionDto } from "../dto/followRequestAction.dto";
 import { FollowRepository, followingAndFollowers } from "../repositrory/Follow/follow.repository";
-import { FollowRequestRepository } from "../repositrory/Follow/followRequest.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
@@ -13,7 +12,7 @@ export interface followState {
 
 export class FollowService {
 
-    constructor(private followRepo: FollowRepository, private userRepo: UserRepository, private FollowRequestRepo: FollowRequestRepository) {
+    constructor(private followRepo: FollowRepository, private userRepo: UserRepository) {
     }
 
     async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
@@ -77,7 +76,7 @@ export class FollowService {
             throw new HttpError(404, "user not found")
         }
 
-        await this.FollowRequestRepo.sendFollowRequest(followRequestData)
+        await this.followRepo.sendFollowRequest(followRequestData)
     }
 
 
@@ -93,17 +92,13 @@ export class FollowService {
             throw new HttpError(404, "user not found")
         }
 
-        const followRequest = await this.FollowRequestRepo.findOne({ sender, receiver, status: 'pending' });
+        const followRequest = await this.followRepo.findOne({ sender, receiver, status: 'pending' });
         if (!followRequest) {
             throw new HttpError(400, "Follow request not found or already processed");
         }
-
-        if (action === 'accept') {
-            await this.followRepo.follow(sender, receiver); // Establish the follow relationship
-        }
-
+            
         // Update the follow request status in the repository
-        const result = await this.FollowRequestRepo.acceptOrDeclineFollowRequest({
+        const result = await this.followRepo.acceptOrDeclineFollowRequest({
             sender,
             receiver,
             action
