@@ -5,6 +5,7 @@ import { Username, isUsername } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { handelErrorResponse } from "../utility/habdle-errResponse";
 import { followDto } from "../dto/follow.dto";
+import { removeFollowerDto } from "../dto/removeFollow.dto";
 
 export const FollowRoute = (followService: FollowService) => {
     const router = Router();
@@ -124,6 +125,45 @@ export const FollowRoute = (followService: FollowService) => {
             const followingUser = followDto.parse(req.body)
             await followService.unfollow(followingUser.followingUsername, followerUser)
             res.status(200).json({message:"user unfollowed."})
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+
+    /**
+     * @swagger
+     * /follow/removeFollower:
+     *   delete:
+     *     summary: remove a follower
+     *     description: remove a follower
+     *     tags:
+     *       - Follow
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - followerUsername
+     *             properties:
+     *               followerUsername:
+     *                 type: string
+     *                 example: johndoe
+     *     responses:
+     *       200:
+     *         description: followed
+     */
+    router.delete("/removeFollower", authMiddleware, async (req, res, next) => {
+        try {
+            const followingUser: Username = req.user.username
+            if(!followingUser) {
+                throw new HttpError(400, "user not found.") 
+            }
+
+            const followerUser = removeFollowerDto.parse(req.body)
+            await followService.unfollow(followerUser.followerUsername, followingUser)
+            res.status(200).json({message:"follower removed"})
         } catch (error) {
             handelErrorResponse(res, error)
         }
