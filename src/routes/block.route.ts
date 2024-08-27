@@ -65,7 +65,7 @@ export const BlockRoute = (blockService:BlockService) => {
  *           schema:
  *             type: object
  *             required:
- *               - blockingUsername
+ *               - blockerUsername
  *             properties:
  *               blockingUsername:
  *                 type: string

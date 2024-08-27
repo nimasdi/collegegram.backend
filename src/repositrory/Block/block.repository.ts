@@ -4,8 +4,8 @@ import { Username } from "../../types/user.types";
 import { IBlock } from "../../db/Block/block.model";
 
 export interface Block {
-    blockerUserName : Username,
-    blockingUserName : Username,
+    blockerUsername : Username,
+    blockingUsername : Username,
 }
 
 export class BlockRepository {
@@ -21,18 +21,18 @@ export class BlockRepository {
         throw new HttpError(500,'خطای شبکه رخ داده است.')
     }
 
-    async block(blockerUserName: Username, blockingUserName: Username): Promise<void> {
-        const block = new this.model({blockerUserName, blockingUserName});
+    async block(blockerUsername: Username, blockingUsername: Username): Promise<void> {
+        const block = new this.model({blockerUsername, blockingUsername});
         await block.save().catch((err) => this.handleDBError(err));
     }
 
-    async unblock(blockerUserName: Username, blockingUserName: Username): Promise<void> {
-        await this.model.deleteOne({ blockerUserName, blockingUserName })
+    async unblock(blockerUsername: Username, blockingUsername: Username): Promise<void> {
+        await this.model.deleteOne({ blockerUsername, blockingUsername })
         .catch((err) => this.handleDBError(err));
     }
  
-    async checkBlock(blockerUserName: Username, blockingUserName: Username): Promise<Boolean> {
-        const BlockExist = await this.model.findOne({ blockerUserName, blockingUserName })
+    async checkBlock(blockerUsername: Username, blockingUsername: Username): Promise<Boolean> {
+        const BlockExist = await this.model.findOne({ blockerUsername, blockingUsername })
         .catch((err) => this.handleDBError(err))
 
         if (!BlockExist) {

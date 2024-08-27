@@ -13,8 +13,8 @@ export class BlockService {
         if (!blockingUserExist) {
             throw new HttpError(400, "blocking user not found")
         }
-        const existFollow = await this.blockRepo.checkBlock(blockerUsername, blockingUsername)
-        if(existFollow) {
+        const existBlock = await this.blockRepo.checkBlock(blockerUsername, blockingUsername)
+        if(existBlock) {
             throw new HttpError(400, "user blocked before.")
         }
         await this.blockRepo.block(blockerUsername, blockingUsername)
@@ -30,7 +30,6 @@ export class BlockService {
             throw new HttpError(400, "block relation not found")
         }
         await this.blockRepo.unblock(blockerUsername, blockingUsername)
-
     }
 
     async checkBlock(blockingUsername: Username, blockerUsername: Username): Promise<Boolean> {
