@@ -6,7 +6,7 @@ import { checkRequired } from "./createUser.dto";
 export const followRequestActionDto = z.object({
     sender: zodUsername,
     receiver: zodUsername,
-    action: z.enum(['accepted', 'declined'])
+    action: z.enum(['accept', 'decline'])
 }).refine(data => checkRequired(data, "sender"), {
     message: "sender is required",
     path: ['sender'],
