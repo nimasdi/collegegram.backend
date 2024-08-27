@@ -12,8 +12,10 @@ import { FollowRoute } from "./routes/follow.route";
 import { FollowService } from "./services/Follow.service";
 import { PostService } from "./services/Post.service";
 import { MakePostRoute } from "./routes/post.route";
+import { BlockRoute } from "./routes/block.route";
+import { BlockService } from "./services/Block.service";
 
-export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService) => {
 
     const app = express()
 
@@ -47,6 +49,9 @@ export const makeApp = (userService:UserService , commentService:CommentService 
 
     // follow
     app.use('/follow', FollowRoute(followService))
+
+    // block
+    app.use('/block', BlockRoute(blockService))
 
     //comments
     app.use('/', CommentRoute(commentService));
