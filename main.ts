@@ -31,7 +31,7 @@ const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
 const userService = new UserService(userRepo ,postRepo)
-const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo)
+const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , followRepo)
 const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 const followService = new FollowService(followRepo,userRepo)
 

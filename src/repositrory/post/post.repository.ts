@@ -210,10 +210,12 @@ export class PostRepository {
         }
 
         return responsePosts
-    }
+    }   
 
     async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
         const skip = (pageNumber - 1) * pageSize;
+
+        followingUserIds = followingUserIds.map(userId => new Types.ObjectId(userId))
 
         const posts = await this.postModel.aggregate([
             {

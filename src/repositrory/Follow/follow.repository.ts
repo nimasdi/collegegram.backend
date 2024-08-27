@@ -172,7 +172,7 @@ export class FollowRepository {
             .exec()
             .catch((err) => this.handleDBError(err));
 
-        const followingUserIds = followings.map(follow => new Types.ObjectId(follow.followingUsername));
+        const followingUserIds = followings.map(follow => follow._id) as Types.ObjectId[];
 
         return followingUserIds;
     }
