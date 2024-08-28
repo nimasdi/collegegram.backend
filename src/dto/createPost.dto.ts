@@ -11,7 +11,7 @@ export const createPostDto = z.object({
     images : z.array(z.string()),
     caption: z.string(),
     mentionsUsernames: z.string(),
-    closeFriendOnly: z.boolean()
+    closeFriendOnly: z.coerce.boolean()
 })
 
 export type CreatePostDto = z.infer<typeof createPostDto>;
