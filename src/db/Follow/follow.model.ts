@@ -6,7 +6,8 @@ import { HttpError } from '../../utility/error-handler';
 export interface IFollow extends Document {
     followingUsername: Username,
     followerUsername: Username,
-    status: 'pending' | 'accepted' | 'declined'
+    status: 'pending' | 'accepted' | 'declined',
+    closeFriend: Boolean
 }
 
 // Follow Schema
@@ -25,6 +26,9 @@ const FollowSchema: Schema<IFollow> = new Schema({
         type: String,
         enum: ['pending', 'accepted', 'declined'],
         default: 'pending',
+    },
+    closeFriend: {
+        type : Boolean
     }
 }, {
     timestamps: true,

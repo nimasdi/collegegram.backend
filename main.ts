@@ -41,7 +41,7 @@ const followService = new FollowService(followRepo,userRepo)
 const blockService = new BlockService(blockRepo,userRepo)
 
 
-const uri = process.env.MONGO_URI || '';
+const uri = process.env.MONGO_URIME || '';
 
 
 const dbConnection = new MongoDBConnection(uri);
