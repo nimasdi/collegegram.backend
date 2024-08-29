@@ -52,9 +52,14 @@ export const MakePostRoute = (postService: PostService) => {
     *                     type: string
     *                   description: List of usernames mentioned in the post. Can be an empty array if no usernames are mentioned.
     *                   example: ["aashshshaa"]
+    *                 closeFriendOnly:
+    *                   type: boolean
+    *                   description: check for closeFriend
+    *                   example: true
     *               required:
     *                 - images
     *                 - caption
+    *                 - closeFriendOnly
     *               additionalProperties: false
     *       responses:
     *         200:

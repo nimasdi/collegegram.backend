@@ -19,6 +19,9 @@ import { LikePostRepository } from "./src/repositrory/post/likePost.repository";
 import { LikePost } from "./src/db/post/likePost";
 import { SavePostRepository } from "./src/repositrory/post/savePost.repository";
 import { SavePost } from "./src/db/post/savePost.model";
+import { BlockRepository } from "./src/repositrory/Block/block.repository";
+import { Block } from "./src/db/Block/block.model";
+import { BlockService } from "./src/services/Block.service";
 
 
 dotenv.config();
@@ -27,6 +30,7 @@ const postRepo = new PostRepository(Post)
 const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const followRepo = new FollowRepository(Follow)
+const blockRepo = new BlockRepository(Block)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
@@ -34,6 +38,7 @@ const userService = new UserService(userRepo ,postRepo)
 const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , followRepo)
 const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 const followService = new FollowService(followRepo,userRepo)
+const blockService = new BlockService(blockRepo,userRepo)
 
 
 const uri = process.env.MONGO_URI || '';
@@ -51,7 +56,7 @@ declare global {
 
 dbConnection.connect().then(async () => {
 
-    const app = makeApp(userService, commentService, followService , postService)
+    const app = makeApp(userService, commentService, followService , postService, blockService)
 
     const PORT = 3000
 

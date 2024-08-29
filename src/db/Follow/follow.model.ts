@@ -4,8 +4,9 @@ import { HttpError } from '../../utility/error-handler';
 
 // Interface for User attributes
 export interface IFollow extends Document {
-    followingUsername : Username,
-    followerUsername : Username,
+    followingUsername: Username,
+    followerUsername: Username,
+    status: 'pending' | 'accepted' | 'declined'
 }
 
 // Follow Schema
@@ -13,15 +14,20 @@ const FollowSchema: Schema<IFollow> = new Schema({
     followingUsername: {
         type: String,
         ref: 'User',
-        required: true, 
+        required: true,
     },
     followerUsername: {
         type: String,
         ref: 'User',
-        required: true, 
+        required: true,
     },
+    status: {
+        type: String,
+        enum: ['pending', 'accepted', 'declined'],
+        default: 'pending',
+    }
 }, {
-  timestamps: true,
+    timestamps: true,
 });
 
 FollowSchema.pre('save', async function (next) {
@@ -30,11 +36,11 @@ FollowSchema.pre('save', async function (next) {
     const existingFollow = await mongoose.models.Follow.findOne({
         followerUserName: follow.followerUsername,
         followingUserName: follow.followingUsername,
-    }).catch((err) => {throw new HttpError(500,"server error.")});
+    }).catch((err) => { throw new HttpError(500, "server error.") });
 
     if (existingFollow) {
         // If the relationship already exists, throw an error
-        throw new HttpError(400,'This follow relationship already exists.');
+        throw new HttpError(400, 'This follow relationship already exists.');
     }
 
     // If no such relationship exists, proceed with the save operation

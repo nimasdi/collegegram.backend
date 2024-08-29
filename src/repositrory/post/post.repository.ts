@@ -9,6 +9,7 @@ export interface createPost {
     caption: string,
     tags: string[],
     mentions: Username[],
+    closeFriendOnly: boolean
 }
 
 export interface updatePost {
