@@ -8,7 +8,7 @@ export interface Relation {
     followerUserName: Username,
 }
 
-export class FollowRepository {
+export class CloseFriendRepository {
 
     private model: Model<IFollow>;
 
