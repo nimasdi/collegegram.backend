@@ -14,6 +14,7 @@ export type userCreatePostData = {
     images: string[],
     caption: string,
     mentionsUsernames: string,
+    closeFriendOnly: boolean
 }
 
 export type userUpdatePost = {
