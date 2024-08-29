@@ -164,7 +164,7 @@ export class FollowRepository {
         };
     }
 
-    async getUserFollowingIds(username: Username): Promise<Types.ObjectId[]> {
+    async getUserFollowingIds(username: Username): Promise<Username[]> {
 
         const followings = await this.model.find({ followerUsername: username })
             .select('followingUsername')
@@ -172,9 +172,9 @@ export class FollowRepository {
             .exec()
             .catch((err) => this.handleDBError(err));
 
-        const followingUserIds = followings.map(follow => follow._id) as Types.ObjectId[];
+        const followingUsernames = followings.map(follow => follow.followingUsername);
 
-        return followingUserIds;
+        return followingUsernames;
     }
 
     

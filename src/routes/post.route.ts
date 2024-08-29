@@ -22,7 +22,7 @@ export const MakePostRoute = (postService: PostService) => {
     *   version: 1.0.0
     *   description: API for user operations.
     * paths:
-    *   /createPost:
+    *   /post:
     *     post:
     *       summary: Create a new post for a user
     *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
@@ -72,7 +72,7 @@ export const MakePostRoute = (postService: PostService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
+    router.post('/post', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
             const username = req.user.username;
             const files = req.files as Express.Multer.File[];

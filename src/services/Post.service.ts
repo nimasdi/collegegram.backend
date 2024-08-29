@@ -13,6 +13,7 @@ import { savePostDto, unSavePostDto } from "../dto/savePost";
 import { SavePostRepository } from "../repositrory/post/savePost.repository";
 import { FollowRepository } from "../repositrory/Follow/follow.repository";
 import { getExplorePostsDto } from "../dto/getUserExplorePosts.dto";
+import { Types } from "mongoose";
 
 
 export class PostService {
@@ -272,9 +273,13 @@ export class PostService {
 
         const { username, pageNumber, pageSize } = data;
 
-        const followers = await this.followRepo.getUserFollowingIds(username);
+        const followersUsernames = await this.followRepo.getUserFollowingIds(username);
 
-        const postsForUser = await this.postRepo.getExplorePosts(username, followers, pageNumber, pageSize)
+        const ids = await Promise.all(followersUsernames.map(async (username) => {
+            return await this.userRepo.getUserIdByUsername(username);
+        })) as Types.ObjectId[];
+
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids, pageNumber, pageSize)
 
         return postsForUser || [];
     }
