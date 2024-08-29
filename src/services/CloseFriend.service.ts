@@ -7,11 +7,11 @@ export class CloseFriendService {
     constructor(private closeRepo: CloseFriendRepository) {
     }
 
-    async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
+    async addCloseFriends(followingUsername: Username, followerUsername: Username): Promise<void> {
         await this.closeRepo.addCloseFriend(followerUsername, followingUsername)
     }
 
-    async unfollow(followingUsername: Username, followerUsername: Username): Promise<void> {
+    async removeCloseFriends(followingUsername: Username, followerUsername: Username): Promise<void> {
         await this.closeRepo.removeCloseFriend(followerUsername, followingUsername)
     }
 
