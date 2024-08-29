@@ -6,7 +6,7 @@ import { handelErrorResponse } from "../utility/habdle-errResponse";
 import { CloseFriendService } from "../services/CloseFriend.service";
 import { closeFriendDto } from "../dto/fcloseFriend.dto";
 
-export const FollowRoute = (closeFriendService: CloseFriendService) => {
+export const CloseFriendRoute = (closeFriendService: CloseFriendService) => {
     const router = Router();
 
     /**
@@ -34,7 +34,7 @@ export const FollowRoute = (closeFriendService: CloseFriendService) => {
    *       500:
    *         description: Internal server error
    */
-    router.get("/:username", authMiddleware, async (req, res) => {
+    router.get("/closeFriend/:username", authMiddleware, async (req, res) => {
         try {
             const followerUser = req.user.username
             const followingUser = req.params.username.trim()
@@ -74,7 +74,7 @@ export const FollowRoute = (closeFriendService: CloseFriendService) => {
   *       200:
   *         description: followed
   */
-    router.put("", authMiddleware, async (req, res, next) => {
+    router.put("/addCloseFriend", authMiddleware, async (req, res, next) => {
         try {
             const followerUser: Username = req.user.username
             if (!followerUser) {
@@ -114,7 +114,7 @@ export const FollowRoute = (closeFriendService: CloseFriendService) => {
   *       200:
   *         description: followed
   */
-    router.put("", authMiddleware, async (req, res, next) => {
+    router.put("/removeCloseFriend", authMiddleware, async (req, res, next) => {
         try {
             const followerUser: Username = req.user.username
             if (!followerUser) {

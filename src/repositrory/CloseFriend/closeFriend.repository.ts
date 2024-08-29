@@ -42,16 +42,17 @@ export class CloseFriendRepository {
     }
  
     async checkCloseFriend(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
-        const existFollow = await  this.getFollowRelation(followerUsername, followingUsername)
+        const existFollow = await this.getFollowRelation(followerUsername, followingUsername)
+        console.log(existFollow)
         if(existFollow === null){
             throw new HttpError(404, "relation not found")
         }
-        return existFollow.closeFriend
+        return existFollow.closeFriend || false
     }
 
 
-    private async getFollowRelation(followerUsername: Username, followingUsername: Username): Promise<IFollow | null> {
-        const relation = await this.model.findOne({followerUsername, followingUsername})
+    async getFollowRelation(followerUsername: Username, followingUsername: Username): Promise<IFollow | null> {
+        const relation = await this.model.findOne({followerUsername, followingUsername , status: 'accepted'})
             .exec().catch((err) => this.handleDBError(err));
         return relation
     }
