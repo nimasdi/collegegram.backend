@@ -6,8 +6,10 @@ import { HttpError } from '../utility/error-handler';
 import { upload as uploadMiddleware, upload1 as profileMid } from "../utility/multer"
 import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
 import { PostService } from '../services/Post.service';
-import { likePost , unlikePost} from '../dto/likepPost.dto';
+import { likePost, unlikePost } from '../dto/likepPost.dto';
 import { savePost, unSavePost } from '../dto/savePost';
+import { checkUserMiddleware } from '../utility/checkUser';
+import { postRepo, userRepo } from '../../main';
 
 export const MakePostRoute = (postService: PostService) => {
 
@@ -128,7 +130,7 @@ export const MakePostRoute = (postService: PostService) => {
             if (!isPostId(postId)) {
                 throw new HttpError(400, "check postid Field")
             }
-            const post = await postService.getPostById(postId,user)
+            const post = await postService.getPostById(postId, user)
             res.status(200).json({
                 post
             })
@@ -203,7 +205,7 @@ export const MakePostRoute = (postService: PostService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/:postid/update', authMiddleware, uploadMiddleware, async (req, res, next) => {
+    router.post('/:postid/update', checkUserMiddleware(postRepo, userRepo), authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
 
             const username = req.user.username
@@ -223,10 +225,10 @@ export const MakePostRoute = (postService: PostService) => {
             res.status(200).send({ message: 'Post updated successfully' })
 
         } catch (error) {
-            try{
-            handelErrorResponse(res, error)
+            try {
+                handelErrorResponse(res, error)
             } catch (error) {
-                res.status(400).send({message: "invalid images"})
+                res.status(400).send({ message: "invalid images" })
             }
         }
     })
@@ -385,7 +387,7 @@ export const MakePostRoute = (postService: PostService) => {
      */
     router.delete('/unlikePost', authMiddleware, async (req: Request, res: Response) => {
         try {
-            
+
             const unlikePostData = unlikePost.parse({
                 username: req.user.username,
                 postId: req.body.postId
@@ -434,7 +436,7 @@ export const MakePostRoute = (postService: PostService) => {
      */
     router.post('/savePost', authMiddleware, async (req: Request, res: Response) => {
         try {
-            const username = req.user.username; 
+            const username = req.user.username;
             const savePostData = savePost.parse({
                 username,
                 postId: req.body.postId
@@ -449,7 +451,7 @@ export const MakePostRoute = (postService: PostService) => {
     });
 
 
-    
+
     /**
      * @swagger
      * /unsavePost:

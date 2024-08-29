@@ -28,8 +28,8 @@ import { CloseFriendRepository } from "./src/repositrory/CloseFriend/closeFriend
 
 dotenv.config();
 
-const postRepo = new PostRepository(Post)
-const userRepo = new UserRepository(User);
+export const postRepo = new PostRepository(Post)
+export const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const followRepo = new FollowRepository(Follow)
 const closeFriendRepo = new CloseFriendRepository(Follow)

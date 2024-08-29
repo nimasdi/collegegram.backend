@@ -18,7 +18,7 @@ export interface updatePost {
     mentions: Username[]
 }
 
-export interface PostResponse{
+export interface PostResponse {
     images: string[],
     caption: string,
     tags: string[],
@@ -26,7 +26,7 @@ export interface PostResponse{
     id: Types.ObjectId
 }
 
-export interface PostDataResponse{
+export interface PostDataResponse {
     images: string[],
     caption: string,
     tags: string[],
@@ -50,7 +50,7 @@ export class PostRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    private generatePostResponse : (post: IPost) => PostResponse = (post) => {
+    private generatePostResponse: (post: IPost) => PostResponse = (post) => {
         const postResponse: PostResponse = {
             images: post.images,
             caption: post.caption,
@@ -110,7 +110,7 @@ export class PostRepository {
 
     async getPostDataById(postId: string, userWatchPost: Username): Promise<PostResponse | null> {
         const pipeLine = [
-            { $match: { _id : new Types.ObjectId(postId)  } },
+            { $match: { _id: new Types.ObjectId(postId) } },
             {
                 $lookup: {
                     from: 'comments',
@@ -141,10 +141,10 @@ export class PostRepository {
                     likesCount: { $size: '$likes' },
                     bookmarksCount: { $size: '$bookmarks' },
                     isLikedByUser: {
-                        $in: [userWatchPost, '$likes.username'] 
+                        $in: [userWatchPost, '$likes.username']
                     },
                     isBookmarksByUser: {
-                        $in: [userWatchPost, '$bookmarks.username'] 
+                        $in: [userWatchPost, '$bookmarks.username']
                     }
                 }
             },
@@ -163,7 +163,7 @@ export class PostRepository {
                 }
             }
         ]
-        
+
         const posts = await this.postModel.aggregate(pipeLine).exec().catch(err => this.handleDBError());
 
 
@@ -188,15 +188,34 @@ export class PostRepository {
         return postResponse
     }
 
-    async getAll(userId: Types.ObjectId) : Promise< PostResponse[] | []>{
-        const userPosts = await this.postModel.find({userId})
+    async getAll(userId: Types.ObjectId): Promise<PostResponse[] | []> {
+        const userPosts = await this.postModel.find({ userId })
 
-        const responsePosts : PostResponse[] = []
-        for(const post of userPosts){
+        const responsePosts: PostResponse[] = []
+        for (const post of userPosts) {
             responsePosts.push(this.generatePostResponse(post))
         }
 
         return responsePosts
+    }
+
+
+    async getUserIdForPost(postId: Types.ObjectId): Promise<Types.ObjectId | null> {
+        const post = await this.postModel.findById(postId).exec()
+            .then((post) => {
+                if (!post) {
+                    console.warn(`Post with id ${postId} not found.`);
+                }
+                return post;
+            })
+            .catch((err) => {
+                console.error("Error finding post by ID:", err.message);
+                return null;
+            });
+        if (post === null) {
+            return null
+        }
+        return post.userId;
     }
 
 }
