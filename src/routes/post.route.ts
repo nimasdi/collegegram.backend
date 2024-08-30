@@ -6,8 +6,9 @@ import { HttpError } from '../utility/error-handler';
 import { upload as uploadMiddleware, upload1 as profileMid } from "../utility/multer"
 import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
 import { PostService } from '../services/Post.service';
-import { likePost , unlikePost} from '../dto/likepPost.dto';
+import { likePost, unlikePost } from '../dto/likepPost.dto';
 import { savePost, unSavePost } from '../dto/savePost';
+import { getExplorePosts } from '../dto/getUserExplorePosts.dto';
 
 export const MakePostRoute = (postService: PostService) => {
 
@@ -21,7 +22,7 @@ export const MakePostRoute = (postService: PostService) => {
     *   version: 1.0.0
     *   description: API for user operations.
     * paths:
-    *   /createPost:
+    *   /post:
     *     post:
     *       summary: Create a new post for a user
     *       description: Endpoint to create a new post for a user specified by the username in the path parameter.
@@ -76,7 +77,7 @@ export const MakePostRoute = (postService: PostService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/createPost', authMiddleware, uploadMiddleware, async (req, res, next) => {
+    router.post('/post', authMiddleware, uploadMiddleware, async (req, res, next) => {
         try {
             const username = req.user.username;
             const files = req.files as Express.Multer.File[];
@@ -128,7 +129,7 @@ export const MakePostRoute = (postService: PostService) => {
             if (!isPostId(postId)) {
                 throw new HttpError(400, "check postid Field")
             }
-            const post = await postService.getPostById(postId,user)
+            const post = await postService.getPostById(postId, user)
             res.status(200).json({
                 post
             })
@@ -223,10 +224,10 @@ export const MakePostRoute = (postService: PostService) => {
             res.status(200).send({ message: 'Post updated successfully' })
 
         } catch (error) {
-            try{
-            handelErrorResponse(res, error)
+            try {
+                handelErrorResponse(res, error)
             } catch (error) {
-                res.status(400).send({message: "invalid images"})
+                res.status(400).send({ message: "invalid images" })
             }
         }
     })
@@ -385,7 +386,7 @@ export const MakePostRoute = (postService: PostService) => {
      */
     router.delete('/unlikePost', authMiddleware, async (req: Request, res: Response) => {
         try {
-            
+
             const unlikePostData = unlikePost.parse({
                 username: req.user.username,
                 postId: req.body.postId
@@ -434,7 +435,7 @@ export const MakePostRoute = (postService: PostService) => {
      */
     router.post('/savePost', authMiddleware, async (req: Request, res: Response) => {
         try {
-            const username = req.user.username; 
+            const username = req.user.username;
             const savePostData = savePost.parse({
                 username,
                 postId: req.body.postId
@@ -449,7 +450,7 @@ export const MakePostRoute = (postService: PostService) => {
     });
 
 
-    
+
     /**
      * @swagger
      * /unsavePost:
@@ -498,6 +499,95 @@ export const MakePostRoute = (postService: PostService) => {
         }
     });
 
+
+    /**
+    * @swagger
+    * /explore:
+    *   get:
+    *     summary: Get posts for explore
+    *     description: Fetches posts for a user to explore based on the users they are following.
+    *     tags:
+    *       - Posts
+    *     security:
+    *       - bearerAuth: []
+    *     parameters:
+    *       - name: pageNumber
+    *         in: query
+    *         description: The page number for pagination.
+    *         required: true
+    *         schema:
+    *           type: integer
+    *           example: 1
+    *       - name: pageSize
+    *         in: query
+    *         description: The number of posts to return per page.
+    *         required: true
+    *         schema:
+    *           type: integer
+    *           example: 10
+    *     responses:
+    *       200:
+    *         description: Successfully fetched posts for exploration
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 posts:
+    *                   type: array
+    *                   items:
+    *                     type: object
+    *                     properties:
+    *                       postId:
+    *                         type: string
+    *                         description: The ID of the post
+    *                       username:
+    *                         type: string
+    *                         description: The username of the post's author
+    *                       text:
+    *                         type: string
+    *                         description: The content of the post
+    *                       likesCount:
+    *                         type: integer
+    *                         description: The number of likes the post has received
+    *                       commentsCount:
+    *                         type: integer
+    *                         description: The number of comments on the post
+    *                       savesCount:
+    *                         type: integer
+    *                         description: The number of saves the post has
+    *                       isLikedByUser:
+    *                         type: boolean
+    *                         description: Whether the user has liked the post
+    *                       isSavedByUser:
+    *                         type: boolean
+    *                         description: Whether the user has saved the post
+    *                       createdAt:
+    *                         type: string
+    *                         format: date-time
+    *                         description: The date and time when the post was created
+    *       400:
+    *         description: Invalid input data
+    *       500:
+    *         description: Server error
+    */
+    router.get('/explore', authMiddleware, async (req: Request, res: Response) => {
+        try {
+
+
+            const queryParams = getExplorePosts.parse({
+                username: req.user.username,
+                pageNumber: req.query.pageNumber ? parseInt(req.query.pageNumber as string) : undefined,
+                pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+            });
+
+            const posts = await postService.getUserExplorePosts(queryParams);
+
+            res.status(200).json({ posts });
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
 
 
     return router;

@@ -11,11 +11,14 @@ import { likePostDto, unlikePostDto } from "../dto/likepPost.dto";
 import { LikePostRepository } from "../repositrory/post/likePost.repository";
 import { savePostDto, unSavePostDto } from "../dto/savePost";
 import { SavePostRepository } from "../repositrory/post/savePost.repository";
+import { FollowRepository } from "../repositrory/Follow/follow.repository";
+import { getExplorePostsDto } from "../dto/getUserExplorePosts.dto";
+import { Types } from "mongoose";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private followRepo: FollowRepository) {
     }
 
     async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
@@ -157,7 +160,7 @@ export class PostService {
         return true;
     }
 
-    async getPostById(postId: PostId, userWatchPost:Username): Promise<PostResponse> {
+    async getPostById(postId: PostId, userWatchPost: Username): Promise<PostResponse> {
         const post = await this.postRepo.getPostDataById(postId, userWatchPost)
         if (!post) {
             throw new HttpError(404, "post not found.")
@@ -265,6 +268,23 @@ export class PostService {
 
         return true;
     }
+
+    async getUserExplorePosts(data: getExplorePostsDto) {
+
+        const { username, pageNumber, pageSize } = data;
+
+        const followersUsernames = await this.followRepo.getUserFollowingIds(username);
+
+        const ids = await Promise.all(followersUsernames.map(async (username) => {
+            return await this.userRepo.getUserIdByUsername(username);
+        })) as Types.ObjectId[];
+
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids, pageNumber, pageSize)
+
+        return postsForUser || [];
+    }
+
+
 }
 
 

@@ -259,5 +259,17 @@ export class UserRepository {
         return null;
     }
 
+    async getUsernameByUserId(userId: UserId): Promise<Username | null> {
+        const user = await this.model.findOne({ _id:userId }, { username: 1 })
+            .exec().catch((err) => this.handleDBError(err));
+
+        if (user) {
+            return user.username;
+        }
+
+        return null;
+    }
+
+
 }
 
