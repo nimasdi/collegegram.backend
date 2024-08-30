@@ -85,7 +85,7 @@ export class CloseFriendRepository {
             {
                 $lookup: {
                     from: 'users',
-                    localField: 'followerUsername',
+                    localField: 'followingUsername',
                     foreignField: 'username',
                     as: 'userData'
                 }
