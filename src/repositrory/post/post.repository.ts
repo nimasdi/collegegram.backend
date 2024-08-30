@@ -232,11 +232,12 @@ export class PostRepository {
     async getExplorePosts(
         username: Username,
         followingUserIds: Types.ObjectId[],
+        closeFriends: Username[],
         pageNumber: number = 1,
         pageSize: number = 10
     ): Promise<ExploreDataResponse[]> {
         const skip = (pageNumber - 1) * pageSize;
-    
+
         const posts = await this.postModel.aggregate([
             {
                 $match: {
@@ -267,69 +268,34 @@ export class PostRepository {
                     as: 'comments',
                 },
             },
-            // {
-
-            // },
             {
                 $lookup: {
-                    from: 'follows',
-                    let: { postCreator: '$username' },
-                    pipeline: [
-                        {
-                            $match: {
-                                $expr: {
-                                    $and: [
-                                        { $eq: ['$followerUsername', username] }, // Current user
-                                        { $eq: ['$followingUsername', '$$postCreator'] }, // Post creator
-                                        { $eq: ['$status', 'accepted'] }, // Follow status
-                                    ],
-                                },
-                            },
-                        },
-                        {
-                            $project: {
-                                closeFriend: 1,
-                            },
-                        },
-                    ],
-                    as: 'followStatus',
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'creator',
                 },
             },
             {
                 $addFields: {
-                    likesCount: { $size: '$likes' },
-                    isLikedByUser: {
-                        $in: [username, '$likes.username'],
-                    },
-                    commentsCount: { $size: '$comments' },
-                    savesCount: { $size: '$saves' },
-                    isSavedByUser: {
-                        $in: [username, '$saves.username'],
-                    },
-                    isCloseFriend: {
-                        $let: {
-                            vars: {
-                                followStatus: { $arrayElemAt: ['$followStatus', 0] }
-                            },
-                            in: {
-                                $cond: {
-                                    if: { $ne: ['$$followStatus', null] },
-                                    then: '$$followStatus.closeFriend',
-                                    else: false,
-                                }
-                            }
-                        }
-                    },
+                    creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, // Extracting the username from the first (and expected only) user document
                 },
             },
             {
-                $match: {
-                    $or: [
-                        { closeFriendOnly: false }, // Public posts
-                        { $and: [{ "$post.closeFriendOnly": true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
-                    ],
+                $addFields: {
+                    isCloseFriend: {
+                        $in: ['$creatorUsername', closeFriends],
+                    },
                 },
             },
+            // {
+            //     $match: {
+            //         $or: [
+            //             { closeFriendOnly: false }, // Public posts
+            //             { $and: [{ closeFriendOnly: true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
+            //         ],
+            //     },
+            // },
             {
                 $project: {
                     _id: 1,
@@ -339,21 +305,26 @@ export class PostRepository {
                     tags: 1,
                     mentions: 1,
                     closeFriendOnly: 1,
-                    likesCount: 1,
-                    commentsCount: 1,
-                    savesCount: 1,
-                    isLikedByUser: 1,
-                    isSavedByUser: 1,
+                    likesCount: { $size: '$likes' },
+                    commentsCount: { $size: '$comments' },
+                    savesCount: { $size: '$saves' },
+                    isLikedByUser: {
+                        $in: [username, '$likes.username'],
+                    },
+                    isSavedByUser: {
+                        $in: [username, '$saves.username'],
+                    },
                     createdAt: 1,
+                    creatorUsername: 1,
                 },
             },
             { $sort: { createdAt: -1 } },
             { $skip: skip },
             { $limit: pageSize },
         ]).exec();
-    
+
         console.log(posts);
-    
+
         return posts;
     }
 

@@ -281,8 +281,11 @@ export class PostService {
             return await this.userRepo.getUserIdByUsername(username);
         })) as Types.ObjectId[];
 
+        const closeFriendNames = await this.closeFriendRepo.getCloseFriends(username)
+        console.log(closeFriendNames);
         
-        const postsForUser = await this.postRepo.getExplorePosts(username, ids, pageNumber, pageSize)
+        
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids , closeFriendNames, pageNumber, pageSize)
 
         return postsForUser || [];
     }
