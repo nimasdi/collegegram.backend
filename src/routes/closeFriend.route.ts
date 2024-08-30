@@ -129,6 +129,36 @@ export const CloseFriendRoute = (closeFriendService: CloseFriendService) => {
         }
     })
 
+    /**
+    * @swagger
+    * /closeFriends/list:
+    *   get:
+    *     summary: close friends list
+    *     description: check close friends
+    *     tags:
+    *       - Close
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get("/closeFriends/list", authMiddleware, async (req, res) => {
+        try {
+            const username = req.user.username
+            
+            const closeFriendsList = await closeFriendService.getCloseFriends(username)
+
+            res.status(200).json(closeFriendsList)
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    });
+
     return router
 }
 
