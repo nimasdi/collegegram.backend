@@ -9,6 +9,37 @@ import { blockDto } from "../dto/block.dto";
 export const BlockRoute = (blockService:BlockService) => {
     const router = Router();
 
+
+    /**
+    * @swagger
+    * /block/list:
+    *   get:
+    *     summary: list of blocked users
+    *     description: list of blocked users
+    *     tags:
+    *       - Block
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get("/list", authMiddleware, async (req, res) => {
+        try {
+            const username = req.user.username
+
+            const blockedList = await blockService.getBlockedList(username)
+
+            res.status(200).json(blockedList)
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    });
+
     /**
     * @swagger
     * /block/{username}:
@@ -129,37 +160,6 @@ export const BlockRoute = (blockService:BlockService) => {
             handelErrorResponse(res, error)
         }
     })
-
-
-    /**
-    * @swagger
-    * /list:
-    *   get:
-    *     summary: list of blocked users
-    *     description: list of blocked users
-    *     tags:
-    *       - Block
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: User information retrieved successfully
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Internal server error
-    */
-    router.get("/list", authMiddleware, async (req, res) => {
-        try {
-            const username = req.user.username
-
-            const blockedList = await blockService.getBlockedList(username)
-
-            res.status(200).json(blockedList)
-        } catch (error) {
-            handelErrorResponse(res, error)
-        }
-    });
 
     /**
      * @swagger

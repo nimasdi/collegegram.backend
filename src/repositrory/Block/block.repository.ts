@@ -80,7 +80,7 @@ export class BlockRepository {
             {
                 $project: {
                     _id: 0,
-                    username: '$followingUsername',
+                    username: '$blockingUsername',
                     imageUrl: '$userData.imageUrl',
                     firstName: '$userData.firstName',
                     lastName: '$userData.lastName',
