@@ -1,4 +1,4 @@
-import { CloseFriendRepository } from "../repositrory/CloseFriend/closeFriend.repository";
+import { CloseFriendRepository, closeFriends } from "../repositrory/CloseFriend/closeFriend.repository";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 
@@ -18,6 +18,11 @@ export class CloseFriendService {
     async checkCloseFriend(followingUsername: Username, followerUsername: Username): Promise<Boolean> {
         const closeFriend = await this.closeRepo.checkCloseFriend(followerUsername, followingUsername)
         return closeFriend
+    }
+
+    async getCloseFriends(username: Username): Promise<closeFriends> {
+        const closeFriendsList = this.closeRepo.getCloseFriends(username)
+        return closeFriendsList
     }
 
 }

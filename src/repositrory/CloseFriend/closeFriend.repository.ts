@@ -8,6 +8,11 @@ export interface Relation {
     followerUserName: Username,
 }
 
+export interface closeFriends {
+    closeFriends: { username: Username, followerCount: number, followingCount: number }[];
+    closeFriendsCount: number;
+}
+
 export class CloseFriendRepository {
 
     private model: Model<IFollow>;
@@ -55,6 +60,61 @@ export class CloseFriendRepository {
         const relation = await this.model.findOne({followerUsername, followingUsername , status: 'accepted'})
             .exec().catch((err) => this.handleDBError(err));
         return relation
+    }
+
+    async getCloseFriends(user: Username): Promise<closeFriends> {
+        // Aggregation for followers
+        const closeFriendsPipeline = [
+            { $match: { followerUsername: user , status: 'accepted' , closeFriend: true  } },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followingUsername',
+                    foreignField: 'followingUsername',
+                    as: 'followers'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followingUsername',
+                    foreignField: 'followerUsername',
+                    as: 'following'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'followingUsername',
+                    foreignField: 'username',
+                    as: 'userData'
+                }
+            },
+            {
+                $unwind: '$userData'
+            },
+            {
+                $project: {
+                    _id: 0,
+                    username: '$followingUsername',
+                    imageUrl: '$userData.imageUrl',
+                    firstName: '$userData.firstName',
+                    lastName: '$userData.lastName',
+                    private: '$userData.private',
+                    followerCount: { $size: '$followers' },
+                    followingCount: { $size: '$following' }
+                }
+            }
+        ];
+
+        const closeFriends = await this.model.aggregate(closeFriendsPipeline).exec().catch(err => this.handleDBError(err));
+
+        const closeFriendsCount = closeFriends.length;
+
+        return {
+            closeFriends,
+            closeFriendsCount
+        };
     }
 
 }
