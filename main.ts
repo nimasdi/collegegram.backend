@@ -28,8 +28,8 @@ import { CloseFriendRepository } from "./src/repositrory/CloseFriend/closeFriend
 
 dotenv.config();
 
-const postRepo = new PostRepository(Post)
-const userRepo = new UserRepository(User);
+export const postRepo = new PostRepository(Post)
+export const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const followRepo = new FollowRepository(Follow)
 const closeFriendRepo = new CloseFriendRepository(Follow)
@@ -38,7 +38,7 @@ const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
 const userService = new UserService(userRepo ,postRepo)
-const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , followRepo)
+const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo)
 const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
 const followService = new FollowService(followRepo,userRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
@@ -46,7 +46,6 @@ const blockService = new BlockService(blockRepo,userRepo)
 
 
 const uri = process.env.MONGO_URI || '';
-
 
 const dbConnection = new MongoDBConnection(uri);
 

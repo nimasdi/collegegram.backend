@@ -3,6 +3,7 @@ import { HttpError } from "./error-handler";
 import { ZodError } from "zod";
 
 export const handelErrorResponse = async ( res : Response , error: any) => {
+    console.log(error)
     if(error instanceof ZodError){
         const errorsMessage = error.errors.reduce((prev,e) => {return {...prev,[e.path[0]]:e.message}},{})
         return res.status(400).json(errorsMessage)

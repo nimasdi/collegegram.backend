@@ -50,10 +50,10 @@ export class FollowRepository {
     }
 
     async removeFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername , followerUsername })
-        .catch((err) => this.handleDBError(err));
+        await this.model.deleteOne({ followingUsername, followerUsername })
+            .catch((err) => this.handleDBError(err));
     }
- 
+
     async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
         const followExist = await this.model.findOne({ followingUsername, followerUsername })
             .catch((err) => this.handleDBError(err))
@@ -79,7 +79,7 @@ export class FollowRepository {
     async getFollowersAndFollowing(user: Username): Promise<followingAndFollowers> {
         // Aggregation for followers
         const followersPipeline = [
-            { $match: { followingUsername: user , status: 'accepted'  } },
+            { $match: { followingUsername: user, status: 'accepted' } },
             {
                 $lookup: {
                     from: 'follows',
@@ -125,7 +125,7 @@ export class FollowRepository {
 
         // Aggregation for following
         const followingPipeline = [
-            { $match: { followerUsername: user, status: 'accepted'  } },
+            { $match: { followerUsername: user, status: 'accepted' } },
             {
                 $lookup: {
                     from: 'follows',
@@ -193,7 +193,7 @@ export class FollowRepository {
         return followingUsernames;
     }
 
-    
+
 
     async sendFollowRequest(request: followRequest): Promise<void> {
         const followReq = new this.model({ followerUsername: request.sender, followingUsername: request.receiver, status: 'pending' });
@@ -223,8 +223,18 @@ export class FollowRepository {
         return true;
     }
 
-    async findOne(query: Partial<followRequestAction & { status?: string }>): Promise<IFollow | null> {
-        return await this.model.findOne(query).catch((err) => null);
+    // async findOne(query: Partial<followRequestAction & { status?: string }>): Promise<IFollow | null> {
+    //     return await this.model.findOne(query).catch((err) => null);
+    // }
+
+    async findRequest(followingUsername: Username, followerUsername: Username) {
+        const request = await this.model.findOne({
+            followingUsername: followingUsername,
+            followerUsername: followerUsername,
+            status: 'pending'
+        }).exec();
+
+        return request || null;
     }
 
 

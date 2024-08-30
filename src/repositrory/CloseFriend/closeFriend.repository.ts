@@ -62,6 +62,23 @@ export class CloseFriendRepository {
         return relation
     }
 
+
+    async getCloseFriends2(username: Username): Promise<Username[]> {
+        const closeFriends = await this.model.find({
+            followerUsername: username,
+            status: 'accepted',
+            closeFriend: true
+        }).exec().catch((err) => this.handleDBError(err));
+
+        return closeFriends.map(follow => follow.followingUsername);
+    }
+
+
+    async isCloseFriend(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
+        const closeFriends = await this.getCloseFriends2(followerUsername);
+        return closeFriends.includes(followingUsername);
+    }
+
     async getCloseFriends(user: Username): Promise<closeFriends> {
         // Aggregation for followers
         const closeFriendsPipeline = [

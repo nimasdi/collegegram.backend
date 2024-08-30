@@ -12,13 +12,15 @@ import { LikePostRepository } from "../repositrory/post/likePost.repository";
 import { savePostDto, unSavePostDto } from "../dto/savePost";
 import { SavePostRepository } from "../repositrory/post/savePost.repository";
 import { FollowRepository } from "../repositrory/Follow/follow.repository";
+import { CloseFriendRepository } from "../repositrory/CloseFriend/closeFriend.repository";
+import { GetPostsDto } from "../dto/getPosts.dto";
 import { getExplorePostsDto } from "../dto/getUserExplorePosts.dto";
 import { Types } from "mongoose";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private followRepo: FollowRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository) {
     }
 
     async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
@@ -168,18 +170,18 @@ export class PostService {
         return post
     }
 
-    async getUserPosts(username: Username): Promise<PostResponse[]> {
+    // async getUserPosts(username: Username): Promise<PostResponse[]> {
 
-        const userId = await this.userRepo.getUserIdByUsername(username)
-        if (!userId)
-            throw new HttpError(404, "user not found.")
+    //     const userId = await this.userRepo.getUserIdByUsername(username)
+    //     if (!userId)
+    //         throw new HttpError(404, "user not found.")
 
-        const posts = await this.postRepo.getAll(userId)
-        if (posts.length === 0)
-            return []
+    //     const posts = await this.postRepo.getAll(userId)
+    //     if (posts.length === 0)
+    //         return []
 
-        return posts
-    }
+    //     return posts
+    // }
 
     async savePost(savePostData: savePostDto): Promise<boolean> {
 
@@ -279,13 +281,56 @@ export class PostService {
             return await this.userRepo.getUserIdByUsername(username);
         })) as Types.ObjectId[];
 
-        const postsForUser = await this.postRepo.getExplorePosts(username, ids, pageNumber, pageSize)
+        const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(username)
+        console.log(closeFriendNames);
+        
+        
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids , closeFriendNames, pageNumber, pageSize)
 
         return postsForUser || [];
     }
 
 
+
+    async getUserPosts(data: GetPostsDto) {
+
+        const creatorExist = await this.userRepo.checkUserExist(data.creatorUsername)
+        if (!creatorExist) {
+            throw new HttpError(404, "user not found.")
+        }
+
+        const watcherExist = await this.userRepo.checkUserExist(data.watcherUsername)
+        if (!watcherExist) {
+            throw new HttpError(404, "user not found.")
+        }
+
+        let isCloseFriend = false;
+
+        if (data.creatorUsername !== data.watcherUsername) {
+            isCloseFriend = !!await this.closeFriendRepo.checkCloseFriend(data.watcherUsername, data.creatorUsername);
+        }
+
+        const posts = await this.postRepo.getPosts(data.creatorUsername, isCloseFriend, data.pageNumber, data.pageSize);
+
+        return posts;
+
+    }
+
+    async getUserOwnPosts(username: Username): Promise<PostResponse[]> {
+
+        const userId = await this.userRepo.getUserIdByUsername(username)
+        if (!userId)
+            throw new HttpError(404, "user not found.")
+
+        const posts = await this.postRepo.getAll(userId)
+        if (posts.length === 0)
+            return []
+
+        return posts
+    }
+
 }
+
 
 
 
