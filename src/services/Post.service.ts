@@ -14,11 +14,13 @@ import { SavePostRepository } from "../repositrory/post/savePost.repository";
 import { FollowRepository } from "../repositrory/Follow/follow.repository";
 import { CloseFriendRepository } from "../repositrory/CloseFriend/closeFriend.repository";
 import { GetPostsDto } from "../dto/getPosts.dto";
+import { getExplorePostsDto } from "../dto/getUserExplorePosts.dto";
+import { Types } from "mongoose";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository) {
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository) {
     }
 
     async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
@@ -268,6 +270,23 @@ export class PostService {
 
         return true;
     }
+
+    async getUserExplorePosts(data: getExplorePostsDto) {
+
+        const { username, pageNumber, pageSize } = data;
+
+        const followersUsernames = await this.followRepo.getUserFollowingIds(username);
+
+        const ids = await Promise.all(followersUsernames.map(async (username) => {
+            return await this.userRepo.getUserIdByUsername(username);
+        })) as Types.ObjectId[];
+
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids, pageNumber, pageSize)
+
+        return postsForUser || [];
+    }
+
+
 
     async getUserPosts(data: GetPostsDto) {
 

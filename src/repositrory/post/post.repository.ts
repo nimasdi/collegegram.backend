@@ -1,7 +1,8 @@
 import { Model, Document, Types } from 'mongoose';
 import { IPost } from '../../db/post/post';
-import { Username } from '../../types/user.types';
+import { UserId, Username } from '../../types/user.types';
 import { HttpError } from '../../utility/error-handler';
+import { createDeflate, inflateRaw } from 'zlib';
 
 export interface createPost {
     images: string[],
@@ -38,6 +39,32 @@ export interface PostDataResponse {
     bookmarksCount: Number,
     isLikedByUser: Boolean,
     isBookmarksByUser: Boolean,
+    createdAt: Date
+}
+
+export interface ExploreDataResponse {
+    postId: Types.ObjectId,
+    userId: Types.ObjectId,
+    text: string,
+    username: Username,
+    likesCount: number,
+    commentsCount: number,
+    savesCount: number,
+    isLikedByUser: boolean,
+    isSavedByUser: boolean,
+    createdAt: Date
+}
+
+export interface ExploreDataResponse {
+    postId: Types.ObjectId,
+    userId: Types.ObjectId,
+    text: string,
+    username: Username,
+    likesCount: number,
+    commentsCount: number,
+    savesCount: number,
+    isLikedByUser: boolean,
+    isSavedByUser: boolean,
     createdAt: Date
 }
 
@@ -200,7 +227,91 @@ export class PostRepository {
         }
 
         return responsePosts
+    }   
+
+    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
+        const skip = (pageNumber - 1) * pageSize;
+
+        followingUserIds = followingUserIds.map(userId => new Types.ObjectId(userId))
+
+        const posts = await this.postModel.aggregate([
+            {
+                $match: {
+                    userId: { $in: followingUserIds }
+                }
+            },
+            {
+                $lookup: {
+                    from: 'likecomments',
+                    localField: '_id',
+                    foreignField: 'commentId',
+                    as: 'likes'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'saveposts',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'saves'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'comments',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'comments'
+                }
+            },
+            {
+                $addFields: {
+                    likesCount: { $size: '$likes' },
+                    isLikedByUser: {
+                        $in: [username, '$likes.username']
+                    },
+                    commentsCount: { $size: '$comments' },
+                    savesCount: { $size: '$saves' },
+                    isSavedByUser: {
+                        $in: [username, '$saves.username']
+                    },
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    text: 1,
+                    username: 1,
+                    likesCount: 1,
+                    commentsCount: 1,
+                    savesCount: 1,
+                    isLikedByUser: 1,
+                    isSavedByUser: 1,
+                    createdAt: 1
+                }
+            },
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: pageSize }
+        ]).exec();
+
+        const postResponse = posts.map((post) => ({
+            postId: post._id,
+            userId: post.userId,
+            text: post.text,
+            username: post.username, 
+            likesCount: post.likesCount,
+            commentsCount: post.commentsCount,
+            savesCount: post.savesCount,
+            isLikedByUser: post.isLikedByUser,
+            isSavedByUser: post.isSavedByUser,
+            createdAt: post.createdAt
+        }));
+    
+        return postResponse;
     }
+
 
 
     async getUserIdForPost(postId: Types.ObjectId): Promise<Types.ObjectId | null> {
