@@ -1,4 +1,4 @@
-import { BlockRepository } from "../repositrory/Block/block.repository";
+import { BlockRepository, blockedUsers } from "../repositrory/Block/block.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
@@ -35,6 +35,11 @@ export class BlockService {
     async checkBlock(blockingUsername: Username, blockerUsername: Username): Promise<Boolean> {
         const blocked = await this.blockRepo.checkBlock(blockerUsername, blockingUsername)
         return blocked
+    }
+
+    async getBlockedList(username: Username): Promise<blockedUsers> {
+        const blockedUsers = this.blockRepo.getBlockedUserList(username)
+        return blockedUsers
     }
 }
 

@@ -8,6 +8,11 @@ export interface Block {
     blockingUsername : Username,
 }
 
+export interface blockedUsers {
+    blockedList: { username: Username, followerCount: number, followingCount: number }[];
+    blockedCount: number;
+}
+
 export class BlockRepository {
 
     private model: Model<IBlock>;
@@ -39,6 +44,61 @@ export class BlockRepository {
             return false
         }
         return true
+    }
+
+    async getBlockedUserList(user: Username): Promise<blockedUsers> {
+        // Aggregation for followers
+        const blockedPipeline = [
+            { $match: { blockerUsername: user   } },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'followingUsername',
+                    foreignField: 'blockingUsername',
+                    as: 'followers'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'blockingUsername',
+                    foreignField: 'followerUsername',
+                    as: 'following'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'blockingUsername',
+                    foreignField: 'username',
+                    as: 'userData'
+                }
+            },
+            {
+                $unwind: '$userData'
+            },
+            {
+                $project: {
+                    _id: 0,
+                    username: '$blockingUsername',
+                    imageUrl: '$userData.imageUrl',
+                    firstName: '$userData.firstName',
+                    lastName: '$userData.lastName',
+                    private: '$userData.private',
+                    followerCount: { $size: '$followers' },
+                    followingCount: { $size: '$following' }
+                }
+            }
+        ];
+    
+        const blockedList = await this.model.aggregate(blockedPipeline).exec().catch(err => this.handleDBError(err));
+    
+        const blockedCount = blockedList.length;
+    
+        return {
+            blockedList,
+            blockedCount
+        };
     }
 }
 
