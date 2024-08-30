@@ -23,7 +23,8 @@ export interface PostResponse {
     caption: string,
     tags: string[],
     mentions: Username[],
-    id: Types.ObjectId
+    id: Types.ObjectId,
+    createdAt: Date
 }
 
 export interface PostDataResponse {
@@ -37,6 +38,7 @@ export interface PostDataResponse {
     bookmarksCount: Number,
     isLikedByUser: Boolean,
     isBookmarksByUser: Boolean,
+    createdAt: Date
 }
 
 export class PostRepository {
@@ -50,13 +52,14 @@ export class PostRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    private generatePostResponse: (post: IPost) => PostResponse = (post) => {
+    private generatePostResponse: (post: any) => PostResponse = (post) => {
         const postResponse: PostResponse = {
             images: post.images,
             caption: post.caption,
             tags: post.tags,
             mentions: post.mentions,
-            id: post.id
+            id: post.id,
+            createdAt: post.createdAt,
         };
 
         return postResponse;
@@ -172,7 +175,7 @@ export class PostRepository {
         }
 
         const post = posts[0]
-        const postResponse: PostDataResponse = {
+        const postResponse = {
             images: post.images || [],
             caption: post.caption,
             tags: post.tags,
@@ -183,7 +186,7 @@ export class PostRepository {
             bookmarksCount: post.bookmarksCount,
             isLikedByUser: post.isLikedByUser,
             isBookmarksByUser: post.isBookmarksByUser,
-
+            createdAt: post.createdAt
         }
         return postResponse
     }
@@ -218,4 +221,30 @@ export class PostRepository {
         return post.userId;
     }
 
+    async getPosts(currentUsername: Username, isCloseFriend: boolean, pageNumber: number, pageSize: number): Promise<IPost[]> {
+        try {
+            // Fetch all posts
+            const posts = await this.postModel
+                .find()
+                .skip((pageNumber - 1) * pageSize)
+                .limit(pageSize)
+                .sort({ createdAt: -1 })
+                .exec();
+
+            const filteredPosts = posts.filter((post) => {
+                if (post.closeFriendOnly && !isCloseFriend) {
+                    return false; 
+                }
+                return true;
+            });
+
+            return filteredPosts;
+        } catch (error) {
+            this.handleDBError();
+            return [];
+        }
+
+    }
 }
+
+

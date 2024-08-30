@@ -10,6 +10,7 @@ import { likePost, unlikePost } from '../dto/likepPost.dto';
 import { savePost, unSavePost } from '../dto/savePost';
 import { checkUserMiddleware } from '../utility/checkUser';
 import { postRepo, userRepo } from '../../main';
+import { GetPosts } from '../dto/getPosts.dto';
 
 export const MakePostRoute = (postService: PostService) => {
 
@@ -255,7 +256,7 @@ export const MakePostRoute = (postService: PostService) => {
     router.get('/posts', authMiddleware, async (req: Request, res: Response) => {
         const username = req.user.username;
         try {
-            const posts = await postService.getUserPosts(username);
+            const posts = await postService.getUserOwnPosts(username);
             res.status(200).json({
                 posts
             })
@@ -267,19 +268,33 @@ export const MakePostRoute = (postService: PostService) => {
 
     /**
     * @swagger
-    * /{username}/posts:
+    * /getPosts:
     *   get:
     *     summary: Get user posts
     *     description: Retrieve detailed information for a posts of a user by username.
     *     tags:
     *       - Posts
     *     parameters:
-    *         - in: path
-    *           name: username
-    *           required: true
-    *           description: username
-    *           schema:
-    *             type: string
+    *       - in: query
+    *         name: creatorUsername
+    *         schema:
+    *           type: string
+    *         required: true
+    *         description: The useranme of the post creator.
+    *       - in: query
+    *         name: pageNumber
+    *         schema:
+    *           type: number
+    *           example: 1
+    *         required: false
+    *         description: The page number to retrieve, defaults to 1.
+    *       - in: query
+    *         name: pageSize
+    *         schema:
+    *           type: number
+    *           example: 10
+    *         required: false
+    *         description: The number of comments to retrieve per page, defaults to 10.
     *     security:
     *       - bearerAuth: []
     *     responses:
@@ -290,13 +305,18 @@ export const MakePostRoute = (postService: PostService) => {
     *       500:
     *         description: Internal server error
     */
-    router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
+    router.get('/getPosts', authMiddleware, async (req: Request, res: Response) => {
         try {
-            const username = req.params.username;
-            if (!isUsername(username)) {
-                throw new HttpError(400, "check user name Field")
-            }
-            const posts = await postService.getUserPosts(username);
+
+            const getPostsDto = GetPosts.parse({
+                watcherUsername: req.user.username,
+                creatorUsername: req.query.creatorUsername,
+                pageNumber: req.query.pageNumber ? parseInt(req.query.pageNumber as string) : undefined,
+                pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+            })
+
+
+            const posts = await postService.getUserPosts(getPostsDto);
             res.status(200).json({
                 posts
             })

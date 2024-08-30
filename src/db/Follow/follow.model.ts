@@ -16,11 +16,13 @@ const FollowSchema: Schema<IFollow> = new Schema({
         type: String,
         ref: 'User',
         required: true,
+        unique: false
     },
     followerUsername: {
         type: String,
         ref: 'User',
         required: true,
+        unique: false
     },
     status: {
         type: String,
