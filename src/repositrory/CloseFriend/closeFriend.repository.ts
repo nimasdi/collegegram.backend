@@ -69,7 +69,7 @@ export class CloseFriendRepository {
             {
                 $lookup: {
                     from: 'follows',
-                    localField: 'followerUsername',
+                    localField: 'followingUsername',
                     foreignField: 'followingUsername',
                     as: 'followers'
                 }
@@ -77,7 +77,7 @@ export class CloseFriendRepository {
             {
                 $lookup: {
                     from: 'follows',
-                    localField: 'followerUsername',
+                    localField: 'followingUsername',
                     foreignField: 'followerUsername',
                     as: 'following'
                 }
@@ -96,7 +96,7 @@ export class CloseFriendRepository {
             {
                 $project: {
                     _id: 0,
-                    username: '$followerUsername',
+                    username: '$followingUsername',
                     imageUrl: '$userData.imageUrl',
                     firstName: '$userData.firstName',
                     lastName: '$userData.lastName',
