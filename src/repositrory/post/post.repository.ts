@@ -227,93 +227,137 @@ export class PostRepository {
         }
 
         return responsePosts
-    }   
+    }
 
-    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
+    async getExplorePosts(
+        username: Username,
+        followingUserIds: Types.ObjectId[],
+        pageNumber: number = 1,
+        pageSize: number = 10
+    ): Promise<ExploreDataResponse[]> {
         const skip = (pageNumber - 1) * pageSize;
-
-        followingUserIds = followingUserIds.map(userId => new Types.ObjectId(userId))
-
+    
         const posts = await this.postModel.aggregate([
             {
                 $match: {
-                    userId: { $in: followingUserIds }
-                }
+                    userId: { $in: followingUserIds },
+                },
             },
             {
                 $lookup: {
                     from: 'likecomments',
                     localField: '_id',
                     foreignField: 'commentId',
-                    as: 'likes'
-                }
+                    as: 'likes',
+                },
             },
             {
                 $lookup: {
                     from: 'saveposts',
                     localField: '_id',
                     foreignField: 'postId',
-                    as: 'saves'
-                }
+                    as: 'saves',
+                },
             },
             {
                 $lookup: {
                     from: 'comments',
                     localField: '_id',
                     foreignField: 'postId',
-                    as: 'comments'
-                }
+                    as: 'comments',
+                },
+            },
+            // {
+
+            // },
+            {
+                $lookup: {
+                    from: 'follows',
+                    let: { postCreator: '$username' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$followerUsername', username] }, // Current user
+                                        { $eq: ['$followingUsername', '$$postCreator'] }, // Post creator
+                                        { $eq: ['$status', 'accepted'] }, // Follow status
+                                    ],
+                                },
+                            },
+                        },
+                        {
+                            $project: {
+                                closeFriend: 1,
+                            },
+                        },
+                    ],
+                    as: 'followStatus',
+                },
             },
             {
                 $addFields: {
                     likesCount: { $size: '$likes' },
                     isLikedByUser: {
-                        $in: [username, '$likes.username']
+                        $in: [username, '$likes.username'],
                     },
                     commentsCount: { $size: '$comments' },
                     savesCount: { $size: '$saves' },
                     isSavedByUser: {
-                        $in: [username, '$saves.username']
+                        $in: [username, '$saves.username'],
                     },
-                }
+                    isCloseFriend: {
+                        $let: {
+                            vars: {
+                                followStatus: { $arrayElemAt: ['$followStatus', 0] }
+                            },
+                            in: {
+                                $cond: {
+                                    if: { $ne: ['$$followStatus', null] },
+                                    then: '$$followStatus.closeFriend',
+                                    else: false,
+                                }
+                            }
+                        }
+                    },
+                },
+            },
+            {
+                $match: {
+                    $or: [
+                        { closeFriendOnly: false }, // Public posts
+                        { $and: [{ "$post.closeFriendOnly": true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
+                    ],
+                },
             },
             {
                 $project: {
                     _id: 1,
                     userId: 1,
-                    text: 1,
-                    username: 1,
+                    caption: 1,
+                    images: 1,
+                    tags: 1,
+                    mentions: 1,
+                    closeFriendOnly: 1,
                     likesCount: 1,
                     commentsCount: 1,
                     savesCount: 1,
                     isLikedByUser: 1,
                     isSavedByUser: 1,
-                    createdAt: 1
-                }
+                    createdAt: 1,
+                },
             },
             { $sort: { createdAt: -1 } },
             { $skip: skip },
-            { $limit: pageSize }
+            { $limit: pageSize },
         ]).exec();
-
-        const postResponse = posts.map((post) => ({
-            postId: post._id,
-            userId: post.userId,
-            text: post.text,
-            username: post.username, 
-            likesCount: post.likesCount,
-            commentsCount: post.commentsCount,
-            savesCount: post.savesCount,
-            isLikedByUser: post.isLikedByUser,
-            isSavedByUser: post.isSavedByUser,
-            createdAt: post.createdAt
-        }));
     
-        return postResponse;
+        console.log(posts);
+    
+        return posts;
     }
 
-
-
+      
     async getUserIdForPost(postId: Types.ObjectId): Promise<Types.ObjectId | null> {
         const post = await this.postModel.findById(postId).exec()
             .then((post) => {
@@ -344,7 +388,7 @@ export class PostRepository {
 
             const filteredPosts = posts.filter((post) => {
                 if (post.closeFriendOnly && !isCloseFriend) {
-                    return false; 
+                    return false;
                 }
                 return true;
             });

@@ -46,7 +46,7 @@ export class FollowService {
             throw new HttpError(400, "user not found")
         }
         const existFollow = await this.followRepo.checkFollow(followerUsername, followingUsername)
-        if(!existFollow) {
+        if (!existFollow) {
             throw new HttpError(400, "follow relation not found")
         }
         await this.followRepo.removeFollowing(followerUsername, followingUsername)
@@ -96,6 +96,7 @@ export class FollowService {
     async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<boolean> {
         const { receiver, sender, action } = followRequestActionData
 
+
         const senderExist = this.userRepo.checkUserExist(sender)
         if (!senderExist) {
             throw new HttpError(404, "user not found")
@@ -104,12 +105,13 @@ export class FollowService {
         if (!receiverExist) {
             throw new HttpError(404, "user not found")
         }
+        
+        const followRequest = await this.followRepo.findRequest(receiver, sender);
 
-        const followRequest = await this.followRepo.findOne({ sender, receiver, status: 'pending' });
         if (!followRequest) {
             throw new HttpError(400, "Follow request not found or already processed");
         }
-            
+
         // Update the follow request status in the repository
         const result = await this.followRepo.acceptOrDeclineFollowRequest({
             sender,
