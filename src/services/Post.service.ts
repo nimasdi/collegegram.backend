@@ -241,7 +241,7 @@ export class PostService {
 
         const userHasLiked = await this.likePostRepo.hasUserLikedPost(likePostData.username, likePostData.postId);
         if (userHasLiked) {
-            throw new HttpError(400, "User has already saved this comment");
+            throw new HttpError(400, "User has already liked this comment");
         }
 
         await this.likePostRepo.likePost(likePostData);
@@ -282,9 +282,7 @@ export class PostService {
         })) as Types.ObjectId[];
 
         const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(username)
-        console.log(closeFriendNames);
-        
-        
+                
         const postsForUser = await this.postRepo.getExplorePosts(username, ids , closeFriendNames, pageNumber, pageSize)
 
         return postsForUser || [];

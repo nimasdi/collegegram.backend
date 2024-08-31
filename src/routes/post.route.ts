@@ -360,7 +360,6 @@ export const MakePostRoute = (postService: PostService) => {
      */
     router.post('/likePost', authMiddleware, async (req: Request, res: Response) => {
         try {
-            const username = req.user.username; // Assuming the username is retrieved from the auth middleware
             const likePostData = likePost.parse({
                 username: req.user.username,
                 postId: req.body.postId
