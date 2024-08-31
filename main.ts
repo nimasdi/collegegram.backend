@@ -45,8 +45,7 @@ const closeFriendService = new CloseFriendService(closeFriendRepo)
 const blockService = new BlockService(blockRepo,userRepo)
 
 
-// const uri = process.env.MONGO_URI || '';
-const uri = "mongodb://localhost:27017/zooooTTT"
+const uri = process.env.MONGO_URI || '';
 
 const dbConnection = new MongoDBConnection(uri);
 
