@@ -94,6 +94,8 @@ export class PostService {
         if (!isUsername(username)) {
             throw new HttpError(400, "Invalid username");
         }
+        console.log("jjd")
+
 
         const user = await this.userRepo.getUserByUsername(username);
         if (!user) {
@@ -151,7 +153,9 @@ export class PostService {
             caption: postData.caption,
             tags,
             mentions,
+            closeFriendOnly: postData.closeFriendOnly
         };
+
 
 
         const result = await this.postRepo.updatePost(postId, updateData);

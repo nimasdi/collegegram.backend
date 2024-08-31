@@ -9,7 +9,8 @@ interface userUpdatePost{
 export const updatePostDto = z.object({
     images : z.array(z.string()),
     caption: z.string(),
-    mentionsUsernames: z.array(z.string())
+    mentionsUsernames: z.array(z.string()),
+    closeFriendOnly: z.coerce.boolean()
 })
 
 export type UpdatePostDto = z.infer<typeof updatePostDto>;

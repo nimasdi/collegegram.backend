@@ -212,7 +212,7 @@ export const MakePostRoute = (postService: PostService) => {
     *       scheme: bearer
     *       bearerFormat: JWT
     */
-    router.post('/:postid/update', checkUserMiddleware(postRepo, userRepo), authMiddleware, uploadMiddleware, async (req, res, next) => {
+    router.post('/:postid/update', authMiddleware , uploadMiddleware, checkUserMiddleware(postRepo, userRepo) , async (req, res, next) => {
         try {
 
             const username = req.user.username
@@ -226,6 +226,7 @@ export const MakePostRoute = (postService: PostService) => {
                 ...req.body,
                 images: images
             });
+
 
             postService.updatePost(username, postId, postData);
 
