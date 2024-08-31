@@ -16,7 +16,8 @@ export interface updatePost {
     images: string[],
     caption: string,
     tags: string[],
-    mentions: Username[]
+    mentions: Username[],
+    closeFriendOnly: boolean
 }
 
 export interface PostResponse {

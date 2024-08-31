@@ -10,7 +10,6 @@ interface updateUser {
     private: boolean;
     imageUrl?: string;
     bio?: string;
-    closeFriendOnly: boolean;
 }
 
 export const updateUserDto = z.object({
@@ -21,7 +20,6 @@ export const updateUserDto = z.object({
     private: z.coerce.boolean().optional(),
     bio: z.string().optional(),
     imageUrl: z.string().optional(),
-    closeFriendOnly: z.coerce.boolean()
 });
 
 

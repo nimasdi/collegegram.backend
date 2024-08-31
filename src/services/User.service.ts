@@ -20,7 +20,8 @@ export type userCreatePostData = {
 export type userUpdatePost = {
     images: string[],
     caption: string,
-    mentionsUsernames: string
+    mentionsUsernames: string,
+    closeFriendOnly: boolean
 }
 
 type UsernameOrEmail = Username | Email;

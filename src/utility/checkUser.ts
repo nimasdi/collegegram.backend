@@ -11,6 +11,7 @@ export const checkUserMiddleware = (postRepo: PostRepository, userRepo: UserRepo
     return async (req: Request, res: Response, next: NextFunction) => {
 
         try {
+
             const currentUser = req.user.username;
             const postId = req.params.postid;
 
@@ -29,12 +30,14 @@ export const checkUserMiddleware = (postRepo: PostRepository, userRepo: UserRepo
                 throw new HttpError(404, "Post not found");
             }
 
-            if (postUserId !== userId) {
+
+            if (postUserId.toString() != userId?.toString()) {
                 throw new HttpError(403, "User is not authorized to update this post");
             }
 
             next();
         } catch (error) {
+            console.log(error)
             next(error);
         }
 
