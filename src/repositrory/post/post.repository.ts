@@ -246,9 +246,9 @@ export class PostRepository {
             },
             {
                 $lookup: {
-                    from: 'likecomments',
+                    from: 'likeposts',
                     localField: '_id',
-                    foreignField: 'commentId',
+                    foreignField: 'postId',
                     as: 'likes',
                 },
             },
@@ -288,14 +288,14 @@ export class PostRepository {
                     },
                 },
             },
-            // {
-            //     $match: {
-            //         $or: [
-            //             { closeFriendOnly: false }, // Public posts
-            //             { $and: [{ closeFriendOnly: true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
-            //         ],
-            //     },
-            // },
+            {
+                $match: {
+                    $or: [
+                        { closeFriendOnly: false }, // Public posts
+                        { $and: [{ closeFriendOnly: true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
+                    ],
+                },
+            },
             {
                 $project: {
                     _id: 1,
@@ -323,7 +323,6 @@ export class PostRepository {
             { $limit: pageSize },
         ]).exec();
 
-        console.log(posts);
 
         return posts;
     }
