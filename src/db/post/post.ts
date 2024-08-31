@@ -33,6 +33,7 @@ export const postSchema: Schema<IPost> = new Schema({
     closeFriendOnly: {
         type: Boolean,
         required: true,
+        default: false
     },
     mentions: {
         type: [String],
