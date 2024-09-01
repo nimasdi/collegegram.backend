@@ -2,7 +2,7 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 import { Username } from '../../types/user.types';
 
 
-interface IUserNotification extends Document {
+export interface IUserNotification extends Document {
     username: Username;                    // The user associated with the notification
     notificationId: mongoose.Types.ObjectId; // Reference to a notification document
     seen: boolean;                     
