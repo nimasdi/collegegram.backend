@@ -50,6 +50,13 @@ export const isUserId = (x: string): x is UserId =>
     mongoose.Types.ObjectId.isValid(x); 
 export const zodUserId = z.coerce.string().refine(isUserId, { message: "Invalid user ID" });
 
+
+// Type for mongo objectId
+export type MongoId = Brand<string, 'MongoId'>;
+export const isMongoId = (x: string): x is MongoId =>
+    mongoose.Types.ObjectId.isValid(x); 
+export const zodMongoId = z.coerce.string().refine(isMongoId, { message: "Invalid mongo ID" });
+
 export interface UserWithoutPosts {
     firstName: Name;
     lastName: Name;

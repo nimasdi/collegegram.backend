@@ -16,7 +16,9 @@ export class NotificationtRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    
+    async createNotification() {
+        
+    }
 
 
 }
