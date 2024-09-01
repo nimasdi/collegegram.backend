@@ -231,39 +231,7 @@ export const MakePostRoute = (postService: PostService) => {
         }
     })
 
-
-    /**
-    * @swagger
-    * /posts:
-    *   get:
-    *     summary: Get user posts
-    *     description: Retrieve detailed information for a posts of a user by username.
-    *     tags:
-    *       - Posts
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: User information retrieved successfully
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Internal server error
-    */
-    router.get('/posts', authMiddleware, async (req: Request, res: Response) => {
-        const username = req.user.username;
-        try {
-            const posts = await postService.getUserPosts(username);
-            res.status(200).json({
-                posts
-            })
-        } catch (error) {
-            handelErrorResponse(res, error)
-        }
-    });
-
-
-    /**
+     /**
     * @swagger
     * /{username}/posts:
     *   get:
@@ -288,12 +256,43 @@ export const MakePostRoute = (postService: PostService) => {
     *       500:
     *         description: Internal server error
     */
-    router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
+     router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
         try {
             const username = req.params.username;
             if (!isUsername(username)) {
                 throw new HttpError(400, "check user name Field")
             }
+            const posts = await postService.getUserPosts(username);
+            res.status(200).json({
+                posts
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    });
+
+
+    /**
+    * @swagger
+    * /posts:
+    *   get:
+    *     summary: Get user posts
+    *     description: Retrieve detailed information for a posts of a user by username.
+    *     tags:
+    *       - Posts
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get('/posts', authMiddleware, async (req: Request, res: Response) => {
+        const username = req.user.username;
+        try {
             const posts = await postService.getUserPosts(username);
             res.status(200).json({
                 posts

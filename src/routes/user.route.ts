@@ -448,7 +448,6 @@ export const UserRoute = (userService: UserService) => {
      *                   type: string
      *                   example: Server error
      */
-
     router.get('/user-info/:username', async (req: Request, res: Response) => {
         try {
             const { username } = req.params;
