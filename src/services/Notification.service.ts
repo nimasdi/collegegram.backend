@@ -1,17 +1,26 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import { NotificationtRepository } from "../repositrory/notification/notification.repository";
 import { UserNotificationtRepository } from "../repositrory/notification/userNotification.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 
-export class BlockService {
+enum ActionType {
+    LIKE = "like",
+    COMMENT = "comment",
+    FOLLOW = "follow",
+}
 
-    constructor(private userNotifiRepo: UserNotificationtRepository, private notifiRepo: NotificationtRepository, private userRepo: UserRepository) {
+export class NotificationService {
+
+    constructor(private userNotifRepo: UserNotificationtRepository, private notifRepo: NotificationtRepository, private userRepo: UserRepository) {
     }
 
-    async createNotification(): Promise<void> {
-        
+    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username, notifUser: Username): Promise<void> {
+        const notifId = await this.notifRepo.createNotification(actionCreator,actionType,targetEntityId,targetUser)
+        if(notifId){
+            this.userNotifRepo.createNotificationForUser(notifUser, notifId)
+        }
     }
 
     async createNotificationForFollowers(blockingUsername: Username, blockerUsername: Username): Promise<void> {
@@ -23,7 +32,7 @@ export class BlockService {
             throw new HttpError(400, "field invalid")
         }
         
-        this.userNotifiRepo.seenNotification(username, new Types.ObjectId(notificationId))
+        this.userNotifRepo.seenNotification(username, new Types.ObjectId(notificationId))
     }
 }
 
