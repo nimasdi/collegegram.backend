@@ -21,4 +21,20 @@ export class UserNotificationtRepository {
         await notif.save().catch((err) => this.handleDBError(err));
     }
 
+    async seenNotification(username: Username, notificationId: Types.ObjectId){
+        const notif = await this.model.findOne({username, notificationId})
+        .exec().catch((err) => this.handleDBError(err));
+
+        if(!notif){
+            throw new HttpError(400, "notif not Found")
+        }
+
+        if(notif.seen){
+            throw new HttpError(400, "notif seened before")
+        }
+        
+        notif.seen = true
+        await notif.save()
+    }
+
 }
