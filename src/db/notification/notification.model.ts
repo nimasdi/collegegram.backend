@@ -7,16 +7,10 @@ enum ActionType {
     FOLLOW = "follow",
 }
 
-enum TargetEntityType {
-    POST = "postId",
-    COMMENT = "commentId",
-    USER = "userId",
-}
 
 export interface INotification extends Document{
     actionCreator: Username;              // User who performed the action
     actionType: ActionType;               // Type of action performed
-    targetEntityType: TargetEntityType;   // The type of entity that was acted upon
     targetEntityId: mongoose.Types.ObjectId; // Use ObjectId type for MongoDB references
     targetUser: Username;                 // User who is the target of the action
 }
@@ -31,11 +25,6 @@ const NotificationSchema: Schema<INotification> = new Schema(
         actionType: {
             type: String,
             enum: Object.values(ActionType),
-            required: true,
-        },
-        targetEntityType: {
-            type: String,
-            enum: Object.values(TargetEntityType),
             required: true,
         },
         targetEntityId: {
