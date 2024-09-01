@@ -323,7 +323,7 @@ export const MakePostRoute = (postService: PostService) => {
             })
 
 
-            const posts = await postService.getUserPosts(getPostsDto);
+            const posts = await postService.getUserPostsWithPagination(getPostsDto);
             res.status(200).json({
                 posts
             })
@@ -615,6 +615,48 @@ export const MakePostRoute = (postService: PostService) => {
             handelErrorResponse(res, error);
         }
     });
+
+
+    /**
+    * @swagger
+    * /{username}/posts:
+    *   get:
+    *     summary: Get user posts
+    *     description: Retrieve detailed information for a posts of a user by username.
+    *     tags:
+    *       - Posts
+    *     parameters:
+    *         - in: path
+    *           name: username
+    *           required: true
+    *           description: username
+    *           schema:
+    *             type: string
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: User information retrieved successfully
+    *       404:
+    *         description: User not found
+    *       500:
+    *         description: Internal server error
+    */
+    router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.params.username;
+            if (!isUsername(username)) {
+                throw new HttpError(400, "check user name Field")
+            }
+            const posts = await postService.getUserPosts(username);
+            res.status(200).json({
+                posts
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    });
+
 
 
     return router;
