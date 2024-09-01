@@ -12,7 +12,6 @@ export class NotificationtRepository {
     }
 
     private handleDBError = (error: any) => {
-        console.log(error)
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
