@@ -13,7 +13,7 @@ enum TargetEntityType {
     USER = "userId",
 }
 
-interface INotification {
+interface INotification extends Document{
     actionCreator: Username;              // User who performed the action
     actionType: ActionType;               // Type of action performed
     targetEntityType: TargetEntityType;   // The type of entity that was acted upon
