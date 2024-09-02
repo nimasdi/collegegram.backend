@@ -1,79 +1,79 @@
-import { Model, Document, Types } from 'mongoose';
-import { IPost } from '../../db/post/post';
-import { UserId, Username } from '../../types/user.types';
-import { HttpError } from '../../utility/error-handler';
-import { createDeflate, inflateRaw } from 'zlib';
+import { Model, Document, Types } from 'mongoose'
+import { IPost } from '../../db/post/post'
+import { PostId, UserId, Username } from '../../types/user.types'
+import { HttpError } from '../../utility/error-handler'
+import { createDeflate, inflateRaw } from 'zlib'
 
 export interface createPost {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
+    images: string[]
+    caption: string
+    tags: string[]
+    mentions: Username[]
     closeFriendOnly: boolean
 }
 
 export interface updatePost {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
+    images: string[]
+    caption: string
+    tags: string[]
+    mentions: Username[]
     closeFriendOnly: boolean
 }
 
 export interface PostResponse {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
-    id: Types.ObjectId,
+    images: string[]
+    caption: string
+    tags: string[]
+    mentions: Username[]
+    id: Types.ObjectId
     createdAt: Date
 }
 
 export interface PostDataResponse {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
-    id: Types.ObjectId,
-    likesCount: Number,
-    commentsCount: Number,
-    bookmarksCount: Number,
-    isLikedByUser: Boolean,
-    isBookmarksByUser: Boolean,
+    images: string[]
+    caption: string
+    tags: string[]
+    mentions: Username[]
+    id: Types.ObjectId
+    likesCount: Number
+    commentsCount: Number
+    bookmarksCount: Number
+    isLikedByUser: Boolean
+    isBookmarksByUser: Boolean
     createdAt: Date
 }
 
 export interface ExploreDataResponse {
-    postId: Types.ObjectId,
-    userId: Types.ObjectId,
-    text: string,
-    username: Username,
-    likesCount: number,
-    commentsCount: number,
-    savesCount: number,
-    isLikedByUser: boolean,
-    isSavedByUser: boolean,
+    postId: Types.ObjectId
+    userId: Types.ObjectId
+    text: string
+    username: Username
+    likesCount: number
+    commentsCount: number
+    savesCount: number
+    isLikedByUser: boolean
+    isSavedByUser: boolean
     createdAt: Date
 }
 
 export interface ExploreDataResponse {
-    postId: Types.ObjectId,
-    userId: Types.ObjectId,
-    text: string,
-    username: Username,
-    likesCount: number,
-    commentsCount: number,
-    savesCount: number,
-    isLikedByUser: boolean,
-    isSavedByUser: boolean,
+    postId: Types.ObjectId
+    userId: Types.ObjectId
+    text: string
+    username: Username
+    likesCount: number
+    commentsCount: number
+    savesCount: number
+    isLikedByUser: boolean
+    isSavedByUser: boolean
     createdAt: Date
 }
 
 export class PostRepository {
-    private postModel: Model<IPost & Document>;
+    private postModel: Model<IPost & Document>
 
     constructor(postModel: Model<IPost & Document>) {
-        this.postModel = postModel;
+        this.postModel = postModel
     }
 
     private handleDBError = () => {
@@ -88,51 +88,56 @@ export class PostRepository {
             mentions: post.mentions,
             id: post.id,
             createdAt: post.createdAt,
-        };
+        }
 
-        return postResponse;
+        return postResponse
     }
 
     async createPost(postData: createPost, userId: Types.ObjectId): Promise<IPost | null> {
         const post = new this.postModel({
             ...postData,
-            userId
-        });
+            userId,
+        })
 
-        return post.save()
+        return post
+            .save()
             .then((savedPost) => savedPost)
             .catch((err) => {
-                this.handleDBError();
-                return null;
-            });
+                this.handleDBError()
+                return null
+            })
     }
 
     async updatePost(postId: string, updateData: updatePost): Promise<IPost | null> {
-        return this.postModel.findByIdAndUpdate(postId, updateData, { new: true }).exec()
+        return this.postModel
+            .findByIdAndUpdate(postId, updateData, { new: true })
+            .exec()
             .then((updatedPost) => {
                 if (!updatedPost) {
-                    console.warn(`Post with id ${postId} not found for update.`);
+                    console.warn(`Post with id ${postId} not found for update.`)
                 }
-                return updatedPost;
+                return updatedPost
             })
             .catch((err) => {
-                this.handleDBError();
-                return null;
-            });
+                this.handleDBError()
+                return null
+            })
     }
 
     async findById(postId: string): Promise<PostResponse | null> {
-        const post = await this.postModel.findById(postId).exec()
+        const post = await this.postModel
+            .findById(postId)
+            .exec()
             .then((post) => {
                 if (!post) {
-                    console.warn(`Post with id ${postId} not found.`);
+                    console.warn(`Post with id ${postId} not found.`)
                 }
-                return post;
+                return post
             })
             .catch((err) => {
-                console.error("Error finding post by ID:", err.message);
-                return null;
-            });
+                console.error('Error finding post by ID:', err.message)
+                return null
+            })
         if (post === null) {
             return null
         }
@@ -147,24 +152,24 @@ export class PostRepository {
                     from: 'comments',
                     localField: '_id',
                     foreignField: 'postId',
-                    as: 'comments'
-                }
+                    as: 'comments',
+                },
             },
             {
                 $lookup: {
                     from: 'likeposts',
                     localField: '_id',
                     foreignField: 'postId',
-                    as: 'likes'
-                }
+                    as: 'likes',
+                },
             },
             {
                 $lookup: {
                     from: 'saveposts',
                     localField: '_id',
                     foreignField: 'postId',
-                    as: 'bookmarks'
-                }
+                    as: 'bookmarks',
+                },
             },
             {
                 $addFields: {
@@ -172,12 +177,12 @@ export class PostRepository {
                     likesCount: { $size: '$likes' },
                     bookmarksCount: { $size: '$bookmarks' },
                     isLikedByUser: {
-                        $in: [userWatchPost, '$likes.username']
+                        $in: [userWatchPost, '$likes.username'],
                     },
                     isBookmarksByUser: {
-                        $in: [userWatchPost, '$bookmarks.username']
-                    }
-                }
+                        $in: [userWatchPost, '$bookmarks.username'],
+                    },
+                },
             },
             {
                 $project: {
@@ -191,12 +196,14 @@ export class PostRepository {
                     bookmarksCount: 1,
                     isLikedByUser: 1,
                     isBookmarksByUser: 1,
-                }
-            }
+                },
+            },
         ]
 
-        const posts = await this.postModel.aggregate(pipeLine).exec().catch(err => this.handleDBError());
-
+        const posts = await this.postModel
+            .aggregate(pipeLine)
+            .exec()
+            .catch((err) => this.handleDBError())
 
         if (posts === null || posts.length === 0) {
             return null
@@ -214,7 +221,7 @@ export class PostRepository {
             bookmarksCount: post.bookmarksCount,
             isLikedByUser: post.isLikedByUser,
             isBookmarksByUser: post.isBookmarksByUser,
-            createdAt: post.createdAt
+            createdAt: post.createdAt,
         }
         return postResponse
     }
@@ -230,121 +237,117 @@ export class PostRepository {
         return responsePosts
     }
 
-    async getExplorePosts(
-        username: Username,
-        followingUserIds: Types.ObjectId[],
-        closeFriends: Username[],
-        pageNumber: number = 1,
-        pageSize: number = 10
-    ): Promise<ExploreDataResponse[]> {
-        const skip = (pageNumber - 1) * pageSize;
+    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], closeFriends: Username[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
+        const skip = (pageNumber - 1) * pageSize
 
-        const posts = await this.postModel.aggregate([
-            {
-                $match: {
-                    userId: { $in: followingUserIds },
-                },
-            },
-            {
-                $lookup: {
-                    from: 'likeposts',
-                    localField: '_id',
-                    foreignField: 'postId',
-                    as: 'likes',
-                },
-            },
-            {
-                $lookup: {
-                    from: 'saveposts',
-                    localField: '_id',
-                    foreignField: 'postId',
-                    as: 'saves',
-                },
-            },
-            {
-                $lookup: {
-                    from: 'comments',
-                    localField: '_id',
-                    foreignField: 'postId',
-                    as: 'comments',
-                },
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'userId',
-                    foreignField: '_id',
-                    as: 'creator',
-                },
-            },
-            {
-                $addFields: {
-                    creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, // Extracting the username from the first (and expected only) user document
-                },
-            },
-            {
-                $addFields: {
-                    isCloseFriend: {
-                        $in: ['$creatorUsername', closeFriends],
+        const posts = await this.postModel
+            .aggregate([
+                {
+                    $match: {
+                        userId: { $in: followingUserIds },
                     },
                 },
-            },
-            {
-                $match: {
-                    $or: [
-                        { closeFriendOnly: false }, // Public posts
-                        { $and: [{ closeFriendOnly: true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
-                    ],
-                },
-            },
-            {
-                $project: {
-                    _id: 1,
-                    userId: 1,
-                    caption: 1,
-                    images: 1,
-                    tags: 1,
-                    mentions: 1,
-                    closeFriendOnly: 1,
-                    likesCount: { $size: '$likes' },
-                    commentsCount: { $size: '$comments' },
-                    savesCount: { $size: '$saves' },
-                    isLikedByUser: {
-                        $in: [username, '$likes.username'],
+                {
+                    $lookup: {
+                        from: 'likeposts',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'likes',
                     },
-                    isSavedByUser: {
-                        $in: [username, '$saves.username'],
-                    },
-                    createdAt: 1,
-                    creatorUsername: 1,
                 },
-            },
-            { $sort: { createdAt: -1 } },
-            { $skip: skip },
-            { $limit: pageSize },
-        ]).exec();
+                {
+                    $lookup: {
+                        from: 'saveposts',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'saves',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'comments',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'comments',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'creator',
+                    },
+                },
+                {
+                    $addFields: {
+                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, // Extracting the username from the first (and expected only) user document
+                    },
+                },
+                {
+                    $addFields: {
+                        isCloseFriend: {
+                            $in: ['$creatorUsername', closeFriends],
+                        },
+                    },
+                },
+                {
+                    $match: {
+                        $or: [
+                            { closeFriendOnly: false }, // Public posts
+                            { $and: [{ closeFriendOnly: true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
+                        ],
+                    },
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        userId: 1,
+                        caption: 1,
+                        images: 1,
+                        tags: 1,
+                        mentions: 1,
+                        closeFriendOnly: 1,
+                        likesCount: { $size: '$likes' },
+                        commentsCount: { $size: '$comments' },
+                        savesCount: { $size: '$saves' },
+                        isLikedByUser: {
+                            $in: [username, '$likes.username'],
+                        },
+                        isSavedByUser: {
+                            $in: [username, '$saves.username'],
+                        },
+                        createdAt: 1,
+                        creatorUsername: 1,
+                    },
+                },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: pageSize },
+            ])
+            .exec()
 
-
-        return posts;
+        return posts
     }
 
-      
     async getUserIdForPost(postId: Types.ObjectId): Promise<Types.ObjectId | null> {
-        const post = await this.postModel.findById(postId).exec()
+        const post = await this.postModel
+            .findById(postId)
+            .exec()
             .then((post) => {
                 if (!post) {
-                    console.warn(`Post with id ${postId} not found.`);
+                    console.warn(`Post with id ${postId} not found.`)
                 }
-                return post;
+                return post
             })
             .catch((err) => {
-                console.error("Error finding post by ID:", err.message);
-                return null;
-            });
+                console.error('Error finding post by ID:', err.message)
+                return null
+            })
         if (post === null) {
             return null
         }
-        return post.userId;
+        return post.userId
     }
 
     async getPosts(currentUsername: Username, isCloseFriend: boolean, pageNumber: number, pageSize: number): Promise<IPost[]> {
@@ -355,22 +358,55 @@ export class PostRepository {
                 .skip((pageNumber - 1) * pageSize)
                 .limit(pageSize)
                 .sort({ createdAt: -1 })
-                .exec();
+                .exec()
 
             const filteredPosts = posts.filter((post) => {
                 if (post.closeFriendOnly && !isCloseFriend) {
-                    return false;
+                    return false
                 }
-                return true;
-            });
+                return true
+            })
 
-            return filteredPosts;
+            return filteredPosts
         } catch (error) {
-            this.handleDBError();
-            return [];
+            this.handleDBError()
+            return []
+        }
+    }
+
+    async getPostCreator(postId: PostId): Promise<Username | null> {
+        const result = await this.postModel.aggregate([
+            {
+                $match: { _id: new Types.ObjectId(postId) },
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId', 
+                    foreignField: '_id', 
+                    as: 'userDetails',
+                },
+            },
+            {
+                $unwind: {
+                    path: '$userDetails',
+                    preserveNullAndEmptyArrays: true,
+                },
+            },
+            {
+                $project: {
+                    username: '$userDetails.username', 
+                },
+            },
+            {
+                $limit: 1,
+            },
+        ]).exec();
+
+        if (!result || result.length === 0 || !result[0].username) {
+            return null;
         }
 
+        return result[0].username;
     }
 }
-
-
