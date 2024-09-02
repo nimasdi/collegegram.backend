@@ -43,8 +43,7 @@ export class CommentService {
 
         const commentId = await this.commentRepo.createComment(post_id, commentData)
 
-        // const user = await this.userRepo.getUsernameByUserId(postExists.userId)
-        // this.notifServise.createNotification(username, "comment" , commentId, user)        
+        this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())        
 
         return {
             success: true,

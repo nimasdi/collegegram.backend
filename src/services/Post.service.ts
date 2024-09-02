@@ -251,7 +251,7 @@ export class PostService {
 
         await this.likePostRepo.likePost(likePostData);
 
-        // this.notifServise.createNotification(likePostData.username, "likePost" , post.id, post.userId)        
+        this.notifServise.createNotification(likePostData.username, "likePost" , post.id, post.userId.toString())        
 
         return true;
     }
