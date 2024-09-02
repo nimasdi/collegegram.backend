@@ -70,6 +70,18 @@ export class FollowRepository {
         return followerCount
     }
 
+    async getFollowersList(user: Username): Promise<Username[] | []> {
+        const followers = await this.model.find({ followingUsername: user }, { followerUsername: 1 })
+            .catch(err => this.handleDBError(err))
+
+        if(!!followers){
+            const followersUsername : Username[] = followers.map((follower) => follower.followerUsername)
+            return followersUsername
+        }
+
+        return []
+    }
+
     async getFollowingCount(user: Username): Promise<Number> {
         const followingCount = await this.model.countDocuments({ followerUsername: user })
             .catch(err => this.handleDBError(err))

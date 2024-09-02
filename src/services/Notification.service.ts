@@ -4,6 +4,7 @@ import { UserNotificationtRepository } from "../repositrory/notification/userNot
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
+import { FollowRepository } from "../repositrory/Follow/follow.repository";
 
 enum ActionType {
     LIKE = "like",
@@ -13,7 +14,7 @@ enum ActionType {
 
 export class NotificationService {
 
-    constructor(private userNotifRepo: UserNotificationtRepository, private notifRepo: NotificationtRepository, private userRepo: UserRepository) {
+    constructor(private userNotifRepo: UserNotificationtRepository, private notifRepo: NotificationtRepository, private userRepo: UserRepository, private followRepo: FollowRepository) {
     }
 
     async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username, notifUser: Username): Promise<void> {
@@ -23,7 +24,17 @@ export class NotificationService {
         }
     }
 
-    async createNotificationForFollowers(blockingUsername: Username, blockerUsername: Username): Promise<void> {
+    async createNotificationForFollowers(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username): Promise<void> {
+
+        const followers = await this.followRepo.getFollowersList(actionCreator)
+        if(followers.length > 0){
+            const notifId = await this.notifRepo.createNotification(actionCreator,actionType,targetEntityId,targetUser)
+            if(notifId){
+                for(const follower of followers){
+                    this.userNotifRepo.createNotificationForUser(follower, notifId)
+                }
+            }
+        }
         
     }
 
