@@ -26,7 +26,8 @@ export interface PostResponse {
     tags: string[],
     mentions: Username[],
     id: Types.ObjectId,
-    createdAt: Date
+    createdAt: Date,
+    userId: Types.ObjectId
 }
 
 export interface PostDataResponse {
@@ -88,6 +89,7 @@ export class PostRepository {
             mentions: post.mentions,
             id: post.id,
             createdAt: post.createdAt,
+            userId: post.userId
         };
 
         return postResponse;
@@ -214,7 +216,8 @@ export class PostRepository {
             bookmarksCount: post.bookmarksCount,
             isLikedByUser: post.isLikedByUser,
             isBookmarksByUser: post.isBookmarksByUser,
-            createdAt: post.createdAt
+            createdAt: post.createdAt,
+            userId: post.userId
         }
         return postResponse
     }

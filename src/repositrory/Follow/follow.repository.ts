@@ -207,9 +207,11 @@ export class FollowRepository {
 
 
 
-    async sendFollowRequest(request: followRequest): Promise<void> {
+    async sendFollowRequest(request: followRequest): Promise<Types.ObjectId> {
         const followReq = new this.model({ followerUsername: request.sender, followingUsername: request.receiver, status: 'pending' });
         await followReq.save().catch((err) => this.handleDBError(err));
+
+        return followReq.id
     }
 
     async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<boolean> {

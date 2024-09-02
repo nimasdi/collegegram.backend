@@ -16,11 +16,12 @@ import { CloseFriendRepository } from "../repositrory/CloseFriend/closeFriend.re
 import { GetPostsDto } from "../dto/getPosts.dto";
 import { getExplorePostsDto } from "../dto/getUserExplorePosts.dto";
 import { Types } from "mongoose";
+import { NotificationService } from "./Notification.service";
 
 
 export class PostService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository) {
+    constructor(private userRepo: UserRepository, private notifServise : NotificationService, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository) {
     }
 
     async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
@@ -249,6 +250,8 @@ export class PostService {
         }
 
         await this.likePostRepo.likePost(likePostData);
+
+        // this.notifServise.createNotification(likePostData.username, "likePost" , post.id, post.userId)        
 
         return true;
     }

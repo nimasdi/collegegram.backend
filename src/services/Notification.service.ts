@@ -2,25 +2,21 @@ import mongoose, { Types } from "mongoose";
 import { NotificationtRepository } from "../repositrory/notification/notification.repository";
 import { UserNotificationtRepository } from "../repositrory/notification/userNotification.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
-import { Username } from "../types/user.types";
+import { Username, isUsername } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { FollowRepository } from "../repositrory/Follow/follow.repository";
 
-enum ActionType {
-    LIKE = "like",
-    COMMENT = "comment",
-    FOLLOW = "follow",
-}
+type ActionType = "like" | "likePost" | "comment" | "follow" 
 
 export class NotificationService {
 
     constructor(private userNotifRepo: UserNotificationtRepository, private notifRepo: NotificationtRepository, private userRepo: UserRepository, private followRepo: FollowRepository) {
     }
 
-    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username, notifUser: Username): Promise<void> {
+    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username): Promise<void> {
         const notifId = await this.notifRepo.createNotification(actionCreator,actionType,targetEntityId,targetUser)
         if(notifId){
-            this.userNotifRepo.createNotificationForUser(notifUser, notifId)
+            this.userNotifRepo.createNotificationForUser(targetUser, notifId)
         }
     }
 

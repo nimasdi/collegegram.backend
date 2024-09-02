@@ -3,11 +3,8 @@ import { HttpError } from '../../utility/error-handler';
 import { INotification } from '../../db/notification/notification.model';
 import { Username } from '../../types/user.types';
 
-enum ActionType {
-    LIKE = "like",
-    COMMENT = "comment",
-    FOLLOW = "follow",
-}
+type ActionType = "like" | "likePost" | "comment" | "follow" 
+
 
 export class NotificationtRepository {
 

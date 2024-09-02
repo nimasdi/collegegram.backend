@@ -8,6 +8,7 @@ import { UserRepository } from "../repositrory/user/user.repositroy";
 import { replyCommentDto } from "../dto/replyComment.dto";
 import { likeCommentDto } from "../dto/likeComment.dto";
 import { GetCommentDto } from "../dto/getCommentWithLikes";
+import { NotificationService } from "./Notification.service";
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
@@ -22,7 +23,7 @@ export interface NestedComment extends getCommentsWithLikes {
 
 export class CommentService {
 
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository) {
+    constructor(private userRepo: UserRepository, private notifServise : NotificationService, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository) {
     }
 
 
@@ -40,7 +41,10 @@ export class CommentService {
             username,
         }
 
-        const res = await this.commentRepo.createComment(post_id, commentData)
+        const commentId = await this.commentRepo.createComment(post_id, commentData)
+
+        // const user = await this.userRepo.getUsernameByUserId(postExists.userId)
+        // this.notifServise.createNotification(username, "comment" , commentId, user)        
 
         return {
             success: true,

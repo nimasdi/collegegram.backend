@@ -3,6 +3,7 @@ import { Username } from '../../types/user.types';
 
 enum ActionType {
     LIKE = "like",
+    LIKEPOST = "likePost",
     COMMENT = "comment",
     FOLLOW = "follow",
 }

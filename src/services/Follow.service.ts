@@ -4,6 +4,7 @@ import { FollowRepository, followingAndFollowers } from "../repositrory/Follow/f
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
+import { NotificationService } from "./Notification.service";
 
 export interface followState {
     followerCount: Number,
@@ -12,7 +13,7 @@ export interface followState {
 
 export class FollowService {
 
-    constructor(private followRepo: FollowRepository, private userRepo: UserRepository) {
+    constructor(private followRepo: FollowRepository, private notifServise: NotificationService, private userRepo: UserRepository) {
     }
 
     async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
@@ -89,7 +90,10 @@ export class FollowService {
             throw new HttpError(404, "user not found")
         }
 
-        await this.followRepo.sendFollowRequest(followRequestData)
+        const followReq = await this.followRepo.sendFollowRequest(followRequestData)
+
+        this.notifServise.createNotification(sender, "follow" , followReq, receiver)        
+
     }
 
 
