@@ -75,21 +75,21 @@ export const FollowRoute = (followService: FollowService) => {
   *     responses:
   *       200:
   *         description: followed
-  */
-    router.post("", authMiddleware, async (req, res, next) => {
-        try {
-            const followerUser: Username = req.user.username
-            if (!followerUser) {
-                throw new HttpError(400, "user not found.")
-            }
+//   */
+//     router.post("", authMiddleware, async (req, res, next) => {
+//         try {
+//             const followerUser: Username = req.user.username
+//             if (!followerUser) {
+//                 throw new HttpError(400, "user not found.")
+//             }
 
-            const followingUser = followDto.parse(req.body)
-            await followService.follow(followingUser.followingUsername, followerUser)
-            res.status(200).json({ message: "user followd." })
-        } catch (error) {
-            handelErrorResponse(res, error)
-        }
-    })
+//             const followingUser = followDto.parse(req.body)
+//             await followService.follow(followingUser.followingUsername, followerUser)
+//             res.status(200).json({ message: "user followd." })
+//         } catch (error) {
+//             handelErrorResponse(res, error)
+//         }
+//     })
 
 
     /**

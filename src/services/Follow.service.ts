@@ -1,5 +1,6 @@
 import { FollowRequestDto } from "../dto/followRequest.dto";
 import { FollowRequestActionDto } from "../dto/followRequestAction.dto";
+import { BlockRepository } from "../repositrory/Block/block.repository";
 import { FollowRepository, followingAndFollowers } from "../repositrory/Follow/follow.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
@@ -12,20 +13,31 @@ export interface followState {
 
 export class FollowService {
 
-    constructor(private followRepo: FollowRepository, private userRepo: UserRepository) {
+    constructor(private followRepo: FollowRepository, private userRepo: UserRepository , private blockRepo: BlockRepository) {
     }
 
-    async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
-        const follwingUserExist = await this.userRepo.getUserByUsername(followingUsername)
-        if (!follwingUserExist) {
-            throw new HttpError(400, "following not found")
-        }
-        const existFollow = await this.followRepo.checkFollow(followerUsername, followingUsername)
-        if (existFollow) {
-            throw new HttpError(400, "user followed before.")
-        }
-        await this.followRepo.follow(followerUsername, followingUsername)
-    }
+    // async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
+    //     const follwingUserExist = await this.userRepo.getUserByUsername(followingUsername)
+    //     if (!follwingUserExist) {
+    //         throw new HttpError(400, "following not found")
+    //     }
+    //     const existFollow = await this.followRepo.checkFollow(followerUsername, followingUsername)
+    //     if (existFollow) {
+    //         throw new HttpError(400, "user followed before.")
+    //     }
+        
+    //     const blocked = await this.blockRepo.checkBlock(followerUsername , followingUsername)
+    //     const isReceiverBlocked = await this.blockRepo.checkBlock(followingUsername, followerUsername)
+
+    //     if (isReceiverBlocked){
+    //         throw new HttpError(403, `${followerUsername} is blocked`);
+    //     }
+    //     else if(blocked){
+    //         throw new HttpError(403, `${followingUsername} is blocked`);
+    //     }
+
+    //     await this.followRepo.follow(followerUsername, followingUsername)
+    // }
 
     async unfollow(followingUsername: Username, followerUsername: Username): Promise<void> {
         const follwingUserExist = await this.userRepo.getUserByUsername(followingUsername)
@@ -89,6 +101,16 @@ export class FollowService {
             throw new HttpError(404, "user not found")
         }
 
+        const senderIsBlocked = await this.blockRepo.checkBlock(receiver , sender)
+        const isReceiverBlocked = await this.blockRepo.checkBlock(sender, receiver)
+
+        if (isReceiverBlocked){
+            throw new HttpError(403, `${receiver} is blocked by ${sender}`);
+        }
+        else if(senderIsBlocked){
+            throw new HttpError(403, `${sender} is blocked by ${receiver}`);
+        }
+
         await this.followRepo.sendFollowRequest(followRequestData)
     }
 
@@ -96,6 +118,15 @@ export class FollowService {
     async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<boolean> {
         const { receiver, sender, action } = followRequestActionData
 
+        const senderIsBlocked = await this.blockRepo.checkBlock(receiver , sender)
+        const isReceiverBlocked = await this.blockRepo.checkBlock(sender, receiver)
+
+        if (isReceiverBlocked){
+            throw new HttpError(403, `${receiver} is blocked by ${sender}`);
+        }
+        else if(senderIsBlocked){
+            throw new HttpError(403, `${sender} is blocked by ${receiver}`);
+        }
 
         const senderExist = this.userRepo.checkUserExist(sender)
         if (!senderExist) {

@@ -1,11 +1,12 @@
 import { BlockRepository, blockedUsers } from "../repositrory/Block/block.repository";
+import { FollowRepository } from "../repositrory/Follow/follow.repository";
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 
 export class BlockService {
 
-    constructor(private blockRepo: BlockRepository, private userRepo: UserRepository) {
+    constructor(private blockRepo: BlockRepository, private userRepo: UserRepository , private followRepo: FollowRepository) {
     }
 
     async block(blockingUsername: Username, blockerUsername: Username): Promise<void> {
@@ -18,6 +19,7 @@ export class BlockService {
             throw new HttpError(400, "user blocked before.")
         }
         await this.blockRepo.block(blockerUsername, blockingUsername)
+        await this.followRepo.removeFollowing(blockerUsername,blockingUsername)
     }
 
     async unblock(blockingUsername: Username, blockerUsername: Username): Promise<void> {

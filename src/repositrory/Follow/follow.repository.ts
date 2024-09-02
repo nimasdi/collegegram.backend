@@ -45,17 +45,17 @@ export class FollowRepository {
     }
 
     async unfollow(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername, followerUsername })
+        await this.model.deleteOne({ followingUsername, followerUsername , status: "accepted"})
             .catch((err) => this.handleDBError(err));
     }
 
     async removeFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername, followerUsername })
+        await this.model.deleteOne({ followingUsername, followerUsername , status: "accepted" })
             .catch((err) => this.handleDBError(err));
     }
 
     async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
-        const followExist = await this.model.findOne({ followingUsername, followerUsername })
+        const followExist = await this.model.findOne({ followingUsername, followerUsername , status: "accepted" })
             .catch((err) => this.handleDBError(err))
 
         if (!followExist) {
@@ -65,13 +65,13 @@ export class FollowRepository {
     }
 
     async getFollowerCount(user: Username): Promise<Number> {
-        const followerCount = await this.model.countDocuments({ followingUsername: user })
+        const followerCount = await this.model.countDocuments({ followingUsername: user , status: "accepted"})
             .catch(err => this.handleDBError(err))
         return followerCount
     }
 
     async getFollowingCount(user: Username): Promise<Number> {
-        const followingCount = await this.model.countDocuments({ followerUsername: user })
+        const followingCount = await this.model.countDocuments({ followerUsername: user , status: "accepted"})
             .catch(err => this.handleDBError(err))
         return followingCount
     }
@@ -222,10 +222,6 @@ export class FollowRepository {
 
         return true;
     }
-
-    // async findOne(query: Partial<followRequestAction & { status?: string }>): Promise<IFollow | null> {
-    //     return await this.model.findOne(query).catch((err) => null);
-    // }
 
     async findRequest(followingUsername: Username, followerUsername: Username) {
         const request = await this.model.findOne({
