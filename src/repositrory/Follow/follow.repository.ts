@@ -214,7 +214,7 @@ export class FollowRepository {
         return followReq.id
     }
 
-    async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<boolean> {
+    async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<Types.ObjectId | Boolean> {
 
         const { sender, receiver, action } = request;
 
@@ -234,7 +234,7 @@ export class FollowRepository {
             await followReq.save().catch(err => this.handleDBError(err));
         }
 
-        return true;
+        return followReq.id;
     }
 
     // async findOne(query: Partial<followRequestAction & { status?: string }>): Promise<IFollow | null> {

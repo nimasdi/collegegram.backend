@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { FollowRequestDto } from "../dto/followRequest.dto";
 import { FollowRequestActionDto } from "../dto/followRequestAction.dto";
 import { FollowRepository, followingAndFollowers } from "../repositrory/Follow/follow.repository";
@@ -91,13 +92,10 @@ export class FollowService {
         }
 
         const followReq = await this.followRepo.sendFollowRequest(followRequestData)
-
-        this.notifServise.createNotification(sender, "follow" , followReq, receiver)        
-
     }
 
 
-    async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<boolean> {
+    async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<Boolean | Types.ObjectId> {
         const { receiver, sender, action } = followRequestActionData
 
 
@@ -122,6 +120,10 @@ export class FollowService {
             receiver,
             action
         });
+
+        if(action === 'accept' && result instanceof Types.ObjectId){
+            this.notifServise.createNotification(sender, "follow" , result , receiver)        
+        }
 
         return result;
 
