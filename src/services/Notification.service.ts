@@ -24,11 +24,13 @@ export class NotificationService {
             username = targetUser
         }
         if(isUsername(username)){
-            const userExist = await this.userRepo.getUserByUsername(username)
-            if(userExist){
-                const notifId = await this.notifRepo.createNotification(actionCreator,actionType,targetEntityId,username)
-                if(notifId){
-                    this.userNotifRepo.createNotificationForUser(username, notifId)
+            if(username !== actionCreator){
+                const userExist = await this.userRepo.getUserByUsername(username)
+                if(userExist){
+                    const notifId = await this.notifRepo.createNotification(actionCreator,actionType,targetEntityId,username)
+                    if(notifId){
+                        this.userNotifRepo.createNotificationForUser(username, notifId)
+                    }
                 }
             }
         }
