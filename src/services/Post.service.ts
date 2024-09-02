@@ -303,20 +303,28 @@ export class PostService {
             throw new HttpError(404, 'user not found.')
         }
 
-        const senderIsBlocked = await this.blockRepo.checkBlock(data.creatorUsername , data.watcherUsername)
+        const senderIsBlocked = await this.blockRepo.checkBlock(data.creatorUsername, data.watcherUsername)
 
-        if(senderIsBlocked){
-            throw new HttpError(403, `${data.creatorUsername} is blocked by ${data.watcherUsername}`);
+        if (senderIsBlocked) {
+            throw new HttpError(403, `${data.creatorUsername} is blocked by ${data.watcherUsername}`)
         }
 
         const isReceiverBlocked = await this.blockRepo.checkBlock(data.watcherUsername, data.creatorUsername)
 
-        if (isReceiverBlocked){
-            throw new HttpError(403, `${data.watcherUsername} is blocked by ${data.creatorUsername}`);
+        if (isReceiverBlocked) {
+            throw new HttpError(403, `${data.watcherUsername} is blocked by ${data.creatorUsername}`)
         }
 
-        const isCloseFriend = (data.creatorUsername !== data.watcherUsername) 
-        && await this.closeFriendRepo.checkCloseFriend(data.watcherUsername, data.creatorUsername);
+        const isCloseFriend = data.creatorUsername !== data.watcherUsername && (await this.closeFriendRepo.checkCloseFriend(data.watcherUsername, data.creatorUsername))
+
+        const isPrivate = await this.userRepo.checkAccountPrivacy(data.creatorUsername)
+
+        if (isPrivate) {
+            const follows = await this.followRepo.checkFollow(data.watcherUsername, data.creatorUsername)
+            if (!follows) {
+                throw new HttpError(403, `Cannot view posts. ${data.creatorUsername} is private, and you do not follow them.`)
+            }
+        }
 
         const posts = await this.postRepo.getPosts(data.creatorUsername, !!isCloseFriend, data.pageNumber, data.pageSize)
 
