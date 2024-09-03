@@ -92,6 +92,8 @@ export class FollowService {
         }
 
         const followReq = await this.followRepo.sendFollowRequest(followRequestData)
+
+        this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
     }
 
 
@@ -123,6 +125,7 @@ export class FollowService {
 
         if(action === 'accept' && result instanceof Types.ObjectId){
             this.notifServise.createNotification(sender, "follow" , result , receiver)        
+            this.notifServise.createNotificationForFollowers(sender, "follow" , result , receiver, false)        
         }
 
         return result;

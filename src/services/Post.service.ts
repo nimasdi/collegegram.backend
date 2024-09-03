@@ -175,19 +175,6 @@ export class PostService {
         return post
     }
 
-    // async getUserPosts(username: Username): Promise<PostResponse[]> {
-
-    //     const userId = await this.userRepo.getUserIdByUsername(username)
-    //     if (!userId)
-    //         throw new HttpError(404, "user not found.")
-
-    //     const posts = await this.postRepo.getAll(userId)
-    //     if (posts.length === 0)
-    //         return []
-
-    //     return posts
-    // }
-
     async savePost(savePostData: savePostDto): Promise<boolean> {
 
         const post = await this.postRepo.findById(savePostData.postId);
