@@ -43,7 +43,9 @@ export class CommentService {
 
         const commentId = await this.commentRepo.createComment(post_id, commentData)
 
+        // create notif after action
         this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())        
+        this.notifServise.createNotificationForFollowers(username, "comment" , commentId, postExists.userId.toString(), postExists.closeFriendOnly)        
 
         return {
             success: true,

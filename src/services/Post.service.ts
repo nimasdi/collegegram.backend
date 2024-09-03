@@ -252,6 +252,7 @@ export class PostService {
         await this.likePostRepo.likePost(likePostData);
 
         this.notifServise.createNotification(likePostData.username, "likePost" , post.id, post.userId.toString())        
+        this.notifServise.createNotificationForFollowers(likePostData.username, "likePost" , post.id, post.userId.toString(), post.closeFriendOnly)        
 
         return true;
     }

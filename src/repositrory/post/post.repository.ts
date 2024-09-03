@@ -27,6 +27,7 @@ export interface PostResponse {
     mentions: Username[],
     id: Types.ObjectId,
     createdAt: Date,
+    closeFriendOnly: Boolean,
     userId: Types.ObjectId
 }
 
@@ -89,6 +90,7 @@ export class PostRepository {
             mentions: post.mentions,
             id: post.id,
             createdAt: post.createdAt,
+            closeFriendOnly: post.closeFriendOnly,
             userId: post.userId
         };
 
@@ -188,6 +190,7 @@ export class PostRepository {
                     caption: 1,
                     tags: 1,
                     mentions: 1,
+                    closeFriendOnly: 1,
                     likesCount: 1,
                     commentsCount: 1,
                     bookmarksCount: 1,
@@ -216,6 +219,7 @@ export class PostRepository {
             bookmarksCount: post.bookmarksCount,
             isLikedByUser: post.isLikedByUser,
             isBookmarksByUser: post.isBookmarksByUser,
+            closeFriendOnly: post.closeFriendOnly,
             createdAt: post.createdAt,
             userId: post.userId
         }
