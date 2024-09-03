@@ -296,9 +296,21 @@ export class PostService {
         return postsForUser || [];
     }
 
+    async getUserPosts(username: Username): Promise<PostResponse[]> {
+
+        const userId = await this.userRepo.getUserIdByUsername(username)
+        if (!userId)
+            throw new HttpError(404, "user not found.")
+
+        const posts = await this.postRepo.getAll(userId)
+        if (posts.length === 0)
+            return []
+
+        return posts
+    }
 
 
-    async getUserPosts(data: GetPostsDto) {
+    async getUserPostsWithPagination(data: GetPostsDto) {
 
         const creatorExist = await this.userRepo.checkUserExist(data.creatorUsername)
         if (!creatorExist) {
