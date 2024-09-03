@@ -338,15 +338,12 @@ export class PostService {
 
         // block
         const senderIsBlocked = await this.blockRepo.checkBlock(data.creatorUsername, data.watcherUsername)
-
         if (senderIsBlocked) {
-            throw new HttpError(403, `${data.creatorUsername} is blocked by ${data.watcherUsername}`)
+            return [];
         }
-
         const isReceiverBlocked = await this.blockRepo.checkBlock(data.watcherUsername, data.creatorUsername)
-
         if (isReceiverBlocked) {
-            throw new HttpError(403, `${data.watcherUsername} is blocked by ${data.creatorUsername}`)
+            return [];
         }
 
         // close
