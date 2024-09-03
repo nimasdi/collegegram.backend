@@ -38,11 +38,11 @@ const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
 const userService = new UserService(userRepo ,postRepo)
-const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo)
-const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo)
-const followService = new FollowService(followRepo,userRepo)
+const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo , blockRepo)
+const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo,closeFriendRepo ,followRepo , blockRepo)
+const followService = new FollowService(followRepo,userRepo , blockRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
-const blockService = new BlockService(blockRepo,userRepo)
+const blockService = new BlockService(blockRepo,userRepo , followRepo)
 
 
 const uri = process.env.MONGO_URI || '';
