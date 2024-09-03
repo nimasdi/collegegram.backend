@@ -9,6 +9,8 @@ import { replyCommentDto } from '../dto/replyComment.dto'
 import { likeCommentDto } from '../dto/likeComment.dto'
 import { GetCommentDto } from '../dto/getCommentWithLikes'
 import { BlockRepository } from '../repositrory/Block/block.repository'
+import { CloseFriendRepository } from '../repositrory/CloseFriend/closeFriend.repository'
+import { FollowRepository } from '../repositrory/Follow/follow.repository'
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
@@ -21,7 +23,7 @@ export interface NestedComment extends getCommentsWithLikes {
 }
 
 export class CommentService {
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository, private blockRepo: BlockRepository) {}
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository,private closeFriendRepo : CloseFriendRepository , private followRepo : FollowRepository ,private blockRepo: BlockRepository) {}
 
     async createComment(username: Username, createComment: createCommentDto): Promise<createCommentResponse> {
         const { post_id, text } = createComment
@@ -126,6 +128,7 @@ export class CommentService {
             throw new HttpError(404, `Post with ID ${postId} not found.`)
         }
 
+        // block
         const senderIsBlocked = await this.blockRepo.checkBlock(postCreator, username)
         if (senderIsBlocked) {
             throw new HttpError(403, `You are not allowed to view comments on this post.`)
@@ -133,6 +136,21 @@ export class CommentService {
         const receiverIsBlocked = await this.blockRepo.checkBlock(username , postCreator)
         if (receiverIsBlocked) {
             throw new HttpError(403, `You are not allowed to view comments on this post.`)
+        }
+
+
+        // close
+        const isCloseFriend = postCreator !== username && (await this.closeFriendRepo.checkCloseFriend(username, postCreator))
+        const postIsCloseFriend = await this.postRepo.checkCloseFriendStatus(postId)
+        if (!isCloseFriend && postIsCloseFriend) {
+            throw new HttpError(403, `Post doesnt exist.`)
+        }
+
+        // private
+        const isPrivate = await this.userRepo.checkAccountPrivacy(postCreator)
+        const isFollowing = await this.followRepo.checkFollow(username, postCreator)
+        if (isPrivate && !isFollowing) {
+            throw new HttpError(403, `you dont follow the user.`)
         }
         
         const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, username, pageNumber, pageSize)

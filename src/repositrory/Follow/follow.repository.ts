@@ -50,7 +50,7 @@ export class FollowRepository {
     }
 
     async removeFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername, followerUsername , status: "accepted" })
+        await this.model.deleteOne({ followingUsername, followerUsername })
             .catch((err) => this.handleDBError(err));
     }
 
