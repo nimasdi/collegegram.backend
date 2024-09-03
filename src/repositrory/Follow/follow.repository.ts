@@ -45,7 +45,7 @@ export class FollowRepository {
     }
 
     async unfollow(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername, followerUsername })
+        await this.model.deleteOne({ followingUsername, followerUsername , status: "accepted"})
             .catch((err) => this.handleDBError(err));
     }
 
@@ -55,7 +55,7 @@ export class FollowRepository {
     }
 
     async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
-        const followExist = await this.model.findOne({ followingUsername, followerUsername , status: 'accepted' })
+        const followExist = await this.model.findOne({ followingUsername, followerUsername , status: "accepted" })
             .catch((err) => this.handleDBError(err))
 
         if (!followExist) {
@@ -65,7 +65,7 @@ export class FollowRepository {
     }
 
     async getFollowerCount(user: Username): Promise<Number> {
-        const followerCount = await this.model.countDocuments({ followingUsername: user, status: 'accepted' })
+        const followerCount = await this.model.countDocuments({ followingUsername: user , status: "accepted"})
             .catch(err => this.handleDBError(err))
         return followerCount
     }
@@ -83,7 +83,7 @@ export class FollowRepository {
     }
 
     async getFollowingCount(user: Username): Promise<Number> {
-        const followingCount = await this.model.countDocuments({ followerUsername: user , status: 'accepted' })
+        const followingCount = await this.model.countDocuments({ followerUsername: user , status: "accepted"})
             .catch(err => this.handleDBError(err))
         return followingCount
     }
@@ -220,9 +220,9 @@ export class FollowRepository {
         };
     }
 
-    async getUserFollowingIds(username: Username): Promise<Username[]> {
+    async getUserFollowingNames(username: Username): Promise<Username[]> {
 
-        const followings = await this.model.find({ followerUsername: username, status: 'accepted' })
+        const followings = await this.model.find({ followerUsername: username , status: 'accepted'})
             .select('followingUsername')
             .lean()
             .exec()
@@ -264,10 +264,6 @@ export class FollowRepository {
 
         return followReq.id;
     }
-
-    // async findOne(query: Partial<followRequestAction & { status?: string }>): Promise<IFollow | null> {
-    //     return await this.model.findOne(query).catch((err) => null);
-    // }
 
     async findRequest(followingUsername: Username, followerUsername: Username) {
         const request = await this.model.findOne({
