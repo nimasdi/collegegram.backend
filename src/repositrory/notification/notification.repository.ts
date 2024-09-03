@@ -3,7 +3,7 @@ import { HttpError } from '../../utility/error-handler';
 import { INotification } from '../../db/notification/notification.model';
 import { Username } from '../../types/user.types';
 
-type ActionType = "like" | "likePost" | "comment" | "follow" 
+type ActionType = "like" | "likePost" | "comment" | "follow" | "followRequest"
 
 
 export class NotificationtRepository {

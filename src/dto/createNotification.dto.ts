@@ -3,7 +3,7 @@ import { zodMongoId, zodUsername } from "../types/user.types";
 import { checkRequired } from "./createUser.dto";
 
 
-const ActionType = z.enum(["like", "comment", "follow"]);
+const ActionType = z.enum(["like", "comment", "follow", "followRequest"]);
 const TargetEntityType = z.enum(["postId", "commentId", "userId"]);
 
 

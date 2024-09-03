@@ -8,7 +8,7 @@ import { FollowRepository } from "../repositrory/Follow/follow.repository";
 import { BlockRepository } from "../repositrory/Block/block.repository";
 import { CloseFriendRepository } from "../repositrory/CloseFriend/closeFriend.repository";
 
-type ActionType = "like" | "likePost" | "comment" | "follow" 
+type ActionType = "like" | "likePost" | "comment" | "follow" | "followRequest"
 
 export class NotificationService {
 

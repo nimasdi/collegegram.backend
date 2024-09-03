@@ -6,6 +6,7 @@ enum ActionType {
     LIKEPOST = "likePost",
     COMMENT = "comment",
     FOLLOW = "follow",
+    FOLLOWREQUEST = "followRequest",
 }
 
 
