@@ -65,13 +65,13 @@ export class FollowRepository {
     }
 
     async getFollowerCount(user: Username): Promise<Number> {
-        const followerCount = await this.model.countDocuments({ followingUsername: user })
+        const followerCount = await this.model.countDocuments({ followingUsername: user, status: 'accepted' })
             .catch(err => this.handleDBError(err))
         return followerCount
     }
 
     async getFollowersList(user: Username): Promise<Username[] | []> {
-        const followers = await this.model.find({ followingUsername: user }, { followerUsername: 1 })
+        const followers = await this.model.find({ followingUsername: user, status: 'accepted' }, { followerUsername: 1 })
             .catch(err => this.handleDBError(err))
 
         if(!!followers){
@@ -83,7 +83,7 @@ export class FollowRepository {
     }
 
     async getFollowingCount(user: Username): Promise<Number> {
-        const followingCount = await this.model.countDocuments({ followerUsername: user })
+        const followingCount = await this.model.countDocuments({ followerUsername: user , status: 'accepted' })
             .catch(err => this.handleDBError(err))
         return followingCount
     }
@@ -105,6 +105,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followerUsername',
                     foreignField: 'followerUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'following'
                 }
             },
@@ -113,6 +120,13 @@ export class FollowRepository {
                     from: 'users',
                     localField: 'followerUsername',
                     foreignField: 'username',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'userData'
                 }
             },
@@ -143,6 +157,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followingUsername',
                     foreignField: 'followingUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'followers'
                 }
             },
@@ -151,6 +172,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followingUsername',
                     foreignField: 'followerUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'following'
                 }
             },
@@ -194,7 +222,7 @@ export class FollowRepository {
 
     async getUserFollowingIds(username: Username): Promise<Username[]> {
 
-        const followings = await this.model.find({ followerUsername: username })
+        const followings = await this.model.find({ followerUsername: username, status: 'accepted' })
             .select('followingUsername')
             .lean()
             .exec()
