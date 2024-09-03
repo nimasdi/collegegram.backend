@@ -180,9 +180,9 @@ export class FollowRepository {
         };
     }
 
-    async getUserFollowingIds(username: Username): Promise<Username[]> {
+    async getUserFollowingNames(username: Username): Promise<Username[]> {
 
-        const followings = await this.model.find({ followerUsername: username })
+        const followings = await this.model.find({ followerUsername: username , status: 'accepted'})
             .select('followingUsername')
             .lean()
             .exec()

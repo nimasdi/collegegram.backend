@@ -52,30 +52,7 @@ export const FollowRoute = (followService: FollowService) => {
         }
     });
 
-    /**
-  * @swagger
-  * /follow:
-  *   post:
-  *     summary: follow a user
-  *     description: follow a user
-  *     tags:
-  *       - Follow
-  *     requestBody:
-  *       required: true
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             required:
-  *               - followingUsername
-  *             properties:
-  *               followingUsername:
-  *                 type: string
-  *                 example: johndoe
-  *     responses:
-  *       200:
-  *         description: followed
-//   */
+  
 //     router.post("", authMiddleware, async (req, res, next) => {
 //         try {
 //             const followerUser: Username = req.user.username

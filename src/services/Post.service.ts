@@ -300,7 +300,7 @@ export class PostService {
     async getUserExplorePosts(data: getExplorePostsDto) {
         const { username, pageNumber, pageSize } = data
 
-        const followersUsernames = await this.followRepo.getUserFollowingIds(username)
+        const followersUsernames = await this.followRepo.getUserFollowingNames(username)
 
         const ids = (await Promise.all(
             followersUsernames.map(async (username) => {
@@ -308,9 +308,11 @@ export class PostService {
             })
         )) as Types.ObjectId[]
 
+        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(username);
+
         const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(username)
 
-        const postsForUser = await this.postRepo.getExplorePosts(username, ids, closeFriendNames, pageNumber, pageSize)
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids, closeFriendNames,blockedUsers, pageNumber, pageSize)
 
         return postsForUser || []
     }

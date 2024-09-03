@@ -237,7 +237,7 @@ export class PostRepository {
         return responsePosts
     }
 
-    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], closeFriends: Username[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
+    async getExplorePosts(username: Username, followingUserIds: Types.ObjectId[], closeFriends: Username[], blockedUsernames: Username[], pageNumber: number = 1, pageSize: number = 10): Promise<ExploreDataResponse[]> {
         const skip = (pageNumber - 1) * pageSize
 
         const posts = await this.postModel
@@ -281,7 +281,7 @@ export class PostRepository {
                 },
                 {
                     $addFields: {
-                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, // Extracting the username from the first (and expected only) user document
+                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, 
                     },
                 },
                 {
@@ -289,14 +289,6 @@ export class PostRepository {
                         isCloseFriend: {
                             $in: ['$creatorUsername', closeFriends],
                         },
-                    },
-                },
-                {
-                    $match: {
-                        $or: [
-                            { closeFriendOnly: false }, // Public posts
-                            { $and: [{ closeFriendOnly: true }, { isCloseFriend: true }] }, // Close friend posts visible to the user
-                        ],
                     },
                 },
                 {
@@ -319,6 +311,7 @@ export class PostRepository {
                         },
                         createdAt: 1,
                         creatorUsername: 1,
+                        isCloseFriend: 1,
                     },
                 },
                 { $sort: { createdAt: -1 } },
@@ -327,7 +320,16 @@ export class PostRepository {
             ])
             .exec()
 
-        return posts
+
+        const filteredPosts = posts.filter(post => {
+            return (
+                (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Public or close friend posts
+                !blockedUsernames.includes(post.creatorUsername) // Exclude blocked users' posts
+            );
+        });
+
+
+        return filteredPosts
     }
 
     async getUserIdForPost(postId: Types.ObjectId): Promise<Types.ObjectId | null> {
@@ -417,12 +419,12 @@ export class PostRepository {
             .findById(postId)
             .exec()
             .catch((err) => {
-                this.handleDBError();
+                this.handleDBError()
             })
 
         if (!post) {
             return null
         }
-        return post.closeFriendOnly;
+        return post.closeFriendOnly
     }
 }
