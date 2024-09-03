@@ -123,7 +123,7 @@ export class FollowService {
             action
         });
 
-        if(action === 'accept' && result instanceof Types.ObjectId){
+        if(action === 'accept'){
             this.notifServise.createNotification(sender, "follow" , result , receiver)        
             this.notifServise.createNotificationForFollowers(sender, "follow" , result , receiver, false)        
         }

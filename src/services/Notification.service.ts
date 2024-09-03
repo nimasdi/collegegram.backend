@@ -49,8 +49,10 @@ export class NotificationService {
 
     async createNotificationForFollowers(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string, checkClose: Boolean): Promise<void> {
         const targetUsername = await this.findUsename(targetUser)
+        console.log(targetUsername)
         if(targetUsername){
             const followers = await this.followRepo.getFollowersList(actionCreator)
+            console.log(followers)
             if(followers.length > 0){
                 const notifId = await this.notifRepo.createNotification(actionCreator,actionType,targetEntityId,targetUsername)
                 if(notifId){

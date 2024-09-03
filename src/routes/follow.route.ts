@@ -328,7 +328,7 @@ export const FollowRoute = (followService: FollowService) => {
      *         description: Server error
      */
     router.post('/request/handle', authMiddleware, async (req, res) => {
-        try {
+        try { 
             const followRequestAction = {
                 sender: req.body.sender,
                 receiver: req.user.username,

@@ -242,7 +242,7 @@ export class FollowRepository {
         return followReq.id
     }
 
-    async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<Types.ObjectId | Boolean> {
+    async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<Types.ObjectId> {
 
         const { sender, receiver, action } = request;
 
@@ -250,7 +250,7 @@ export class FollowRepository {
         const followReq = await this.model.findOne({ followerUsername: sender, followingUsername: receiver, status: 'pending' });
 
         if (!followReq) {
-            return false;
+            throw new HttpError(400, "follow request not found.")
         }
 
         if (action === 'accept') {
