@@ -21,6 +21,12 @@ import { BlockRepository } from '../repositrory/Block/block.repository'
 export class PostService {
     constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository, private blockRepo: BlockRepository) {}
 
+    private async checkMutualBlocks(userA: Username, userB: Username): Promise<boolean> {
+        const userABlocksB = await this.blockRepo.checkBlock(userA, userB)
+        const userBBlocksA = await this.blockRepo.checkBlock(userB, userA)
+        return !!userABlocksB || !!userBBlocksA
+    }
+
     async createPost(username: string, postData: userCreatePostData): Promise<boolean> {
         if (!isUsername(username)) {
             throw new HttpError(400, 'Invalid username')
@@ -164,6 +170,33 @@ export class PostService {
         if (!post) {
             throw new HttpError(404, 'post not found.')
         }
+
+        // block
+        const postCreator = (await this.postRepo.getPostCreator(postId)) as Username
+        const senderIsBlocked = await this.blockRepo.checkBlock(postCreator, userWatchPost)
+        if (senderIsBlocked) {
+            throw new HttpError(403, `${postCreator} is blocked by ${userWatchPost}`)
+        }
+        const isReceiverBlocked = await this.blockRepo.checkBlock(userWatchPost, postCreator)
+        if (isReceiverBlocked) {
+            throw new HttpError(403, `${userWatchPost} is blocked by ${postCreator}`)
+        }
+
+        // close
+        const isCloseFriend = postCreator !== userWatchPost && (await this.closeFriendRepo.checkCloseFriend(userWatchPost, postCreator))
+        const postIsCloseFriend = await this.postRepo.checkCloseFriendStatus(postId)
+        if (!isCloseFriend && postIsCloseFriend) {
+            throw new HttpError(403, `Post doesnt exist.`)
+        }
+
+        // private
+        const isPrivate = await this.userRepo.checkAccountPrivacy(postCreator)
+        const isFollowing = await this.followRepo.checkFollow(userWatchPost, postCreator)
+
+        if (isPrivate && !isFollowing) {
+            throw new HttpError(403, `you dont follow the user.`)
+        }
+
         return post
     }
 
@@ -303,6 +336,7 @@ export class PostService {
             throw new HttpError(404, 'user not found.')
         }
 
+        // block
         const senderIsBlocked = await this.blockRepo.checkBlock(data.creatorUsername, data.watcherUsername)
 
         if (senderIsBlocked) {
@@ -315,8 +349,10 @@ export class PostService {
             throw new HttpError(403, `${data.watcherUsername} is blocked by ${data.creatorUsername}`)
         }
 
+        // close
         const isCloseFriend = data.creatorUsername !== data.watcherUsername && (await this.closeFriendRepo.checkCloseFriend(data.watcherUsername, data.creatorUsername))
 
+        // private
         const isPrivate = await this.userRepo.checkAccountPrivacy(data.creatorUsername)
 
         if (isPrivate) {

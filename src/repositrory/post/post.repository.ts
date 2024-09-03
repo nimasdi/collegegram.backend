@@ -70,9 +70,9 @@ export interface ExploreDataResponse {
 }
 
 export class PostRepository {
-    private postModel: Model<IPost & Document>
+    private postModel: Model<IPost>
 
-    constructor(postModel: Model<IPost & Document>) {
+    constructor(postModel: Model<IPost>) {
         this.postModel = postModel
     }
 
@@ -375,38 +375,54 @@ export class PostRepository {
     }
 
     async getPostCreator(postId: PostId): Promise<Username | null> {
-        const result = await this.postModel.aggregate([
-            {
-                $match: { _id: new Types.ObjectId(postId) },
-            },
-            {
-                $lookup: {
-                    from: 'users',
-                    localField: 'userId', 
-                    foreignField: '_id', 
-                    as: 'userDetails',
+        const result = await this.postModel
+            .aggregate([
+                {
+                    $match: { _id: new Types.ObjectId(postId) },
                 },
-            },
-            {
-                $unwind: {
-                    path: '$userDetails',
-                    preserveNullAndEmptyArrays: true,
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'userDetails',
+                    },
                 },
-            },
-            {
-                $project: {
-                    username: '$userDetails.username', 
+                {
+                    $unwind: {
+                        path: '$userDetails',
+                        preserveNullAndEmptyArrays: true,
+                    },
                 },
-            },
-            {
-                $limit: 1,
-            },
-        ]).exec();
+                {
+                    $project: {
+                        username: '$userDetails.username',
+                    },
+                },
+                {
+                    $limit: 1,
+                },
+            ])
+            .exec()
 
         if (!result || result.length === 0 || !result[0].username) {
-            return null;
+            return null
         }
 
-        return result[0].username;
+        return result[0].username
+    }
+
+    async checkCloseFriendStatus(postId: PostId): Promise<boolean | null> {
+        const post = await this.postModel
+            .findById(postId)
+            .exec()
+            .catch((err) => {
+                this.handleDBError();
+            })
+
+        if (!post) {
+            return null
+        }
+        return post.closeFriendOnly;
     }
 }
