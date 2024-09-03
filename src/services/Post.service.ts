@@ -1,3 +1,4 @@
+
 import path from 'path'
 import { createPost, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
 import { UserRepository } from '../repositrory/user/user.repositroy'
@@ -17,9 +18,10 @@ import { GetPostsDto } from '../dto/getPosts.dto'
 import { getExplorePostsDto } from '../dto/getUserExplorePosts.dto'
 import { Types } from 'mongoose'
 import { BlockRepository } from '../repositrory/Block/block.repository'
+import { NotificationService } from "./Notification.service";
 
 export class PostService {
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository, private blockRepo: BlockRepository) {}
+    constructor(private userRepo: UserRepository,private notifServise : NotificationService, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository, private blockRepo: BlockRepository) {}
 
     private async checkMutualBlocks(userA: Username, userB: Username): Promise<boolean> {
         const userABlocksB = await this.blockRepo.checkBlock(userA, userB)
@@ -200,19 +202,6 @@ export class PostService {
         return post
     }
 
-    // async getUserPosts(username: Username): Promise<PostResponse[]> {
-
-    //     const userId = await this.userRepo.getUserIdByUsername(username)
-    //     if (!userId)
-    //         throw new HttpError(404, "user not found.")
-
-    //     const posts = await this.postRepo.getAll(userId)
-    //     if (posts.length === 0)
-    //         return []
-
-    //     return posts
-    // }
-
     async savePost(savePostData: savePostDto): Promise<boolean> {
         const post = await this.postRepo.findById(savePostData.postId)
         if (!post) {
@@ -273,7 +262,10 @@ export class PostService {
 
         await this.likePostRepo.likePost(likePostData)
 
-        return true
+        this.notifServise.createNotification(likePostData.username, "likePost" , post.id, post.userId.toString())        
+        this.notifServise.createNotificationForFollowers(likePostData.username, "likePost" , post.id, post.userId.toString(), post.closeFriendOnly)        
+
+        return true;
     }
 
     async unlikePost(unlikePostData: unlikePostDto): Promise<boolean> {

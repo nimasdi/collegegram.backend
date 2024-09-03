@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import { FollowRequestDto } from "../dto/followRequest.dto";
 import { FollowRequestActionDto } from "../dto/followRequestAction.dto";
 import { BlockRepository } from "../repositrory/Block/block.repository";
@@ -5,6 +6,7 @@ import { FollowRepository, followingAndFollowers } from "../repositrory/Follow/f
 import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
+import { NotificationService } from "./Notification.service";
 
 export interface followState {
     followerCount: Number,
@@ -13,7 +15,7 @@ export interface followState {
 
 export class FollowService {
 
-    constructor(private followRepo: FollowRepository, private userRepo: UserRepository , private blockRepo: BlockRepository) {
+    constructor(private followRepo: FollowRepository, private notifServise: NotificationService, private userRepo: UserRepository , private blockRepo: BlockRepository) {
     }
 
     // async follow(followingUsername: Username, followerUsername: Username): Promise<void> {
@@ -111,11 +113,13 @@ export class FollowService {
             throw new HttpError(403, `${sender} is blocked by ${receiver}`);
         }
 
-        await this.followRepo.sendFollowRequest(followRequestData)
+        const followReq = await this.followRepo.sendFollowRequest(followRequestData)
+        this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
+
     }
 
 
-    async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<boolean> {
+    async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<Boolean | Types.ObjectId> {
         const { receiver, sender, action } = followRequestActionData
 
         const senderIsBlocked = await this.blockRepo.checkBlock(receiver , sender)
@@ -149,6 +153,11 @@ export class FollowService {
             receiver,
             action
         });
+
+        if(action === 'accept'){
+            this.notifServise.createNotification(sender, "follow" , result , receiver)        
+            this.notifServise.createNotificationForFollowers(sender, "follow" , result , receiver, false)        
+        }
 
         return result;
 

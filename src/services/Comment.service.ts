@@ -1,3 +1,4 @@
+import { NotificationService } from "./Notification.service";
 import { CommentId, isPostId, PostId, Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
 import { PostRepository } from '../repositrory/post/post.repository'
@@ -23,7 +24,10 @@ export interface NestedComment extends getCommentsWithLikes {
 }
 
 export class CommentService {
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository,private closeFriendRepo : CloseFriendRepository , private followRepo : FollowRepository ,private blockRepo: BlockRepository) {}
+
+    constructor(private userRepo: UserRepository, private notifServise : NotificationService, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository,private closeFriendRepo : CloseFriendRepository , private followRepo : FollowRepository ,private blockRepo: BlockRepository) {
+    }
+
 
     async createComment(username: Username, createComment: createCommentDto): Promise<createCommentResponse> {
         const { post_id, text } = createComment
@@ -38,7 +42,11 @@ export class CommentService {
             username,
         }
 
-        const res = await this.commentRepo.createComment(post_id, commentData)
+        const commentId = await this.commentRepo.createComment(post_id, commentData)
+
+        // create notif after action
+        this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())        
+        this.notifServise.createNotificationForFollowers(username, "comment" , commentId, postExists.userId.toString(), postExists.closeFriendOnly)        
 
         return {
             success: true,

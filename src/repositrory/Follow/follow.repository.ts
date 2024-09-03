@@ -70,6 +70,18 @@ export class FollowRepository {
         return followerCount
     }
 
+    async getFollowersList(user: Username): Promise<Username[] | []> {
+        const followers = await this.model.find({ followingUsername: user, status: 'accepted' }, { followerUsername: 1 })
+            .catch(err => this.handleDBError(err))
+
+        if(!!followers){
+            const followersUsername : Username[] = followers.map((follower) => follower.followerUsername)
+            return followersUsername
+        }
+
+        return []
+    }
+
     async getFollowingCount(user: Username): Promise<Number> {
         const followingCount = await this.model.countDocuments({ followerUsername: user , status: "accepted"})
             .catch(err => this.handleDBError(err))
@@ -93,6 +105,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followerUsername',
                     foreignField: 'followerUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'following'
                 }
             },
@@ -101,6 +120,13 @@ export class FollowRepository {
                     from: 'users',
                     localField: 'followerUsername',
                     foreignField: 'username',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'userData'
                 }
             },
@@ -131,6 +157,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followingUsername',
                     foreignField: 'followingUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'followers'
                 }
             },
@@ -139,6 +172,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followingUsername',
                     foreignField: 'followerUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'following'
                 }
             },
@@ -195,12 +235,14 @@ export class FollowRepository {
 
 
 
-    async sendFollowRequest(request: followRequest): Promise<void> {
+    async sendFollowRequest(request: followRequest): Promise<Types.ObjectId> {
         const followReq = new this.model({ followerUsername: request.sender, followingUsername: request.receiver, status: 'pending' });
         await followReq.save().catch((err) => this.handleDBError(err));
+
+        return followReq.id
     }
 
-    async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<boolean> {
+    async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<Types.ObjectId> {
 
         const { sender, receiver, action } = request;
 
@@ -208,7 +250,7 @@ export class FollowRepository {
         const followReq = await this.model.findOne({ followerUsername: sender, followingUsername: receiver, status: 'pending' });
 
         if (!followReq) {
-            return false;
+            throw new HttpError(400, "follow request not found.")
         }
 
         if (action === 'accept') {
@@ -220,7 +262,7 @@ export class FollowRepository {
             await followReq.save().catch(err => this.handleDBError(err));
         }
 
-        return true;
+        return followReq.id;
     }
 
     async findRequest(followingUsername: Username, followerUsername: Username) {

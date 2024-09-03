@@ -24,6 +24,11 @@ import { Block } from "./src/db/Block/block.model";
 import { BlockService } from "./src/services/Block.service";
 import { CloseFriendService } from "./src/services/CloseFriend.service";
 import { CloseFriendRepository } from "./src/repositrory/CloseFriend/closeFriend.repository";
+import { NotificationtRepository } from "./src/repositrory/notification/notification.repository";
+import { Notification } from "./src/db/notification/notification.model";
+import { UserNotificationtRepository } from "./src/repositrory/notification/userNotification.repository";
+import { UserNotification } from "./src/db/notification/userNotification.model";
+import { NotificationService } from "./src/services/Notification.service";
 
 
 dotenv.config();
@@ -32,15 +37,18 @@ export const postRepo = new PostRepository(Post)
 export const userRepo = new UserRepository(User);
 const commentRepo = new CommentRepository(Comment)
 const followRepo = new FollowRepository(Follow)
+const notifRepo = new NotificationtRepository(Notification)
+const userNotifRepo = new UserNotificationtRepository(UserNotification)
 const closeFriendRepo = new CloseFriendRepository(Follow)
 const blockRepo = new BlockRepository(Block)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
+const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
 const userService = new UserService(userRepo ,postRepo)
-const postService = new PostService(userRepo , postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo , blockRepo)
-const commentService = new CommentService(userRepo,postRepo, commentRepo,likeCommentRepo,closeFriendRepo ,followRepo , blockRepo)
-const followService = new FollowService(followRepo,userRepo , blockRepo)
+const postService = new PostService(userRepo, notifService, postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo, blockRepo)
+const commentService = new CommentService(userRepo, notifService, postRepo, commentRepo,likeCommentRepo,closeFriendRepo ,followRepo , blockRepo)
+const followService = new FollowService(followRepo, notifService, userRepo, blockRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
 const blockService = new BlockService(blockRepo,userRepo , followRepo)
 

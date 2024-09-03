@@ -59,7 +59,7 @@ export class CommentRepository {
         return commentResponse;
     }
 
-    async createComment(postId: PostId, createCommentData: createComment): Promise<boolean> {
+    async createComment(postId: PostId, createCommentData: createComment): Promise<Types.ObjectId> {
 
         const commentData = {
             ...createCommentData,
@@ -71,7 +71,7 @@ export class CommentRepository {
         const comment = new this.model(commentData);
         await comment.save().catch((err) => this.handleDBError(err));
 
-        return true;
+        return comment.id;
     }
 
     async replyToComment(postId: PostId, replyCommentData: replyComment): Promise<boolean> {

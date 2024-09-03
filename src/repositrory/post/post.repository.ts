@@ -21,12 +21,23 @@ export interface updatePost {
 }
 
 export interface PostResponse {
+<<<<<<< HEAD
+    images: string[],
+    caption: string,
+    tags: string[],
+    mentions: Username[],
+    id: Types.ObjectId,
+    createdAt: Date,
+    closeFriendOnly: Boolean,
+    userId: Types.ObjectId
+=======
     images: string[]
     caption: string
     tags: string[]
     mentions: Username[]
     id: Types.ObjectId
     createdAt: Date
+>>>>>>> f8176227173e8ada1b14089ead7e56b543dabb88
 }
 
 export interface PostDataResponse {
@@ -88,7 +99,13 @@ export class PostRepository {
             mentions: post.mentions,
             id: post.id,
             createdAt: post.createdAt,
+<<<<<<< HEAD
+            closeFriendOnly: post.closeFriendOnly,
+            userId: post.userId
+        };
+=======
         }
+>>>>>>> f8176227173e8ada1b14089ead7e56b543dabb88
 
         return postResponse
     }
@@ -191,6 +208,7 @@ export class PostRepository {
                     caption: 1,
                     tags: 1,
                     mentions: 1,
+                    closeFriendOnly: 1,
                     likesCount: 1,
                     commentsCount: 1,
                     bookmarksCount: 1,
@@ -221,7 +239,13 @@ export class PostRepository {
             bookmarksCount: post.bookmarksCount,
             isLikedByUser: post.isLikedByUser,
             isBookmarksByUser: post.isBookmarksByUser,
+<<<<<<< HEAD
+            closeFriendOnly: post.closeFriendOnly,
             createdAt: post.createdAt,
+            userId: post.userId
+=======
+            createdAt: post.createdAt,
+>>>>>>> f8176227173e8ada1b14089ead7e56b543dabb88
         }
         return postResponse
     }

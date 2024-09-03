@@ -141,8 +141,6 @@ export const MakePostRoute = (postService: PostService) => {
         }
     });
 
-
-
     /**
     * @swagger
     * openapi: 3.0.0
