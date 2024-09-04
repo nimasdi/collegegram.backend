@@ -8,7 +8,7 @@ export const NotificationRoute = (notificationService: NotificationService) => {
 
     /**
      * @swagger
-     * /notifications:
+     * /notifications/me:
      *   get:
      *     summary: Retrieve user notifications
      *     description: Fetch notifications for the logged-in user with optional pagination.
@@ -73,7 +73,7 @@ export const NotificationRoute = (notificationService: NotificationService) => {
      *       500:
      *         description: Internal server error. An error occurred while processing the request.
      */
-    router.get('/notifications', authMiddleware ,async (req, res) => {
+    router.get('/me', authMiddleware ,async (req, res) => {
         try {
 
             const username = req.user.username;
