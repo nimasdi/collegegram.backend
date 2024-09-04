@@ -32,7 +32,7 @@ export class NotificationtRepository {
         return notif.id
     }
 
-    async getUserNotificationData(notificationsId: Types.ObjectId[], actionCreator: Username, pageNumber: number = 1, pageSize: number = 10): Promise<getUserNotifs[]> {
+    async getUserNotificationData(notificationsId: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10): Promise<getUserNotifs[]> {
         const skip = (pageNumber - 1) * pageSize
 
         const notifs = await this.model

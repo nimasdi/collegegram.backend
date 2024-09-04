@@ -16,8 +16,10 @@ import { BlockRoute } from "./routes/block.route";
 import { BlockService } from "./services/Block.service";
 import { CloseFriendRoute } from "./routes/closeFriend.route";
 import { CloseFriendService } from "./services/CloseFriend.service";
+import { NotificationRoute } from "./routes/notification.route";
+import { NotificationService } from "./services/Notification.service";
 
-export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService , notificationService: NotificationService) => {
 
     const app = express()
 
@@ -60,6 +62,9 @@ export const makeApp = (userService:UserService , commentService:CommentService 
 
     //comments
     app.use('/', CommentRoute(commentService));
+
+    // notifications
+    app.use('/notifications', NotificationRoute(notificationService));
 
     const errorHandling: express.ErrorRequestHandler = (error, req, res, next) => {
 

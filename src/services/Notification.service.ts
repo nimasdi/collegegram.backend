@@ -87,14 +87,14 @@ export class NotificationService {
         this.userNotifRepo.seenNotification(username, new Types.ObjectId(notificationId))
     }
 
-    async getUserNotification(username: Username): Promise<any> {
+    async getUserNotification(username: Username ,pageNumber: number = 1, pageSize: number = 10 ): Promise<any> {
         const notificationIds = await this.userNotifRepo.getUserNotification(username)
 
         if (!notificationIds || notificationIds.length === 0) {
             return []
         }
 
-        const notifications = await this.notifRepo.getUserNotificationData(notificationIds, username)
+        const notifications = await this.notifRepo.getUserNotificationData(notificationIds, pageNumber, pageSize)
 
         return notifications
     }
