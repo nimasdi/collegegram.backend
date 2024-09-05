@@ -50,4 +50,8 @@ export class UserNotificationtRepository {
 
         return notifs.map((notif) => notif.notificationId)
     }
+
+    async getFriendsNotification(){
+        
+    }
 }

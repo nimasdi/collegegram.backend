@@ -229,7 +229,6 @@ export class PostRepository {
             closeFriendOnly: post.closeFriendOnly,
             createdAt: post.createdAt,
             userId: post.userId
-            
         }
         return postResponse
     }
