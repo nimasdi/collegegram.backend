@@ -170,5 +170,51 @@ export const NotificationRoute = (notificationService: NotificationService) => {
         }
     })
 
+    /**
+     * @swagger
+     * /notifications/seenNotification:
+     *   put:
+     *     summary: seen user notifications
+     *     description: seen user notifications
+     *     tags:
+     *       - Notifications
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               notificationId:
+     *                 type: string
+     *                 example: "64e2c20b5c1d4b3c1a1e7d20"
+     *                 description: The ID of the notification to seen.
+     *             required:
+     *               - notificationId
+     *     responses:
+     *       200:
+     *         description: Notifications retrieved successfully
+     *       401:
+     *         description: Unauthorized. The user must be authenticated to access this endpoint.
+     *       500:
+     *         description: Internal server error. An error occurred while processing the request.
+     */
+    router.put('/seenNotification', authMiddleware ,async (req, res) => {
+        try {
+
+            const username = req.user.username;
+            const { notificationId } = req.body
+            const seen = await notificationService.seenNotification(username, notificationId)
+
+            res.status(200).json({
+                message: "seen status changed"
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+
     return router
 }

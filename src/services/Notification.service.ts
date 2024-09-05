@@ -83,7 +83,7 @@ export class NotificationService {
             throw new HttpError(400, 'field invalid')
         }
 
-        this.userNotifRepo.seenNotification(username, new Types.ObjectId(notificationId))
+        await this.userNotifRepo.seenNotification(username, new Types.ObjectId(notificationId))
     }
 
     async getUserNotification(username: Username ,pageNumber: number = 1, pageSize: number = 10 ): Promise<any> {
