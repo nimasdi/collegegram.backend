@@ -94,7 +94,19 @@ export class NotificationService {
             return []
         }
 
-        const notifications = await this.notifRepo.getUserNotificationData(notificationIds, pageNumber, pageSize)
+        const notifications = await this.notifRepo.getNotificationData(notificationIds, username, pageNumber, pageSize, 'self')
+
+        return notifications
+    }
+
+    async getFriendsNotification(username: Username ,pageNumber: number = 1, pageSize: number = 10 ): Promise<any> {
+        const notificationIds = await this.userNotifRepo.getUserNotification(username)
+
+        if (!notificationIds || notificationIds.length === 0) {
+            return []
+        }
+
+        const notifications = await this.notifRepo.getNotificationData(notificationIds, username, pageNumber, pageSize, 'friend')
 
         return notifications
     }
