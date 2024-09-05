@@ -174,7 +174,7 @@ export const FollowRoute = (followService: FollowService) => {
             const followState = await followService.getUserFollowState(username)
             
 
-            return res.status(200).json({skdjcns:followState})
+            return res.status(200).json(followState)
         } catch (error) {
             handelErrorResponse(res, error)
         }
