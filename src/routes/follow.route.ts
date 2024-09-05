@@ -36,7 +36,7 @@ export const FollowRoute = (followService: FollowService) => {
    *       500:
    *         description: Internal server error
    */
-    router.get("check/:username", authMiddleware, async (req, res) => {
+    router.get("/check/:username", authMiddleware, async (req, res) => {
         try {
             const followerUser = req.user.username
             const followingUser = req.params.username.trim()
@@ -169,11 +169,8 @@ export const FollowRoute = (followService: FollowService) => {
         try {
             const username = req.user.username
 
-            // console.log(followState)
-            console.log("followState")
             const followState = await followService.getUserFollowState(username)
             
-
             return res.status(200).json(followState)
         } catch (error) {
             handelErrorResponse(res, error)
