@@ -26,6 +26,11 @@ interface followRequestAction {
     action: 'accept' | 'decline';
 }
 
+export interface getFollowStatus{
+    followed: boolean,
+    status: string;
+}
+
 export class FollowRepository {
 
     private model: Model<IFollow>;
@@ -54,14 +59,14 @@ export class FollowRepository {
             .catch((err) => this.handleDBError(err));
     }
 
-    async checkFollow(followerUsername: Username, followingUsername: Username): Promise<Boolean> {
-        const followExist = await this.model.findOne({ followingUsername, followerUsername , status: "accepted" })
+    async checkFollow(followerUsername: Username, followingUsername: Username): Promise<string> {
+        const followExist = await this.model.findOne({ followingUsername, followerUsername })
             .catch((err) => this.handleDBError(err))
 
         if (!followExist) {
-            return false
+            return "declined"
         }
-        return true
+        return followExist.status;
     }
 
     async getFollowerCount(user: Username): Promise<Number> {

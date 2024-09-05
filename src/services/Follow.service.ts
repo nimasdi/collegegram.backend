@@ -67,8 +67,20 @@ export class FollowService {
 
     }
 
-    async checkFollow(followingUsername: Username, followerUsername: Username): Promise<Boolean> {
+    async checkFollow(followingUsername: Username, followerUsername: Username): Promise<string> {
+        
         const followed = await this.followRepo.checkFollow(followerUsername, followingUsername)
+
+        const senderIsBlocked = await this.blockRepo.checkBlock(followerUsername , followingUsername)
+        const isReceiverBlocked = await this.blockRepo.checkBlock(followingUsername, followerUsername)
+
+        if (isReceiverBlocked){
+            return 'blocked'
+        }
+        else if(senderIsBlocked){
+            return 'blocked'
+        }
+
         return followed
     }
 
