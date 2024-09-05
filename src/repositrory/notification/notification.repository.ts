@@ -36,14 +36,13 @@ export class NotificationtRepository {
         const skip = (pageNumber - 1) * pageSize
 
         const matchQuery = type === 'friend' ? { _id: { $in: notificationsId } , targetUser : {  $ne : username } }: { _id: { $in: notificationsId } , targetUser : username }
-        console.log(matchQuery)
 
         const notifs = await this.model
             .aggregate([
                 { $match: matchQuery },
                 {
                     $lookup: {
-                        from: 'UserNotification',
+                        from: 'usernotifications',
                         localField: '_id',
                         foreignField: 'notificationId',
                         pipeline: [
@@ -82,6 +81,8 @@ export class NotificationtRepository {
                 { $unwind: { path: '$commentData', preserveNullAndEmptyArrays: true } },
 
                 { $unwind: { path: '$postData', preserveNullAndEmptyArrays: true } },
+
+                { $unwind : '$notifState' } ,
 
                 {
                     $project: {
