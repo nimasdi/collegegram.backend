@@ -102,6 +102,13 @@ export class FollowRepository {
                     from: 'follows',
                     localField: 'followerUsername',
                     foreignField: 'followingUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'followers'
                 }
             },
@@ -125,13 +132,6 @@ export class FollowRepository {
                     from: 'users',
                     localField: 'followerUsername',
                     foreignField: 'username',
-                    pipeline: [
-                        {
-                            $match: {
-                                status: 'accepted'
-                            }
-                        }
-                    ],
                     as: 'userData'
                 }
             },

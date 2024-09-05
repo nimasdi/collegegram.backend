@@ -50,8 +50,15 @@ export class BlockRepository {
             {
                 $lookup: {
                     from: 'follows',
-                    localField: 'followingUsername',
-                    foreignField: 'blockingUsername',
+                    localField: 'blockingUsername',
+                    foreignField: 'followingUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'followers',
                 },
             },
@@ -60,6 +67,13 @@ export class BlockRepository {
                     from: 'follows',
                     localField: 'blockingUsername',
                     foreignField: 'followerUsername',
+                    pipeline: [
+                        {
+                            $match: {
+                                status: 'accepted'
+                            }
+                        }
+                    ],
                     as: 'following',
                 },
             },
