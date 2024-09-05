@@ -67,7 +67,7 @@ declare global {
 
 dbConnection.connect().then(async () => {
 
-    const app = makeApp(userService, commentService, followService , postService, blockService , closeFriendService)
+    const app = makeApp(userService, commentService, followService , postService, blockService , closeFriendService , notifService)
 
     const PORT = 3000
 
