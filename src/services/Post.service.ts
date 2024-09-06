@@ -1,4 +1,3 @@
-
 import path from 'path'
 import { createPost, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
 import { UserRepository } from '../repositrory/user/user.repositroy'
@@ -18,10 +17,19 @@ import { GetPostsDto } from '../dto/getPosts.dto'
 import { getExplorePostsDto } from '../dto/getUserExplorePosts.dto'
 import { Types } from 'mongoose'
 import { BlockRepository } from '../repositrory/Block/block.repository'
-import { NotificationService } from "./Notification.service";
+import { NotificationService } from './Notification.service'
 
 export class PostService {
-    constructor(private userRepo: UserRepository,private notifServise : NotificationService, private postRepo: PostRepository, private likePostRepo: LikePostRepository, private savePostRepository: SavePostRepository, private closeFriendRepo: CloseFriendRepository, private followRepo: FollowRepository, private blockRepo: BlockRepository) {}
+    constructor(
+        private userRepo: UserRepository,
+        private notifServise: NotificationService,
+        private postRepo: PostRepository,
+        private likePostRepo: LikePostRepository,
+        private savePostRepository: SavePostRepository,
+        private closeFriendRepo: CloseFriendRepository,
+        private followRepo: FollowRepository,
+        private blockRepo: BlockRepository
+    ) {}
 
     private async checkMutualBlocks(userA: Username, userB: Username): Promise<boolean> {
         const userABlocksB = await this.blockRepo.checkBlock(userA, userB)
@@ -167,7 +175,7 @@ export class PostService {
         return true
     }
 
-    async getPostById(postId: PostId, userWatchPost: Username): Promise<PostResponse> {
+    async getPostById(postId: PostId, userWatchPost: Username): Promise<PostResponse & { creatorUsername: string }> {
         const post = await this.postRepo.getPostDataById(postId, userWatchPost)
         if (!post) {
             throw new HttpError(404, 'post not found.')
@@ -185,10 +193,14 @@ export class PostService {
         }
 
         // close
-        const isCloseFriend = postCreator !== userWatchPost && (await this.closeFriendRepo.checkCloseFriend(userWatchPost, postCreator))
         const postIsCloseFriend = await this.postRepo.checkCloseFriendStatus(postId)
-        if (!isCloseFriend && postIsCloseFriend) {
-            throw new HttpError(403, `Post doesnt exist.`)
+        if (postIsCloseFriend) {
+            if (postCreator != userWatchPost) {
+                const isCloseFriend = await this.closeFriendRepo.checkCloseFriend(userWatchPost, postCreator)
+                if (!isCloseFriend && postCreator !== userWatchPost) {
+                    throw new HttpError(403, 'You are not authorized to view this post.')
+                }
+            }
         }
 
         // private
@@ -199,7 +211,7 @@ export class PostService {
             throw new HttpError(403, `you dont follow the user.`)
         }
 
-        return post
+        return {...post , creatorUsername:postCreator}
     }
 
     async savePost(savePostData: savePostDto): Promise<boolean> {
@@ -262,10 +274,10 @@ export class PostService {
 
         await this.likePostRepo.likePost(likePostData)
 
-        this.notifServise.createNotification(likePostData.username, "likePost" , post.id, post.userId.toString())        
-        this.notifServise.createNotificationForFollowers(likePostData.username, "likePost" , post.id, post.userId.toString(), post.closeFriendOnly)        
+        this.notifServise.createNotification(likePostData.username, 'likePost', post.id, post.userId.toString())
+        this.notifServise.createNotificationForFollowers(likePostData.username, 'likePost', post.id, post.userId.toString(), post.closeFriendOnly)
 
-        return true;
+        return true
     }
 
     async unlikePost(unlikePostData: unlikePostDto): Promise<boolean> {
@@ -300,11 +312,11 @@ export class PostService {
             })
         )) as Types.ObjectId[]
 
-        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(username);
+        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(username)
 
         const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(username)
 
-        const postsForUser = await this.postRepo.getExplorePosts(username, ids, closeFriendNames,blockedUsers, pageNumber, pageSize)
+        const postsForUser = await this.postRepo.getExplorePosts(username, ids, closeFriendNames, blockedUsers, pageNumber, pageSize)
 
         return postsForUser || []
     }
@@ -333,11 +345,11 @@ export class PostService {
         // block
         const senderIsBlocked = await this.blockRepo.checkBlock(data.creatorUsername, data.watcherUsername)
         if (senderIsBlocked) {
-            return [];
+            return []
         }
         const isReceiverBlocked = await this.blockRepo.checkBlock(data.watcherUsername, data.creatorUsername)
         if (isReceiverBlocked) {
-            return [];
+            return []
         }
 
         // close
