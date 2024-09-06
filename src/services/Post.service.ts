@@ -175,7 +175,7 @@ export class PostService {
         return true
     }
 
-    async getPostById(postId: PostId, userWatchPost: Username): Promise<PostResponse> {
+    async getPostById(postId: PostId, userWatchPost: Username): Promise<PostResponse & { creatorUsername: string }> {
         const post = await this.postRepo.getPostDataById(postId, userWatchPost)
         if (!post) {
             throw new HttpError(404, 'post not found.')
@@ -211,7 +211,7 @@ export class PostService {
             throw new HttpError(403, `you dont follow the user.`)
         }
 
-        return post
+        return {...post , creatorUsername:postCreator}
     }
 
     async savePost(savePostData: savePostDto): Promise<boolean> {
