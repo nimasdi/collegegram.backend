@@ -48,7 +48,6 @@ export class NotificationService {
         console.log(targetUsername)
         if (targetUsername) {
             const followers = await this.followRepo.getFollowersList(actionCreator)
-            console.log(followers)
             if (followers.length > 0) {
                 const notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
                 if (notifId) {
@@ -84,7 +83,7 @@ export class NotificationService {
             throw new HttpError(400, 'field invalid')
         }
 
-        this.userNotifRepo.seenNotification(username, new Types.ObjectId(notificationId))
+        await this.userNotifRepo.seenNotification(username, new Types.ObjectId(notificationId))
     }
 
     async getUserNotification(username: Username ,pageNumber: number = 1, pageSize: number = 10 ): Promise<any> {
@@ -94,7 +93,19 @@ export class NotificationService {
             return []
         }
 
-        const notifications = await this.notifRepo.getUserNotificationData(notificationIds, pageNumber, pageSize)
+        const notifications = await this.notifRepo.getNotificationData(notificationIds, username, pageNumber, pageSize, 'self')
+
+        return notifications
+    }
+
+    async getFriendsNotification(username: Username ,pageNumber: number = 1, pageSize: number = 10 ): Promise<any> {
+        const notificationIds = await this.userNotifRepo.getUserNotification(username)
+
+        if (!notificationIds || notificationIds.length === 0) {
+            return []
+        }
+
+        const notifications = await this.notifRepo.getNotificationData(notificationIds, username, pageNumber, pageSize, 'friend')
 
         return notifications
     }

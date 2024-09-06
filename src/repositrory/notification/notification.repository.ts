@@ -32,12 +32,29 @@ export class NotificationtRepository {
         return notif.id
     }
 
-    async getUserNotificationData(notificationsId: Types.ObjectId[], pageNumber: number = 1, pageSize: number = 10): Promise<getUserNotifs[]> {
+    async getNotificationData(notificationsId: Types.ObjectId[], username: Username, pageNumber: number = 1, pageSize: number = 10, type: 'friend' | 'self'): Promise<getUserNotifs[]> {
         const skip = (pageNumber - 1) * pageSize
+
+        const matchQuery = type === 'friend' ? { _id: { $in: notificationsId } , targetUser : {  $ne : username } }: { _id: { $in: notificationsId } , targetUser : username }
 
         const notifs = await this.model
             .aggregate([
-                { $match: { _id: { $in: notificationsId } } },
+                { $match: matchQuery },
+                {
+                    $lookup: {
+                        from: 'usernotifications',
+                        localField: '_id',
+                        foreignField: 'notificationId',
+                        pipeline: [
+                            {
+                                $match: {
+                                    username: username
+                                }
+                            }
+                        ],
+                        as: 'notifState'
+                    },
+                },
                 {
                     $lookup: {
                         from: 'comments',
@@ -49,7 +66,6 @@ export class NotificationtRepository {
                         as: 'commentData',
                     },
                 },
-
                 {
                     $lookup: {
                         from: 'posts',
@@ -66,6 +82,8 @@ export class NotificationtRepository {
 
                 { $unwind: { path: '$postData', preserveNullAndEmptyArrays: true } },
 
+                { $unwind : '$notifState' } ,
+
                 {
                     $project: {
                         _id: 1,
@@ -81,6 +99,8 @@ export class NotificationtRepository {
                         commentText: '$commentData.text',
 
                         postUrl: '$postData.url',
+
+                        seen : '$notifState.seen'
                     },
                 },
 
@@ -100,6 +120,7 @@ export class NotificationtRepository {
             targetUser: notif.targetUser,
             commentText: notif.commentText,
             postUrl: notif.postUrl,
+            seen: notif.seen
         }))
     }
 }
