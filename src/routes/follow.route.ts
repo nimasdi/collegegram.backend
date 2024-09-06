@@ -1,47 +1,47 @@
-import { Router } from "express";
-import { FollowService } from "../services/Follow.service";
-import authMiddleware from "../utility/authorization";
-import { Username, isUsername } from "../types/user.types";
-import { HttpError } from "../utility/error-handler";
-import { handelErrorResponse } from "../utility/habdle-errResponse";
-import { followDto } from "../dto/follow.dto";
-import { followRequestDto } from "../dto/followRequest.dto";
-import { removeFollowerDto } from "../dto/removeFollow.dto";
+import { Router } from 'express'
+import { FollowService } from '../services/Follow.service'
+import authMiddleware from '../utility/authorization'
+import { Username, isUsername } from '../types/user.types'
+import { HttpError } from '../utility/error-handler'
+import { handelErrorResponse } from '../utility/habdle-errResponse'
+import { followDto } from '../dto/follow.dto'
+import { followRequestDto } from '../dto/followRequest.dto'
+import { removeFollowerDto } from '../dto/removeFollow.dto'
 
 export const FollowRoute = (followService: FollowService) => {
-    const router = Router();
+    const router = Router()
 
     /**
-   * @swagger
-   * /follow/check/{username}:
-   *   get:
-   *     summary: check follow 
-   *     description: check follow
-   *     tags:
-   *       - Follow
-   *     parameters:
-   *         - in: path
-   *           name: username
-   *           required: true
-   *           description: The ID of the post to be updated.
-   *           schema:
-   *             type: string
-   *     security:
-   *       - bearerAuth: []
-   *     responses:
-   *       200:
-   *         description: User information retrieved successfully
-   *       404:
-   *         description: User not found
-   *       500:
-   *         description: Internal server error
-   */
-    router.get("/check/:username", authMiddleware, async (req, res) => {
+     * @swagger
+     * /follow/check/{username}:
+     *   get:
+     *     summary: check follow
+     *     description: check follow
+     *     tags:
+     *       - Follow
+     *     parameters:
+     *         - in: path
+     *           name: username
+     *           required: true
+     *           description: The ID of the post to be updated.
+     *           schema:
+     *             type: string
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
+    router.get('/check/:username', authMiddleware, async (req, res) => {
         try {
             const followerUser = req.user.username
             const followingUser = req.params.username.trim()
             if (!isUsername(followingUser)) {
-                throw new HttpError(400, "check user name Field")
+                throw new HttpError(400, 'check user name Field')
             }
 
             const followed = await followService.checkFollow(followingUser, followerUser)
@@ -50,24 +50,22 @@ export const FollowRoute = (followService: FollowService) => {
         } catch (error) {
             handelErrorResponse(res, error)
         }
-    });
+    })
 
-  
-//     router.post("", authMiddleware, async (req, res, next) => {
-//         try {
-//             const followerUser: Username = req.user.username
-//             if (!followerUser) {
-//                 throw new HttpError(400, "user not found.")
-//             }
+    //     router.post("", authMiddleware, async (req, res, next) => {
+    //         try {
+    //             const followerUser: Username = req.user.username
+    //             if (!followerUser) {
+    //                 throw new HttpError(400, "user not found.")
+    //             }
 
-//             const followingUser = followDto.parse(req.body)
-//             await followService.follow(followingUser.followingUsername, followerUser)
-//             res.status(200).json({ message: "user followd." })
-//         } catch (error) {
-//             handelErrorResponse(res, error)
-//         }
-//     })
-
+    //             const followingUser = followDto.parse(req.body)
+    //             await followService.follow(followingUser.followingUsername, followerUser)
+    //             res.status(200).json({ message: "user followd." })
+    //         } catch (error) {
+    //             handelErrorResponse(res, error)
+    //         }
+    //     })
 
     /**
      * @swagger
@@ -93,16 +91,16 @@ export const FollowRoute = (followService: FollowService) => {
      *       200:
      *         description: followed
      */
-    router.delete("", authMiddleware, async (req, res, next) => {
+    router.delete('', authMiddleware, async (req, res, next) => {
         try {
             const followerUser: Username = req.user.username
             if (!followerUser) {
-                throw new HttpError(400, "user not found.")
+                throw new HttpError(400, 'user not found.')
             }
 
             const followingUser = followDto.parse(req.body)
             await followService.unfollow(followingUser.followingUsername, followerUser)
-            res.status(200).json({ message : "user unfollowed." })
+            res.status(200).json({ message: 'user unfollowed.' })
         } catch (error) {
             handelErrorResponse(res, error)
         }
@@ -132,81 +130,81 @@ export const FollowRoute = (followService: FollowService) => {
      *       200:
      *         description: followed
      */
-    router.delete("/removeFollower", authMiddleware, async (req, res, next) => {
+    router.delete('/removeFollower', authMiddleware, async (req, res, next) => {
         try {
             const followingUser: Username = req.user.username
-            if(!followingUser) {
-                throw new HttpError(400, "user not found.") 
+            if (!followingUser) {
+                throw new HttpError(400, 'user not found.')
             }
 
             const followerUser = removeFollowerDto.parse(req.body)
             await followService.unfollow(followerUser.followerUsername, followingUser)
-            res.status(200).json({message:"follower removed"})
+            res.status(200).json({ message: 'follower removed' })
         } catch (error) {
             handelErrorResponse(res, error)
         }
     })
 
     /**
-    * @swagger
-    * /follow/state:
-    *   get:
-    *     summary: check follower and followers of loggedIn user 
-    *     description: check follow
-    *     tags:
-    *       - Follow
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: User information retrieved successfully
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Internal server error
-    */
-    router.get("/state", authMiddleware, async (req, res) => {
+     * @swagger
+     * /follow/state:
+     *   get:
+     *     summary: check follower and followers of loggedIn user
+     *     description: check follow
+     *     tags:
+     *       - Follow
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
+    router.get('/state', authMiddleware, async (req, res) => {
         try {
             const username = req.user.username
 
             const followState = await followService.getUserFollowState(username)
-            
+
             return res.status(200).json(followState)
         } catch (error) {
             handelErrorResponse(res, error)
         }
-    });
+    })
 
     /**
-    * @swagger
-    * /follow/{username}/list:
-    *   get:
-    *     summary: follower and followers list
-    *     description: check followers and following
-    *     tags:
-    *       - Follow
-    *     parameters:
-    *         - in: path
-    *           name: username
-    *           required: true
-    *           description: The ID of the post to be updated.
-    *           schema:
-    *             type: string
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: User information retrieved successfully
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Internal server error
-    */
-    router.get("/:username/list", authMiddleware, async (req, res) => {
+     * @swagger
+     * /follow/{username}/list:
+     *   get:
+     *     summary: follower and followers list
+     *     description: check followers and following
+     *     tags:
+     *       - Follow
+     *     parameters:
+     *         - in: path
+     *           name: username
+     *           required: true
+     *           description: The ID of the post to be updated.
+     *           schema:
+     *             type: string
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
+    router.get('/:username/list', authMiddleware, async (req, res) => {
         try {
             const username = req.params.username
             if (!isUsername(username)) {
-                throw new HttpError(400, "check user name Field")
+                throw new HttpError(400, 'check user name Field')
             }
             const followersAndFollowings = await followService.getFollowersAndFollowing(username)
 
@@ -214,55 +212,53 @@ export const FollowRoute = (followService: FollowService) => {
         } catch (error) {
             handelErrorResponse(res, error)
         }
-    });
+    })
 
     /**
-    * @swagger
-    * /follow/request:
-    *   post:
-    *     summary: Send a follow request
-    *     description: Allows a user to send a follow request to another user.
-    *     tags:
-    *       - Follow Requests
-    *     security:
-    *       - bearerAuth: []
-    *     requestBody:
-    *       required: true
-    *       content:
-    *         application/json:
-    *           schema:
-    *             type: object
-    *             properties:
-    *               receiver:
-    *                 type: string
-    *                 example: "userB"
-    *                 description: The username of the user to send the follow request to.
-    *             required:
-    *               - receiver
-    *     responses:
-    *       200:
-    *         description: Follow request sent successfully
-    *       400:
-    *         description: Invalid input data or user not found
-    *       500:
-    *         description: Server error
-    */
+     * @swagger
+     * /follow/request:
+     *   post:
+     *     summary: Send a follow request
+     *     description: Allows a user to send a follow request to another user.
+     *     tags:
+     *       - Follow Requests
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               receiver:
+     *                 type: string
+     *                 example: "userB"
+     *                 description: The username of the user to send the follow request to.
+     *             required:
+     *               - receiver
+     *     responses:
+     *       200:
+     *         description: Follow request sent successfully
+     *       400:
+     *         description: Invalid input data or user not found
+     *       500:
+     *         description: Server error
+     */
     router.post('/request', authMiddleware, async (req, res) => {
         try {
-
             const requestData = followRequestDto.parse({
                 sender: req.user.username,
-                receiver: req.body.receiver
+                receiver: req.body.receiver,
             })
 
-            await followService.sendFollowRequest(requestData);
+            await followService.sendFollowRequest(requestData)
 
-            res.status(200).send({ message: "Follow request sent successfully" });
+            res.status(200).send({ message: 'Follow request sent successfully' })
         } catch (error) {
-            handelErrorResponse(res, error);
+            handelErrorResponse(res, error)
         }
-    });
-
+    })
 
     /**
      * @swagger
@@ -302,27 +298,71 @@ export const FollowRoute = (followService: FollowService) => {
      *         description: Server error
      */
     router.post('/request/handle', authMiddleware, async (req, res) => {
-        try { 
+        try {
             const followRequestAction = {
                 sender: req.body.sender,
                 receiver: req.user.username,
                 action: req.body.action,
-            };
+            }
 
-            const result = await followService.acceptOrDeclineFollowRequest(followRequestAction);
+            const result = await followService.acceptOrDeclineFollowRequest(followRequestAction)
 
             if (result) {
-                res.status(200).send({ message: `Follow request ${followRequestAction.action}ed successfully` });
+                res.status(200).send({ message: `Follow request ${followRequestAction.action}ed successfully` })
             } else {
-                res.status(400).send({ message: "Follow request not found or already processed" });
+                res.status(400).send({ message: 'Follow request not found or already processed' })
             }
         } catch (error) {
-            handelErrorResponse(res, error);
+            handelErrorResponse(res, error)
         }
-    });
+    })
 
+    /**
+     * @swagger
+     * /follow/request/cancel:
+     *   delete:
+     *     summary: Cancel a follow request
+     *     description: Allows a user to cancel an outgoing follow request.
+     *     tags:
+     *       - Follow Requests
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               receiver:
+     *                 type: string
+     *                 example: "userB"
+     *                 description: The username of the user to cancel the follow request to.
+     *             required:
+     *               - receiver
+     *     responses:
+     *       200:
+     *         description: Follow request canceled successfully
+     *       400:
+     *         description: Invalid input data or follow request not found
+     *       500:
+     *         description: Server error
+     */
+    router.delete('/request/cancel', authMiddleware, async (req, res) => {
+        try {
+            // Parse the incoming request body
+            const requestData = followRequestDto.parse({
+                sender: req.user.username, 
+                receiver: req.body.receiver, 
+            })
 
+            await followService.cancelFollowRequest(requestData)
+
+            res.status(200).send({ message: 'Follow request canceled successfully' })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
 
     return router
 }
-
