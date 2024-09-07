@@ -28,50 +28,49 @@ export class NotificationService {
         return null
     }
 
-    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string): Promise<void> {
+    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string): Promise<Types.ObjectId | null> {
         const targetUsername = await this.findUsename(targetUser)
+        let notifId = null
         if (targetUsername) {
             if (targetUsername !== actionCreator) {
                 const userExist = await this.userRepo.getUserByUsername(targetUsername)
                 if (userExist) {
-                    const notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
+                    notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
                     if (notifId) {
                         this.userNotifRepo.createNotificationForUser(targetUsername, notifId)
                     }
                 }
             }
         }
+        return notifId || null
     }
 
-    async createNotificationForFollowers(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string, checkClose: Boolean): Promise<void> {
+    async createNotificationForFollowers(notifId: Types.ObjectId,actionCreator: Username, targetUser: string, checkClose: Boolean): Promise<void> {
         const targetUsername = await this.findUsename(targetUser)
-        console.log(targetUsername)
         if (targetUsername) {
             const followers = await this.followRepo.getFollowersList(actionCreator)
             if (followers.length > 0) {
-                const notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
-                if (notifId) {
-                    for (const follower of followers) {
-                        // check target user not block follower
-                        const Block = await this.blockRepo.checkBlock(targetUsername, follower)
+                for (const follower of followers) {
+                    // check target user not block follower
+                    const Block = await this.blockRepo.checkBlock(targetUsername, follower)
 
-                        // check target user page is public or private and follower , follow target user and then check closeFriend
-                        let checkPrivate: Boolean = false
-                        let closeFriend: Boolean = false
-                        const userData = await this.userRepo.getUserByUsername(targetUsername)
-                        if (userData) {
-                            if (!userData.private) checkPrivate = true
-                            else {
-                                const follow = await this.followRepo.checkFollow(follower, targetUsername)
-                                if (follow) checkPrivate = true
-                                // check close friend if check close is true
-                                if (checkClose && follow) closeFriend = await this.closeRepo.checkCloseFriend(follower, targetUsername)
-                            }
+                    // check target user page is public or private and follower , follow target user and then check closeFriend
+                    let checkPrivate: Boolean = false
+                    let closeFriend: Boolean = false
+                    const userData = await this.userRepo.getUserByUsername(targetUsername)
+                    if (userData) {
+                        if (!userData.private) checkPrivate = true
+                        else {
+                            const follow = await this.followRepo.checkFollow(follower, targetUsername)
+                            if (follow === 'accepted') checkPrivate = true
+                            // check close friend if check close is true
+                            if (checkClose && follow) closeFriend = await this.closeRepo.checkCloseFriend(follower, targetUsername)
                         }
-
-                        if (!Block && checkPrivate && (!checkClose || closeFriend)) {
-                            this.userNotifRepo.createNotificationForUser(follower, notifId)
-                        }
+                    }
+                    
+                
+                    if (!Block && checkPrivate && (!checkClose || closeFriend)) {
+                        this.userNotifRepo.createNotificationForUser(follower, notifId)
                     }
                 }
             }

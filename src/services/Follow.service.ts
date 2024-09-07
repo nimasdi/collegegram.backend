@@ -7,6 +7,7 @@ import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 import { NotificationService } from "./Notification.service";
+import { ActionType, publishToQueue } from "../rabbitMq/rabbit";
 
 export interface followState {
     followerCount: Number,
@@ -126,7 +127,19 @@ export class FollowService {
         }
 
         const followReq = await this.followRepo.sendFollowRequest(followRequestData)
-        this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
+        
+        const notificationPayload = {
+            actionCreator: sender,
+            actionType: "followRequest" as ActionType,
+            targetEntityId: followReq,
+            targetUser: receiver,
+            checkClose: false
+        };
+
+        // Publish the task to create a notification
+        await publishToQueue('notification_queue', notificationPayload); 
+
+        // this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
 
     }
 
@@ -166,10 +179,22 @@ export class FollowService {
             action
         });
 
+        // if(action === 'accept'){
+        //     this.notifServise.createNotification(sender, "follow" , result , receiver)        
+        //     this.notifServise.createNotificationForFollowers(sender, "follow" , result , receiver, false)        
+        // }
         if(action === 'accept'){
-            this.notifServise.createNotification(sender, "follow" , result , receiver)        
-            this.notifServise.createNotificationForFollowers(sender, "follow" , result , receiver, false)        
-        }
+            const notificationPayload = {
+                actionCreator: sender,
+                actionType: "follow" as ActionType,
+                targetEntityId: result,
+                targetUser: receiver,
+                checkClose: false
+            };
+    
+            // Publish the task to create a notification
+            await publishToQueue('notification_queue', notificationPayload);
+        }       
 
         return result;
 
