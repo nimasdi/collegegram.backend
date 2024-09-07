@@ -63,7 +63,7 @@ export class NotificationService {
                             if (!userData.private) checkPrivate = true
                             else {
                                 const follow = await this.followRepo.checkFollow(follower, targetUsername)
-                                if (follow) checkPrivate = true
+                                if (follow === 'accepted') checkPrivate = true
                                 // check close friend if check close is true
                                 if (checkClose && follow) closeFriend = await this.closeRepo.checkCloseFriend(follower, targetUsername)
                             }
