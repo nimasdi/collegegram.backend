@@ -42,7 +42,6 @@ const NotificationSchema: Schema<INotification> = new Schema(
         },
         userImage: {
             type: String,
-            required: true,
             defualt: ""
         },
     },
