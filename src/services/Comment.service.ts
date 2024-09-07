@@ -12,6 +12,7 @@ import { GetCommentDto } from '../dto/getCommentWithLikes'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { CloseFriendRepository } from '../repositrory/CloseFriend/closeFriend.repository'
 import { FollowRepository } from '../repositrory/Follow/follow.repository'
+import { ActionType, publishToQueue } from "../rabbitMq/rabbit";
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
@@ -45,8 +46,18 @@ export class CommentService {
         const commentId = await this.commentRepo.createComment(post_id, commentData)
 
         // create notif after action
-        this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())        
-        this.notifServise.createNotificationForFollowers(username, "comment" , commentId, postExists.userId.toString(), postExists.closeFriendOnly)        
+        const notificationPayload = {
+            actionCreator: username,
+            actionType: "comment" as ActionType,
+            targetEntityId: commentId,
+            targetUser: postExists.userId.toString(),
+            checkClose: postExists.closeFriendOnly
+        };
+
+        // Publish the task to create a notification
+        await publishToQueue('notification_queue', notificationPayload);
+        // this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())        
+        // this.notifServise.createNotificationForFollowers(username, "comment" , commentId, postExists.userId.toString(), postExists.closeFriendOnly)        
 
         return {
             success: true,

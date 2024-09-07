@@ -18,6 +18,7 @@ import { getExplorePostsDto } from '../dto/getUserExplorePosts.dto'
 import { Types } from 'mongoose'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { NotificationService } from './Notification.service'
+import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
 
 export class PostService {
     constructor(
@@ -274,8 +275,20 @@ export class PostService {
 
         await this.likePostRepo.likePost(likePostData)
 
-        this.notifServise.createNotification(likePostData.username, 'likePost', post.id, post.userId.toString())
-        this.notifServise.createNotificationForFollowers(likePostData.username, 'likePost', post.id, post.userId.toString(), post.closeFriendOnly)
+        // create notif after action
+        const notificationPayload = {
+            actionCreator: likePostData.username,
+            actionType: "like" as ActionType,
+            targetEntityId: post.id,
+            targetUser: post.userId.toString(),
+            checkClose: post.closeFriendOnly
+        };
+
+        // Publish the task to create a notification
+        await publishToQueue('notification_queue', notificationPayload);
+
+        // this.notifServise.createNotification(likePostData.username, 'likePost', post.id, post.userId.toString())
+        // this.notifServise.createNotificationForFollowers(likePostData.username, 'likePost', post.id, post.userId.toString(), post.closeFriendOnly)
 
         return true
     }

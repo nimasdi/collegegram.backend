@@ -29,6 +29,8 @@ import { Notification } from "./src/db/notification/notification.model";
 import { UserNotificationtRepository } from "./src/repositrory/notification/userNotification.repository";
 import { UserNotification } from "./src/db/notification/userNotification.model";
 import { NotificationService } from "./src/services/Notification.service";
+import { consumeFromQueue } from "./src/rabbitMq/rabbit";
+import { processNotificationMessage } from "./src/rabbitMq/consume";
 
 
 dotenv.config();
@@ -44,7 +46,7 @@ const blockRepo = new BlockRepository(Block)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
-const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
+export const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
 const userService = new UserService(userRepo ,postRepo)
 const postService = new PostService(userRepo, notifService, postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo, blockRepo)
 const commentService = new CommentService(userRepo, notifService, postRepo, commentRepo,likeCommentRepo,closeFriendRepo ,followRepo , blockRepo)
@@ -66,6 +68,8 @@ declare global {
 };
 
 dbConnection.connect().then(async () => {
+    // Start consuming messages
+    consumeFromQueue('notification_queue', processNotificationMessage);
 
     const app = makeApp(userService, commentService, followService , postService, blockService , closeFriendService , notifService)
 
