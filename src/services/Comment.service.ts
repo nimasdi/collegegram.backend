@@ -168,7 +168,7 @@ export class CommentService {
         // private
         const isPrivate = await this.userRepo.checkAccountPrivacy(postCreator)
         const isFollowing = await this.followRepo.checkFollow(username, postCreator)
-        if (isPrivate && !isFollowing) {
+        if (isPrivate && isFollowing != "accepted") {
             throw new HttpError(403, `you dont follow the user.`)
         }
         

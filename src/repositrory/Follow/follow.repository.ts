@@ -280,6 +280,13 @@ export class FollowRepository {
         return request || null;
     }
 
+    async deleteFollowRequest(followerUsername: Username, followingUsername: Username): Promise<void> {
+        await this.model.deleteOne({
+            followerUsername,
+            followingUsername,
+            status: 'pending'
+        }).catch((err) => this.handleDBError(err));
+    }
 
 }
 

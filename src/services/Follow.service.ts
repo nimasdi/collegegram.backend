@@ -200,6 +200,37 @@ export class FollowService {
 
     }
 
+    async cancelFollowRequest(followRequestData: FollowRequestDto): Promise<void> {
+        const { sender, receiver } = followRequestData;
+    
+        const senderExist = await this.userRepo.checkUserExist(sender);
+        if (!senderExist) {
+            throw new HttpError(404, "Sender user not found.");
+        }
+    
+        const receiverExist = await this.userRepo.checkUserExist(receiver);
+        if (!receiverExist) {
+            throw new HttpError(404, "Receiver user not found.");
+        }
+    
+        const senderIsBlocked = await this.blockRepo.checkBlock(receiver, sender);
+        const isReceiverBlocked = await this.blockRepo.checkBlock(sender, receiver);
+    
+        if (isReceiverBlocked) {
+            throw new HttpError(403, `${receiver} is blocked by ${sender}`);
+        } else if (senderIsBlocked) {
+            throw new HttpError(403, `${sender} is blocked by ${receiver}`);
+        }
+    
+        const followRequest = await this.followRepo.findRequest(receiver, sender);
+        if (!followRequest) {
+            throw new HttpError(400, "Follow request not found or already canceled.");
+        }
+    
+        await this.followRepo.deleteFollowRequest(sender, receiver);
+
+    }
+    
 
 }
 
