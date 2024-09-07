@@ -127,7 +127,19 @@ export class FollowService {
         }
 
         const followReq = await this.followRepo.sendFollowRequest(followRequestData)
-        this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
+        
+        const notificationPayload = {
+            actionCreator: sender,
+            actionType: "followRequest" as ActionType,
+            targetEntityId: followReq,
+            targetUser: receiver,
+            checkClose: false
+        };
+
+        // Publish the task to create a notification
+        await publishToQueue('notification_queue', notificationPayload); 
+
+        // this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
 
     }
 
