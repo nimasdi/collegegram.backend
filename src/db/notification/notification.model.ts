@@ -14,7 +14,8 @@ export interface INotification extends Document{
     actionCreator: Username;              // User who performed the action
     actionType: ActionType;               // Type of action performed
     targetEntityId: mongoose.Types.ObjectId; // Use ObjectId type for MongoDB references
-    targetUser: Username;                 // User who is the target of the action
+    targetUser: Username;
+    userImage: string;                 // User who is the target of the action
 }
 
 const NotificationSchema: Schema<INotification> = new Schema(
@@ -38,6 +39,11 @@ const NotificationSchema: Schema<INotification> = new Schema(
             type: String,
             ref: 'User',  
             required: true,
+        },
+        userImage: {
+            type: String,
+            required: true,
+            defualt: ""
         },
     },
     {

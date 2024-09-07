@@ -25,8 +25,8 @@ export class NotificationtRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username): Promise<Types.ObjectId> {
-        const notif = new this.model({ actionCreator, actionType, targetEntityId, targetUser })
+    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: Username, userImage: string): Promise<Types.ObjectId> {
+        const notif = new this.model({ actionCreator, actionType, targetEntityId, targetUser, userImage })
         await notif.save().catch((err) => this.handleDBError(err))
 
         return notif.id
