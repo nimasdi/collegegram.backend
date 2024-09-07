@@ -26,7 +26,6 @@ async function publishToQueue(queueName: string, data: RabbitData) {
     const channel = await createChannel();
     await channel.assertQueue(queueName, { durable: true });
     channel.sendToQueue(queueName, Buffer.from(JSON.stringify(data)));
-    console.log(`Published message to queue ${queueName}`);
 }
 
 async function consumeFromQueue(queueName: string, callback: (msg: any) => void) {
@@ -34,7 +33,6 @@ async function consumeFromQueue(queueName: string, callback: (msg: any) => void)
     await channel.assertQueue(queueName, { durable: true });
     channel.consume(queueName, (msg) => {
         if (msg !== null) {
-            console.log(`Consumed message from queue ${queueName}`);
             callback(JSON.parse(msg.content.toString()));
             channel.ack(msg);
         }

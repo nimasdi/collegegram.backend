@@ -28,28 +28,28 @@ export class NotificationService {
         return null
     }
 
-    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string): Promise<void> {
+    async createNotification(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string): Promise<Types.ObjectId | null> {
         const targetUsername = await this.findUsename(targetUser)
+        let notifId = null
         if (targetUsername) {
             if (targetUsername !== actionCreator) {
                 const userExist = await this.userRepo.getUserByUsername(targetUsername)
                 if (userExist) {
-                    const notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
+                    notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
                     if (notifId) {
                         this.userNotifRepo.createNotificationForUser(targetUsername, notifId)
                     }
                 }
             }
         }
+        return notifId || null
     }
 
-    async createNotificationForFollowers(actionCreator: Username, actionType: ActionType, targetEntityId: mongoose.Types.ObjectId, targetUser: string, checkClose: Boolean): Promise<void> {
+    async createNotificationForFollowers(notifId: Types.ObjectId,actionCreator: Username, targetUser: string, checkClose: Boolean): Promise<void> {
         const targetUsername = await this.findUsename(targetUser)
-        console.log(targetUsername)
         if (targetUsername) {
             const followers = await this.followRepo.getFollowersList(actionCreator)
             if (followers.length > 0) {
-                const notifId = await this.notifRepo.createNotification(actionCreator, actionType, targetEntityId, targetUsername)
                 if (notifId) {
                     for (const follower of followers) {
                         // check target user not block follower
