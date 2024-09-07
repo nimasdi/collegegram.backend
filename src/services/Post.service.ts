@@ -360,7 +360,7 @@ export class PostService {
 
         if (isPrivate) {
             const follows = await this.followRepo.checkFollow(data.watcherUsername, data.creatorUsername)
-            if (!follows) {
+            if (follows != "accepted") {
                 throw new HttpError(403, `Cannot view posts. ${data.creatorUsername} is private, and you do not follow them.`)
             }
         }
