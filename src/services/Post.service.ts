@@ -1,5 +1,5 @@
 import path from 'path'
-import { createPost, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
+import { createPost, PostDataResponse, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
 import { UserRepository } from '../repositrory/user/user.repositroy'
 import { isUsername, PostId, Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
@@ -19,6 +19,7 @@ import { Types } from 'mongoose'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { NotificationService } from './Notification.service'
 import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
+import { getSavedPostsDto } from '../dto/getUserSavedPosts.dto'
 
 export class PostService {
     constructor(
@@ -392,4 +393,14 @@ export class PostService {
 
         return posts
     }
+
+    async getUserSavedPosts(getSavedPosts : getSavedPostsDto): Promise<PostDataResponse[]>{
+        const userId = await this.userRepo.getUserIdByUsername(getSavedPosts.username) 
+        if (!userId) throw new HttpError(404, 'user not found.')
+
+        const posts = await this.savePostRepository.getSavedPosts(getSavedPosts.username , userId , getSavedPosts.pageNumber , getSavedPosts.pageSize)
+        if (posts.length === 0) return []
+
+        return posts
+    }   
 }
