@@ -7,7 +7,7 @@ export interface searchHistory {
     username: Username,
     searchText: string
 }
-export class NotificationtRepository {
+export class SearchHistoryRepository {
     private model: Model<ISearchHistory>
 
     constructor(model: Model<ISearchHistory>) {
