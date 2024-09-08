@@ -615,6 +615,38 @@ export const MakePostRoute = (postService: PostService) => {
     });
 
 
+     /**
+    * @swagger
+    * /mentionPosts:
+    *   get:
+    *     summary: Get posts for mentionPosts
+    *     description: Fetches posts for a user to see where mentioned.
+    *     tags:
+    *       - Posts
+    *     security:
+    *       - bearerAuth: []
+    *     responses:
+    *       200:
+    *         description: Successfully fetched posts for exploration
+    *       400:
+    *         description: Invalid input data
+    *       500:
+    *         description: Server error
+    */
+     router.get('/mentionPosts', authMiddleware, async (req: Request, res: Response) => {
+        try {
+
+            const username = req.user.username
+
+            const posts = await postService.getMentionPostsListByUsername(username);
+
+            res.status(200).json({ posts });
+        } catch (error) {
+            handelErrorResponse(res, error);
+        }
+    });
+
+
     /**
     * @swagger
     * /{username}/posts:
