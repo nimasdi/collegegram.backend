@@ -19,6 +19,7 @@ import { Types } from 'mongoose'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { NotificationService } from './Notification.service'
 import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
+import { MentionRepository, postsDataResponse } from '../repositrory/post/mention.repository'
 
 export class PostService {
     constructor(
@@ -29,7 +30,8 @@ export class PostService {
         private savePostRepository: SavePostRepository,
         private closeFriendRepo: CloseFriendRepository,
         private followRepo: FollowRepository,
-        private blockRepo: BlockRepository
+        private blockRepo: BlockRepository,
+        private mentionRepo : MentionRepository
     ) {}
 
     private async checkMutualBlocks(userA: Username, userB: Username): Promise<boolean> {
@@ -389,6 +391,16 @@ export class PostService {
 
         const posts = await this.postRepo.getAll(userId)
         if (posts.length === 0) return []
+
+        return posts
+    }
+
+    async getMentionPostsListByUsername(username: Username): Promise<postsDataResponse[]> {
+        const posts = await this.mentionRepo.getMentionPostsListByUsername(username)
+
+        if(posts.length === 0){
+            throw new HttpError(404, "user didn't mention any where")
+        }
 
         return posts
     }
