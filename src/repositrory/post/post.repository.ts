@@ -21,13 +21,13 @@ export interface updatePost {
 }
 
 export interface PostResponse {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
-    id: Types.ObjectId,
-    createdAt: Date,
-    closeFriendOnly: Boolean,
+    images: string[]
+    caption: string
+    tags: string[]
+    mentions: Username[]
+    id: Types.ObjectId
+    createdAt: Date
+    closeFriendOnly: Boolean
     userId: Types.ObjectId
 }
 
@@ -91,8 +91,8 @@ export class PostRepository {
             id: post.id,
             createdAt: post.createdAt,
             closeFriendOnly: post.closeFriendOnly,
-            userId: post.userId
-        };
+            userId: post.userId,
+        }
 
         return postResponse
     }
@@ -228,7 +228,7 @@ export class PostRepository {
             isBookmarksByUser: post.isBookmarksByUser,
             closeFriendOnly: post.closeFriendOnly,
             createdAt: post.createdAt,
-            userId: post.userId
+            userId: post.userId,
         }
         return postResponse
     }
@@ -288,7 +288,7 @@ export class PostRepository {
                 },
                 {
                     $addFields: {
-                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, 
+                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] },
                     },
                 },
                 {
@@ -327,14 +327,12 @@ export class PostRepository {
             ])
             .exec()
 
-
-        const filteredPosts = posts.filter(post => {
+        const filteredPosts = posts.filter((post) => {
             return (
                 (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Public or close friend posts
                 !blockedUsernames.includes(post.creatorUsername) // Exclude blocked users' posts
-            );
-        });
-
+            )
+        })
 
         return filteredPosts
     }
@@ -433,5 +431,78 @@ export class PostRepository {
             return null
         }
         return post.closeFriendOnly
+    }
+
+    async getSavedPosts(username: Username, userId: UserId, pageNumber: number = 1, pageSize: number = 10): Promise<PostDataResponse[]> {
+        const skip = (pageNumber - 1) * pageSize
+
+        const posts = await this.postModel
+            .aggregate([
+                {
+                    $match: { userId: new Types.ObjectId(userId) },
+                },
+                {
+                    $lookup: {
+                        from: 'likeposts',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'likes',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'saveposts',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'saves',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'comments',
+                        localField: '_id',
+                        foreignField: 'postId',
+                        as: 'comments',
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'users',
+                        localField: 'userId',
+                        foreignField: '_id',
+                        as: 'creator',
+                    },
+                },
+                {
+                    $addFields: {
+                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] },
+                    },
+                },
+                {
+                    $project: {
+                        _id: 1,
+                        userId: 1,
+                        caption: 1,
+                        images: 1,
+                        tags: 1,
+                        mentions: 1,
+                        closeFriendOnly: 1,
+                        likesCount: { $size: '$likes' },
+                        commentsCount: { $size: '$comments' },
+                        savesCount: { $size: '$saves' },
+                        isLikedByUser: {
+                            $in: [username, '$likes.username'],
+                        },
+                        createdAt: 1,
+                        creatorUsername: 1,
+                        isCloseFriend: 1,
+                    },
+                },
+                { $sort: { createdAt: -1 } },
+                { $skip: skip },
+                { $limit: pageSize },
+            ])
+            .exec()
+        return posts
     }
 }
