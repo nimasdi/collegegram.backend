@@ -31,6 +31,9 @@ import { UserNotification } from "./src/db/notification/userNotification.model";
 import { NotificationService } from "./src/services/Notification.service";
 import { consumeFromQueue } from "./src/rabbitMq/rabbit";
 import { processNotificationMessage } from "./src/rabbitMq/consume";
+import { SearchHistoryRepository } from "./src/repositrory/SearchHistory/searchHistory.repository";
+import { SearchHistory } from "./src/db/SearchHistory/searchHistory.model";
+import { SearchHistoryService } from "./src/services/HistorySearch.service";
 
 
 dotenv.config();
@@ -43,6 +46,7 @@ const notifRepo = new NotificationtRepository(Notification)
 const userNotifRepo = new UserNotificationtRepository(UserNotification)
 const closeFriendRepo = new CloseFriendRepository(Follow)
 const blockRepo = new BlockRepository(Block)
+const searchHistoryRepo = new SearchHistoryRepository(SearchHistory)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
@@ -53,6 +57,7 @@ const commentService = new CommentService(userRepo, notifService, postRepo, comm
 const followService = new FollowService(followRepo, notifService, userRepo, blockRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
 const blockService = new BlockService(blockRepo,userRepo , followRepo)
+const searchHistoryService = new SearchHistoryService(searchHistoryRepo,userRepo)
 
 
 const uri = process.env.MONGO_URI || '';
@@ -71,7 +76,7 @@ dbConnection.connect().then(async () => {
     // Start consuming messages
     consumeFromQueue('notification_queue', processNotificationMessage);
 
-    const app = makeApp(userService, commentService, followService , postService, blockService , closeFriendService , notifService)
+    const app = makeApp(userService, commentService, followService , postService, blockService , closeFriendService , notifService, searchHistoryService)
 
     const PORT = 3000
 

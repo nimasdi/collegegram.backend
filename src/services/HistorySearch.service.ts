@@ -3,7 +3,7 @@ import { UserRepository } from "../repositrory/user/user.repositroy";
 import { Username } from "../types/user.types";
 import { HttpError } from "../utility/error-handler";
 
-export class BlockService {
+export class SearchHistoryService {
 
     constructor(private searchRepo: SearchHistoryRepository, private userRepo: UserRepository) {
     }

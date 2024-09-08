@@ -18,8 +18,10 @@ import { CloseFriendRoute } from "./routes/closeFriend.route";
 import { CloseFriendService } from "./services/CloseFriend.service";
 import { NotificationRoute } from "./routes/notification.route";
 import { NotificationService } from "./services/Notification.service";
+import { SearchHistoryService } from "./services/HistorySearch.service";
+import { SearchHistoryRoute } from "./routes/searchHistoy.route";
 
-export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService , notificationService: NotificationService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService , notificationService: NotificationService, searchHistoryService: SearchHistoryService) => {
 
     const app = express()
 
@@ -62,6 +64,9 @@ export const makeApp = (userService:UserService , commentService:CommentService 
 
     //comments
     app.use('/', CommentRoute(commentService));
+
+    //search history
+    app.use('/', SearchHistoryRoute(searchHistoryService));
 
     // notifications
     app.use('/notifications', NotificationRoute(notificationService));
