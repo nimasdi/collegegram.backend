@@ -34,6 +34,7 @@ import { processNotificationMessage } from "./src/rabbitMq/consume";
 import { SearchHistoryRepository } from "./src/repositrory/SearchHistory/searchHistory.repository";
 import { SearchHistory } from "./src/db/SearchHistory/searchHistory.model";
 import { SearchHistoryService } from "./src/services/HistorySearch.service";
+import { MentionRepository } from "./src/repositrory/post/mention.repository";
 
 
 dotenv.config();
@@ -47,12 +48,13 @@ const userNotifRepo = new UserNotificationtRepository(UserNotification)
 const closeFriendRepo = new CloseFriendRepository(Follow)
 const blockRepo = new BlockRepository(Block)
 const searchHistoryRepo = new SearchHistoryRepository(SearchHistory)
+const mentionRepo = new MentionRepository(Post)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
 export const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
 const userService = new UserService(userRepo ,postRepo)
-const postService = new PostService(userRepo, notifService, postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo, blockRepo)
+const postService = new PostService(userRepo, notifService, postRepo , likePostRepo , savePostRepo , closeFriendRepo , followRepo, blockRepo, mentionRepo)
 const commentService = new CommentService(userRepo, notifService, postRepo, commentRepo,likeCommentRepo,closeFriendRepo ,followRepo , blockRepo)
 const followService = new FollowService(followRepo, notifService, userRepo, blockRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
