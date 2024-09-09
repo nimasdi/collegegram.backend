@@ -57,7 +57,7 @@ export class SavePostRepository {
         return !!existingSavedPost
     }
 
-    async getSavedPosts(username: Username, userId: Types.ObjectId, pageNumber: number = 1, pageSize: number = 10): Promise<PostDataResponse[]> {
+    async getSavedPosts(username: Username, followingUserIds: Types.ObjectId[], closeFriends: Username[], blockedUsernames: Username[], userId: Types.ObjectId, pageNumber: number = 1, pageSize: number = 10): Promise<PostDataResponse[]> {
         const skip = (pageNumber - 1) * pageSize
 
         const posts = await this.model.aggregate([
@@ -102,11 +102,7 @@ export class SavePostRepository {
             {
                 $addFields: {
                     creatorUsername: { $arrayElemAt: ['$creator.username', 0] },
-                    likesCount: { $size: '$likes' },
-                    commentsCount: { $size: '$comments' },
-                    isLikedByUser: {
-                        $in: [username, '$likes.username'],
-                    },
+                    isCloseFriend: { $in: [{ $arrayElemAt: ['$creator.username', 0] }, closeFriends] },
                 },
             },
             {
@@ -118,10 +114,11 @@ export class SavePostRepository {
                     tags: '$postDetails.tags',
                     mentions: '$postDetails.mentions',
                     closeFriendOnly: '$postDetails.closeFriendOnly',
-                    likesCount: 1,
-                    commentsCount: 1,
-                    savesCount: 1,
-                    isLikedByUser: 1,
+                    likesCount: { $size: '$likes' },
+                    commentsCount: { $size: '$comments' },
+                    isLikedByUser: {
+                        $in: [username, '$likes.username'],
+                    },
                     createdAt: '$postDetails.createdAt',
                     creatorUsername: 1,
                 },
@@ -131,6 +128,13 @@ export class SavePostRepository {
             { $limit: pageSize },
         ])
 
+        const filteredPosts = posts.filter((post) => {
+            return (
+                (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Public or close friend posts
+                !blockedUsernames.includes(post.creatorUsername) // Exclude blocked users' posts
+            )
+        })
+        
         return posts
     }
 }
