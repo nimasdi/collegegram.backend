@@ -1,5 +1,5 @@
 import path from 'path'
-import { createPost, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
+import { createPost, PostDataResponse, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
 import { UserRepository } from '../repositrory/user/user.repositroy'
 import { isUsername, PostId, Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
@@ -20,6 +20,7 @@ import { BlockRepository } from '../repositrory/Block/block.repository'
 import { NotificationService } from './Notification.service'
 import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
 import { MentionRepository, postsDataResponse } from '../repositrory/post/mention.repository'
+import { getSavedPostsDto } from '../dto/getUserSavedPosts.dto'
 
 export class PostService {
     constructor(
@@ -214,7 +215,7 @@ export class PostService {
             throw new HttpError(403, `you dont follow the user.`)
         }
 
-        return {...post , creatorUsername:postCreator}
+        return { ...post, creatorUsername: postCreator }
     }
 
     async savePost(savePostData: savePostDto): Promise<boolean> {
@@ -280,14 +281,14 @@ export class PostService {
         // create notif after action
         const notificationPayload = {
             actionCreator: likePostData.username,
-            actionType: "like" as ActionType,
+            actionType: 'like' as ActionType,
             targetEntityId: post.id,
             targetUser: post.userId.toString(),
-            checkClose: post.closeFriendOnly
-        };
+            checkClose: post.closeFriendOnly,
+        }
 
         // Publish the task to create a notification
-        await publishToQueue('notification_queue', notificationPayload);
+        await publishToQueue('notification_queue', notificationPayload)
 
         // this.notifServise.createNotification(likePostData.username, 'likePost', post.id, post.userId.toString())
         // this.notifServise.createNotificationForFollowers(likePostData.username, 'likePost', post.id, post.userId.toString(), post.closeFriendOnly)
@@ -375,7 +376,7 @@ export class PostService {
 
         if (isPrivate) {
             const follows = await this.followRepo.checkFollow(data.watcherUsername, data.creatorUsername)
-            if (follows != "accepted") {
+            if (follows != 'accepted') {
                 throw new HttpError(403, `Cannot view posts. ${data.creatorUsername} is private, and you do not follow them.`)
             }
         }
@@ -390,6 +391,30 @@ export class PostService {
         if (!userId) throw new HttpError(404, 'user not found.')
 
         const posts = await this.postRepo.getAll(userId)
+        if (posts.length === 0) return []
+
+        return posts
+    }
+
+    async getUserSavedPosts(getSavedPosts: getSavedPostsDto): Promise<PostDataResponse[]> {
+        const userId = await this.userRepo.getUserIdByUsername(getSavedPosts.username)
+        if (!userId) throw new HttpError(404, 'user not found.')
+
+        const { username, pageNumber, pageSize } = getSavedPosts
+
+        const followersUsernames = await this.followRepo.getUserFollowingNames(username)
+
+        const ids = (await Promise.all(
+            followersUsernames.map(async (username) => {
+                return await this.userRepo.getUserIdByUsername(username)
+            })
+        )) as Types.ObjectId[]
+
+        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(username)
+
+        const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(username)
+
+        const posts = await this.savePostRepository.getSavedPosts(getSavedPosts.username, ids, blockedUsers, closeFriendNames, userId, getSavedPosts.pageNumber, getSavedPosts.pageSize)
         if (posts.length === 0) return []
 
         return posts
