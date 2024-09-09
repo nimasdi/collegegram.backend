@@ -58,19 +58,6 @@ export interface ExploreDataResponse {
     createdAt: Date
 }
 
-export interface ExploreDataResponse {
-    postId: Types.ObjectId
-    userId: Types.ObjectId
-    text: string
-    username: Username
-    likesCount: number
-    commentsCount: number
-    savesCount: number
-    isLikedByUser: boolean
-    isSavedByUser: boolean
-    createdAt: Date
-}
-
 export class PostRepository {
     private postModel: Model<IPost>
 
