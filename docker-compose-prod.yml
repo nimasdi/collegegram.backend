@@ -1,0 +1,89 @@
+version: "3.9"
+
+
+services:
+  app:
+    build: ./collegram
+    container_name: backend
+    # ports:
+    # - "3000:3000"
+    expose:
+      - "8000"
+    env_file: .env
+    # networks:
+    #   - nett
+    depends_on:
+      - database
+      - rabbitmq
+    restart: always
+    volumes:
+      - ./uploads:/app/src/uploads
+
+  database:
+    image: mongo
+    container_name: database
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    # ports:
+    #   - "27017:27017"
+    expose:
+      - "27017"
+    # networks:
+    #   - nett
+    volumes:
+      - mongo-data:/data/db
+    restart: always
+
+  rabbitmq:
+      image: rabbitmq:3.13.7-management
+      container_name: rabbitmq
+      environment:
+        - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+        - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      # ports:
+      #   - "5672:5672"   
+      #   - "15672:15672"
+      expose:
+        - "5672"
+        - "15672"
+      # networks:
+      #   - nett
+      restart: always
+
+  nginx:
+    image: hub.hamdocker.ir/nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./collegram/config/nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./collegram/certbot/www:/var/www/certbot/:ro
+      - ./collegram/certbot/conf/:/etc/nginx/ssl/:ro
+    depends_on:
+      - backend
+    restart: always
+
+  certbot:
+    # image: registry.docker.ir/certbot
+    image: hub.hamdocker.ir/certbot/certbot:latest
+    volumes:
+      - ./collegram/certbot/www/:/var/www/certbot/:rw
+      - ./collegram/certbot/conf/:/etc/letsencrypt/:rw
+
+  frontend:
+    container_name: frontend
+    build: ./collegram_client
+    command: sh -c "serve -s dist -l 3000"
+    # ports:
+    #   - "3000:3000"
+    expose:
+      - "3000"
+
+  # networks:
+  # nett:
+  #     driver: bridge
+
+volumes:
+  mongo-data:
