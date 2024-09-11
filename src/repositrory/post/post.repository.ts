@@ -420,4 +420,113 @@ export class PostRepository {
         return post.closeFriendOnly
     }
 
+    async searchPosts(searchTags: string, currentUsername: string, followingUserIds: Types.ObjectId[], closeFriends: Username[], blockedUsernames: Username[]) {
+       
+        const tags = searchTags.split(' ').filter((tag) => tag.trim() !== '')
+
+        const regexTags = tags.map((tag) => new RegExp(tag, 'i'))
+
+        const posts = await this.postModel.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'creator',
+                },
+            },
+            {
+                $addFields: {
+                    creatorUsername: { $arrayElemAt: ['$creator.username', 0] },
+                    isPrivate: { $arrayElemAt: ['$creator.private', 0] },
+                },
+            },
+            {
+                $match: {
+                    creatorUsername: { $ne: currentUsername }, 
+                    tags: {
+                        $elemMatch: { $in: regexTags }, 
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    let: { creatorUsername: '$creatorUsername', currentUsername: currentUsername },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$followingUsername', '$$creatorUsername'] },
+                                        { $eq: ['$followerUsername', '$$currentUsername'] },
+                                        { $eq: ['$status', 'accepted'] }, 
+                                    ],
+                                },
+                            },
+                        },
+                    ],
+                    as: 'followData',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'likeposts',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'likes',
+                },
+            },
+            {
+                $addFields: {
+                    isCloseFriend: {
+                        $cond: {
+                            if: { $in: ['$creatorUsername', closeFriends] },
+                            then: true,
+                            else: false,
+                        },
+                    },
+                },
+            },
+            {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { isPrivate: false }, 
+                                { $gt: [{ $size: '$followData' }, 0] }, 
+                            ],
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    caption: 1,
+                    images: 1,
+                    tags: 1,
+                    createdAt: 1,
+                    likesCount: { $size: '$likes' }, 
+                    creatorUsername: 1,
+                    closeFriendOnly: 1,
+                    isCloseFriend: 1,
+                },
+            },
+            {
+                $sort: { likesCount: -1 }, 
+            },
+        ])
+
+        
+        const filteredPosts = posts.filter((post) => {
+            return (
+                (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Show only close friend posts to close friends
+                !blockedUsernames.includes(post.creatorUsername) // Exclude posts from blocked users
+            )
+        })
+
+        return filteredPosts 
+    }
 }
