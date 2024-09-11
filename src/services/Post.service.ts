@@ -21,6 +21,7 @@ import { NotificationService } from './Notification.service'
 import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
 import { MentionRepository, postsDataResponse } from '../repositrory/post/mention.repository'
 import { getSavedPostsDto } from '../dto/getUserSavedPosts.dto'
+import { searchPostDto } from '../dto/searchPost.dto'
 
 export class PostService {
     constructor(
@@ -430,13 +431,13 @@ export class PostService {
     }
 
 
-    async searchPosts(searchTags:string , currentUsername:Username): Promise<searchPostResults[]>{
+    async searchPosts(searchPostData : searchPostDto): Promise<searchPostResults[]>{
 
-        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(currentUsername)
+        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(searchPostData.currentUser)
 
-        const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(currentUsername)
+        const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(searchPostData.currentUser)
 
-        const results = await this.postRepo.searchPosts(searchTags , currentUsername , closeFriendNames , blockedUsers);
+        const results = await this.postRepo.searchPosts(searchPostData.searchTags , searchPostData.currentUser , closeFriendNames , blockedUsers , searchPostData.pageNumber , searchPostData.pageSize);
 
         return results;
     }

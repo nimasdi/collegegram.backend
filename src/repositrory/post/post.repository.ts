@@ -432,7 +432,9 @@ export class PostRepository {
         return post.closeFriendOnly
     }
 
-    async searchPosts(searchTags: string, currentUsername: string, closeFriends: Username[], blockedUsernames: Username[]): Promise<searchPostResults[]> {
+    async searchPosts(searchTags: string, currentUsername: string, closeFriends: Username[], blockedUsernames: Username[], pageNumber: number, pageSize: number): Promise<searchPostResults[]> {
+        const skip = (pageNumber - 1) * pageSize
+
         const tags = searchTags.split(' ').filter((tag) => tag.trim() !== '')
 
         const regexTags = tags.map((tag) => new RegExp(tag, 'i'))
@@ -499,7 +501,10 @@ export class PostRepository {
                 $match: {
                     $and: [
                         {
-                            $or: [{ isPrivate: false }, { $gt: [{ $size: '$followData' }, 0] }],
+                            $or: [
+                                { isPrivate: false },
+                                { $expr: { $gt: [{ $size: '$followData' }, 0] } }, // Corrected $gt usage
+                            ],
                         },
                     ],
                 },
@@ -518,11 +523,12 @@ export class PostRepository {
                     isCloseFriend: 1,
                 },
             },
-            {
-                $sort: { likesCount: -1 },
-            },
+            { $sort: { likesCount: -1 } },
+            { $skip: skip },
+            { $limit: pageSize },
         ])
 
+        console.log("posts" , posts);
         const filteredPosts = posts.filter((post) => {
             return (
                 (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Show only close friend posts to close friends

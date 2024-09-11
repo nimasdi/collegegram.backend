@@ -13,6 +13,7 @@ import { checkUserMiddleware } from '../utility/checkUser'
 import { postRepo, userRepo } from '../../main'
 import { GetPosts } from '../dto/getPosts.dto'
 import { getSavedPosts } from '../dto/getUserSavedPosts.dto'
+import { searchPost } from '../dto/searchPost.dto'
 
 export const MakePostRoute = (postService: PostService) => {
     const router = Router()
@@ -99,7 +100,6 @@ export const MakePostRoute = (postService: PostService) => {
             handelErrorResponse(res, error)
         }
     })
-
 
     /**
      * @swagger
@@ -651,40 +651,38 @@ export const MakePostRoute = (postService: PostService) => {
         }
     })
 
-     /**
+    /**
      * @swagger
-    * /mentionPosts:
-    *   get:
-    *     summary: Get posts for mentionPosts
-    *     description: Fetches posts for a user to see where mentioned.
-    *     tags:
-    *       - Posts
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: Successfully fetched posts for exploration
-    *       400:
-    *         description: Invalid input data
-    *       500:
-    *         description: Server error
-    */
-     router.get('/mentionPosts', authMiddleware, async (req: Request, res: Response) => {
+     * /mentionPosts:
+     *   get:
+     *     summary: Get posts for mentionPosts
+     *     description: Fetches posts for a user to see where mentioned.
+     *     tags:
+     *       - Posts
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: Successfully fetched posts for exploration
+     *       400:
+     *         description: Invalid input data
+     *       500:
+     *         description: Server error
+     */
+    router.get('/mentionPosts', authMiddleware, async (req: Request, res: Response) => {
         try {
-
             const username = req.user.username
 
-            const posts = await postService.getMentionPostsListByUsername(username);
+            const posts = await postService.getMentionPostsListByUsername(username)
 
-            res.status(200).json({ posts });
+            res.status(200).json({ posts })
         } catch (error) {
-            handelErrorResponse(res, error);
+            handelErrorResponse(res, error)
         }
-    });
-
+    })
 
     /**
-    * @swagger
+     * @swagger
      * /{username}/posts:
      *   get:
      *     summary: Get user posts
@@ -718,6 +716,147 @@ export const MakePostRoute = (postService: PostService) => {
             res.status(200).json({
                 posts,
             })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+
+    /**
+     * @swagger
+     * /{username}/posts:
+     *   get:
+     *     summary: Get user posts
+     *     description: Retrieve detailed information for a posts of a user by username.
+     *     tags:
+     *       - Posts
+     *     parameters:
+     *         - in: path
+     *           name: username
+     *           required: true
+     *           description: username
+     *           schema:
+     *             type: string
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
+    router.get('/:username/posts', authMiddleware, async (req: Request, res: Response) => {
+        try {
+            const username = req.params.username
+            if (!isUsername(username)) {
+                throw new HttpError(400, 'check user name Field')
+            }
+            const posts = await postService.getUserPosts(username)
+            res.status(200).json({
+                posts,
+            })
+        } catch (error) {
+            handelErrorResponse(res, error)
+        }
+    })
+
+
+    /**
+     * @swagger
+     * /post/search:
+     *   get:
+     *     summary: Search posts by tags
+     *     description: Search for posts based on tags, excluding the user's own posts and filtering by close friends, blocked users, and privacy settings.
+     *     tags:
+     *       - Posts
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - name: searchTags
+     *         in: query
+     *         description: Tags to search for, separated by spaces.
+     *         required: true
+     *         schema:
+     *           type: string
+     *           example: "food travel nature"
+     *       - name: pageNumber
+     *         in: query
+     *         description: Page number for pagination.
+     *         required: false
+     *         schema:
+     *           type: integer
+     *           example: 1
+     *       - name: pageSize
+     *         in: query
+     *         description: Number of posts per page.
+     *         required: false
+     *         schema:
+     *           type: integer
+     *           example: 10
+     *     responses:
+     *       200:
+     *         description: Successfully fetched search results
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: array
+     *               items:
+     *                 type: object
+     *                 properties:
+     *                   id:
+     *                     type: string
+     *                     description: Post ID
+     *                   userId:
+     *                     type: string
+     *                     description: ID of the user who created the post
+     *                   caption:
+     *                     type: string
+     *                     description: Caption of the post
+     *                   images:
+     *                     type: array
+     *                     items:
+     *                       type: string
+     *                     description: Array of image URLs
+     *                   tags:
+     *                     type: array
+     *                     items:
+     *                       type: string
+     *                     description: Tags associated with the post
+     *                   createdAt:
+     *                     type: string
+     *                     format: date-time
+     *                     description: Date and time when the post was created
+     *                   likesCount:
+     *                     type: integer
+     *                     description: Number of likes on the post
+     *                   creatorUsername:
+     *                     type: string
+     *                     description: Username of the post creator
+     *                   closeFriendOnly:
+     *                     type: boolean
+     *                     description: Whether the post is visible only to close friends
+     *                   isCloseFriend:
+     *                     type: boolean
+     *                     description: Whether the current user is a close friend of the post creator
+     *       400:
+     *         description: Invalid input data
+     *       500:
+     *         description: Server error
+     */
+    router.get('/post/search', authMiddleware, async (req: Request, res: Response) => {
+        try {
+
+            const request = searchPost.parse({
+                currentUser: req.user.username,
+                searchTags : req.query.searchTags,
+                pageNumber: req.query.pageNumber ? parseInt(req.query.pageNumber as string) : undefined,
+                pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+            })
+
+            const results = await postService.searchPosts(request)
+
+            res.status(200).json(results)
         } catch (error) {
             handelErrorResponse(res, error)
         }
