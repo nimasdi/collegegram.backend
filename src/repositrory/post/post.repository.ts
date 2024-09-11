@@ -528,7 +528,6 @@ export class PostRepository {
             { $limit: pageSize },
         ])
 
-        console.log("posts" , posts);
         const filteredPosts = posts.filter((post) => {
             return (
                 (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Show only close friend posts to close friends
