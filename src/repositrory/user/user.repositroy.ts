@@ -48,6 +48,7 @@ export interface searchPeople {
     lastName: Name
     username: Username
     followersCount: number
+    imageUrl? : string
 }
 
 export class UserRepository {
@@ -353,6 +354,7 @@ export class UserRepository {
                     firstName: 1,
                     lastName: 1,
                     followersCount: 1,
+                    imageUrl : 1
                 },
             },
             {
