@@ -21,13 +21,13 @@ export interface updatePost {
 }
 
 export interface PostResponse {
-    images: string[],
-    caption: string,
-    tags: string[],
-    mentions: Username[],
-    id: Types.ObjectId,
-    createdAt: Date,
-    closeFriendOnly: Boolean,
+    images: string[]
+    caption: string
+    tags: string[]
+    mentions: Username[]
+    id: Types.ObjectId
+    createdAt: Date
+    closeFriendOnly: Boolean
     userId: Types.ObjectId
 }
 
@@ -78,8 +78,8 @@ export class PostRepository {
             id: post.id,
             createdAt: post.createdAt,
             closeFriendOnly: post.closeFriendOnly,
-            userId: post.userId
-        };
+            userId: post.userId,
+        }
 
         return postResponse
     }
@@ -215,7 +215,7 @@ export class PostRepository {
             isBookmarksByUser: post.isBookmarksByUser,
             closeFriendOnly: post.closeFriendOnly,
             createdAt: post.createdAt,
-            userId: post.userId
+            userId: post.userId,
         }
         return postResponse
     }
@@ -275,7 +275,7 @@ export class PostRepository {
                 },
                 {
                     $addFields: {
-                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] }, 
+                        creatorUsername: { $arrayElemAt: ['$creator.username', 0] },
                     },
                 },
                 {
@@ -314,14 +314,12 @@ export class PostRepository {
             ])
             .exec()
 
-
-        const filteredPosts = posts.filter(post => {
+        const filteredPosts = posts.filter((post) => {
             return (
                 (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Public or close friend posts
                 !blockedUsernames.includes(post.creatorUsername) // Exclude blocked users' posts
-            );
-        });
-
+            )
+        })
 
         return filteredPosts
     }
@@ -421,4 +419,5 @@ export class PostRepository {
         }
         return post.closeFriendOnly
     }
+
 }

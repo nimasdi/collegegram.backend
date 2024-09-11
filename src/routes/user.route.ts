@@ -1,17 +1,16 @@
-import { Router, Request, Response } from 'express';
-import { UserService } from '../services/User.service';
-import { createUser } from "../repositrory/user/user.repositroy";
-import authMiddleware from '../utility/authorization';
-import { handelErrorResponse } from '../utility/habdle-errResponse';
-import { upload as uploadMiddleware , upload1 as profileMid } from "../utility/multer"
-import path from 'path';
-import { createUserDto } from '../dto/createUser.dto';
-import { isEmail, isPostId, isUsername, Username } from '../types/user.types';
-import { updateUserDto } from '../dto/updateUser.dto';
-
+import { Router, Request, Response } from 'express'
+import { UserService } from '../services/User.service'
+import { createUser } from '../repositrory/user/user.repositroy'
+import authMiddleware from '../utility/authorization'
+import { handelErrorResponse } from '../utility/habdle-errResponse'
+import { upload as uploadMiddleware, upload1 as profileMid } from '../utility/multer'
+import path from 'path'
+import { createUserDto } from '../dto/createUser.dto'
+import { isEmail, isPostId, isUsername, Username } from '../types/user.types'
+import { updateUserDto } from '../dto/updateUser.dto'
 
 export const UserRoute = (userService: UserService) => {
-    const router = Router();
+    const router = Router()
 
     /**
      * @swagger
@@ -48,12 +47,12 @@ export const UserRoute = (userService: UserService) => {
      *       400:
      *         description: Invalid input data
      */
-    router.post("/signup", async (req, res, next) => {
+    router.post('/signup', async (req, res, next) => {
         try {
             const user: createUser = createUserDto.parse(req.body)
             const userCreated = await userService.createUser(user)
             if (userCreated) {
-                res.status(200).json({ "message": "user created" })
+                res.status(200).json({ message: 'user created' })
             }
         } catch (error) {
             handelErrorResponse(res, error)
@@ -92,307 +91,295 @@ export const UserRoute = (userService: UserService) => {
      *         description: Internal server error
      */
     router.post('/login', async (req: Request, res: Response) => {
-        const { usernameOrEmail, password, rememberMe } = req.body;
+        const { usernameOrEmail, password, rememberMe } = req.body
 
         if (!usernameOrEmail || !password || typeof rememberMe !== 'boolean') {
-            return res.status(400).json({ message: 'Invalid request. Please provide username/email, password' });
+            return res.status(400).json({ message: 'Invalid request. Please provide username/email, password' })
         }
 
         try {
-            const token = await userService.LoginUser(usernameOrEmail, password, rememberMe);
+            const token = await userService.LoginUser(usernameOrEmail, password, rememberMe)
             // console.log(token)
             if (token) {
-                return res.status(200).json({ token });
+                return res.status(200).json({ token })
             } else {
-                return res.status(401).json({ message: 'Invalid username or password.' });
+                return res.status(401).json({ message: 'Invalid username or password.' })
             }
         } catch (error) {
-            console.error("Error during login:", error);
-            return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+            console.error('Error during login:', error)
+            return res.status(500).json({ message: 'Internal server error. Please try again later.' })
         }
-    });
+    })
 
     /**
-    * @swagger
-    * /setPassword/{hashedUsername}:
-    *   post:
-    *     summary: Set user password
-    *     description: Set a new password for a user identified by a hashed username.
-    *     tags:
-    *       - Users
-    *     parameters:
-    *       - in: path
-    *         name: hashedUsername
-    *         required: true
-    *         schema:
-    *           type: string
-    *     requestBody:
-    *       required: true
-    *       content:
-    *         application/json:
-    *           schema:
-    *             type: object
-    *             properties:
-    *               password:
-    *                 type: string
-    *     responses:
-    *       200:
-    *         description: Password updated successfully
-    *       400:
-    *         description: Missing or invalid data
-    *       500:
-    *         description: Internal server error
-    */
-    router.post("/setPassword/:hashedUsername", async (req: Request, res: Response) => {
+     * @swagger
+     * /setPassword/{hashedUsername}:
+     *   post:
+     *     summary: Set user password
+     *     description: Set a new password for a user identified by a hashed username.
+     *     tags:
+     *       - Users
+     *     parameters:
+     *       - in: path
+     *         name: hashedUsername
+     *         required: true
+     *         schema:
+     *           type: string
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               password:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Password updated successfully
+     *       400:
+     *         description: Missing or invalid data
+     *       500:
+     *         description: Internal server error
+     */
+    router.post('/setPassword/:hashedUsername', async (req: Request, res: Response) => {
         try {
-            const { hashedUsername } = req.params;
-            const { password } = req.body;
+            const { hashedUsername } = req.params
+            const { password } = req.body
 
             if (!password) {
                 return res.status(400).send({
                     success: false,
-                    message: 'Password is required'
-                });
+                    message: 'Password is required',
+                })
             }
 
-            const result = await userService.updatePassword(hashedUsername, password);
+            const result = await userService.updatePassword(hashedUsername, password)
 
             if (result) {
                 return res.status(200).send({
                     success: true,
-                    message: 'Password updated successfully'
-                });
+                    message: 'Password updated successfully',
+                })
             } else {
                 return res.status(400).send({
                     success: false,
-                    message: 'Failed to update password'
-                });
+                    message: 'Failed to update password',
+                })
             }
-
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(400).send(error.message)
             }
-            return res.status(500).send(error);
+            return res.status(500).send(error)
         }
-    });
+    })
 
     /**
-    * @swagger
-    * /resetPassword:
-    *   post:
-    *     summary: Reset user password
-    *     description: Sends an email to reset the password for the user identified by username or email.
-    *     tags:
-    *       - Users
-    *     requestBody:
-    *       required: true
-    *       content:
-    *         application/json:
-    *           schema:
-    *             type: object
-    *             required:
-    *               - identifier
-    *             properties:
-    *               identifier:
-    *                 type: string
-    *     responses:
-    *       200:
-    *         description: Email sent successfully
-    *       400:
-    *         description: Invalid identifier provided
-    */
-    router.post("/resetPassword", async (req: Request, res: Response) => {
-        const { identifier } = req.body;
+     * @swagger
+     * /resetPassword:
+     *   post:
+     *     summary: Reset user password
+     *     description: Sends an email to reset the password for the user identified by username or email.
+     *     tags:
+     *       - Users
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             required:
+     *               - identifier
+     *             properties:
+     *               identifier:
+     *                 type: string
+     *     responses:
+     *       200:
+     *         description: Email sent successfully
+     *       400:
+     *         description: Invalid identifier provided
+     */
+    router.post('/resetPassword', async (req: Request, res: Response) => {
+        const { identifier } = req.body
 
         if (!(isUsername(identifier) || isEmail(identifier))) {
             return res.status(400).send({
                 success: false,
-                message: 'نام کاربری  یا ایمیل خود را وارد کنید.'
-            });
+                message: 'نام کاربری  یا ایمیل خود را وارد کنید.',
+            })
         }
         try {
-            const sendedEamil = await userService.sendEmail(identifier);
+            const sendedEamil = await userService.sendEmail(identifier)
 
             if (sendedEamil) {
                 return res.status(200).send({
                     success: true,
-                    message: 'ایمیل با موفقیت ارسال شد.'
-                });
+                    message: 'ایمیل با موفقیت ارسال شد.',
+                })
             } else {
                 return res.status(400).send({
                     success: false,
-                    message: 'Failed to update password'
-                });
+                    message: 'Failed to update password',
+                })
             }
-
         } catch (error) {
             console.log(error)
-            return res.status(400).json(error);
+            return res.status(400).json(error)
         }
-    });
+    })
 
     /**
-    * @swagger
-    * /userInformation/{username}:
-    *   get:
-    *     summary: Get user information
-    *     description: Retrieve detailed information for a user by username.
-    *     tags:
-    *       - Users
-    *     parameters:
-    *       - in: path
-    *         name: username
-    *         required: true
-    *         schema:
-    *           type: string
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: User information retrieved successfully
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Internal server error
-    */
+     * @swagger
+     * /userInformation/{username}:
+     *   get:
+     *     summary: Get user information
+     *     description: Retrieve detailed information for a user by username.
+     *     tags:
+     *       - Users
+     *     parameters:
+     *       - in: path
+     *         name: username
+     *         required: true
+     *         schema:
+     *           type: string
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
     router.get('/userInformation/:username', authMiddleware, async (req: Request, res: Response) => {
-        const username = req.params.username as Username;
+        const username = req.params.username as Username
         try {
-
-            const user = await userService.GetUserInformation(username);
+            const user = await userService.GetUserInformation(username)
             if (user) {
-                return res.status(200).json({ user });
+                return res.status(200).json({ user })
             } else {
-                return res.status(404).json({ message: 'User not found.' });
+                return res.status(404).json({ message: 'User not found.' })
             }
         } catch (error) {
-            return res.status(500).json({ message: 'Internal server error. Please try again later.' });
+            return res.status(500).json({ message: 'Internal server error. Please try again later.' })
         }
-    });
-
+    })
 
     /**
-    * @swagger
-    * /images/{type}/{imageName}:
-    *   get:
-    *     summary: Get post image file
-    *     description: Retrieve image file
-    *     security:
-    *       - bearerAuth: []
-    *     responses:
-    *       200:
-    *         description: User information retrieved successfully
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Internal server error
-    */
-    router.get("/images/:type/:imageName", (req, res) => {
+     * @swagger
+     * /images/{type}/{imageName}:
+     *   get:
+     *     summary: Get post image file
+     *     description: Retrieve image file
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
+    router.get('/images/:type/:imageName', (req, res) => {
         const type = req.params.type === 'post' ? 'posts' : 'images'
-        let url = path.join(
-          __dirname,
-          `../../src/uploads/${type}/${req.params.imageName}`
-        );
-        res.sendFile(url);
-    });
-
+        let url = path.join(__dirname, `../../src/uploads/${type}/${req.params.imageName}`)
+        res.sendFile(url)
+    })
 
     /**
-    * @swagger
-    * /userUpdate:
-    *   put:
-    *     summary: Update user information
-    *     description: Update the user information including an optional profile image.
-    *     tags:
-    *       - Users
-    *     requestBody:
-    *       content:
-    *         multipart/form-data:
-    *           schema:
-    *             type: object
-    *             properties:
-    *               firstName:
-    *                 type: string
-    *                 description: User's first name
-    *               lastName:
-    *                 type: string
-    *                 description: User's last name
-    *               email:
-    *                 type: string
-    *                 format: email
-    *                 description: User's email
-    *               password:
-    *                 type: string
-    *                 format: password
-    *                 description: User's password
-    *               private:
-    *                 type: boolean
-    *                 description: User's privacy setting
-    *               bio:
-    *                 type: string
-    *                 description: User's bio
-    *               image:
-    *                 type: string
-    *                 format: binary
-    *                 description: Optional image file to upload
-    *     required: true
-    *     responses:
-    *       200:
-    *         description: User updated successfully
-    *         content:
-    *           application/json:
-    *             schema:
-    *               type: object
-    *               properties:
-    *                 username:
-    *                   type: string
-    *                   example: johndoe
-    *                 updatedData:
-    *                   type: object
-    *                   properties:
-    *                     firstName:
-    *                       type: string
-    *                     lastName:
-    *                       type: string
-    *                     email:
-    *                       type: string
-    *                     private:
-    *                       type: boolean
-    *                     bio:
-    *                       type: string
-    *                 imageUrl:
-    *                   type: string
-    *       404:
-    *         description: User not found
-    *       500:
-    *         description: Server error
-    */
+     * @swagger
+     * /userUpdate:
+     *   put:
+     *     summary: Update user information
+     *     description: Update the user information including an optional profile image.
+     *     tags:
+     *       - Users
+     *     requestBody:
+     *       content:
+     *         multipart/form-data:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               firstName:
+     *                 type: string
+     *                 description: User's first name
+     *               lastName:
+     *                 type: string
+     *                 description: User's last name
+     *               email:
+     *                 type: string
+     *                 format: email
+     *                 description: User's email
+     *               password:
+     *                 type: string
+     *                 format: password
+     *                 description: User's password
+     *               private:
+     *                 type: boolean
+     *                 description: User's privacy setting
+     *               bio:
+     *                 type: string
+     *                 description: User's bio
+     *               image:
+     *                 type: string
+     *                 format: binary
+     *                 description: Optional image file to upload
+     *     required: true
+     *     responses:
+     *       200:
+     *         description: User updated successfully
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 username:
+     *                   type: string
+     *                   example: johndoe
+     *                 updatedData:
+     *                   type: object
+     *                   properties:
+     *                     firstName:
+     *                       type: string
+     *                     lastName:
+     *                       type: string
+     *                     email:
+     *                       type: string
+     *                     private:
+     *                       type: boolean
+     *                     bio:
+     *                       type: string
+     *                 imageUrl:
+     *                   type: string
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Server error
+     */
     router.put('/userUpdate', authMiddleware, profileMid, async (req: Request, res: Response) => {
         try {
+            const username = req.user.username
 
-            const username = req.user.username;
-            
-            const file = req.file as Express.Multer.File;
-            
+            const file = req.file as Express.Multer.File
+
             const image = file.path
-
 
             const updatedData = updateUserDto.parse(req.body)
 
-            const updatedUser = await userService.updateUserInformation(username, updatedData,image);
+            const updatedUser = await userService.updateUserInformation(username, updatedData, image)
 
             if (updatedUser) {
-                res.status(200).json({message: "Ok"});
+                res.status(200).json({ message: 'Ok' })
             } else {
-                res.status(404).json({ message: 'User was not updated' });
+                res.status(404).json({ message: 'User was not updated' })
             }
-        } 
-        catch (error) {
-            handelErrorResponse(res, error);
+        } catch (error) {
+            handelErrorResponse(res, error)
         }
-    });
-
+    })
 
     /**
      * @swagger
@@ -451,19 +438,87 @@ export const UserRoute = (userService: UserService) => {
 
     router.get('/user-info/:username', async (req: Request, res: Response) => {
         try {
-            const { username } = req.params;
-            const userInfo = await userService.getUserInfoWithoutPosts(username as Username);
+            const { username } = req.params
+            const userInfo = await userService.getUserInfoWithoutPosts(username as Username)
 
             if (!userInfo) {
-                return res.status(404).json({ message: 'User not found' });
+                return res.status(404).json({ message: 'User not found' })
             }
 
-            res.status(200).json(userInfo);
+            res.status(200).json(userInfo)
         } catch (error) {
-            res.status(500).json({ message: "server error" });
+            res.status(500).json({ message: 'server error' })
         }
-    });
+    })
 
+    /**
+     * @swagger
+     * /user/search:
+     *   get:
+     *     summary: search for a user
+     *     description: get the users based on the search text
+     *     tags:
+     *       - Users
+     *     parameters:
+     *       - in: query
+     *         name: searchText
+     *         schema:
+     *           type: string
+     *         required: true
+     *         description: The useranme or first name or last name of the user.
+     *       - in: query
+     *         name: pageNumber
+     *         schema:
+     *           type: number
+     *           example: 1
+     *         required: false
+     *         description: The page number to retrieve, defaults to 1.
+     *       - in: query
+     *         name: pageSize
+     *         schema:
+     *           type: number
+     *           example: 10
+     *         required: false
+     *         description: The number of comments to retrieve per page, defaults to 10.
+     *     security:
+     *       - bearerAuth: []
+     *     responses:
+     *       200:
+     *         description: User information retrieved successfully
+     *       content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 firstName:
+     *                   type: string
+     *                   example: john
+     *                 lastName:
+     *                   type: string
+     *                   example: Doe
+     *                 username:
+     *                   type: string
+     *                   example: johndoe
+     *                 folowerCount:
+     *                   type: number
+     *                   example: 20
+     *       404:
+     *         description: User not found
+     *       500:
+     *         description: Internal server error
+     */
+    router.get('/user/search', authMiddleware , async (req: Request, res: Response) => {
+        try {
 
-    return router;
-};
+            const searchText = req.query.searchText as string;
+
+            const searchResults = await userService.searchUser(searchText , req.user.username)
+
+            res.status(200).json(searchResults)
+        } catch (error) {
+            handelErrorResponse(res,error)
+        }
+    })
+
+    return router
+}

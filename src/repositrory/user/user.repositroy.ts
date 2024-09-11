@@ -43,6 +43,14 @@ export interface dataUserResponse {
     bio?: string
 }
 
+export interface searchPeople {
+    firstName: Name
+    lastName: Name
+    username: Username
+    followersCount: number
+    imageUrl? : string
+}
+
 export class UserRepository {
     private model: Model<IUser>
 
@@ -286,4 +294,76 @@ export class UserRepository {
 
         return null
     }
+
+    async searchPeopleByUsernameOrFirstnameAndLastname(searchText: string, currentUsername: string): Promise<searchPeople[]> {
+        const regex = new RegExp(searchText, 'i'); 
+    
+        const users = await this.model.aggregate([
+            {
+                $addFields: {
+                    fullName: { $concat: ['$firstName', ' ', '$lastName'] },
+                    fullNameWithoutSpace: { $concat: ['$firstName', '$lastName'] },
+                    splitFirstName: { $split: ['$firstName', ' '] }, 
+                    splitLastName: { $split: ['$lastName', ' '] },   
+                },
+            },
+            {
+                $addFields: {
+                    combinedName: { $concatArrays: ['$splitFirstName', '$splitLastName'] }, 
+                },
+            },
+            {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { username: { $regex: regex } },
+                                { fullName: { $regex: regex } },
+                                { fullNameWithoutSpace: { $regex: regex } },
+                                { combinedName: { $in: [regex] } }, 
+                            ],
+                        },
+                        { username: { $ne: currentUsername } }, 
+                    ],
+                },
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    localField: 'username',
+                    foreignField: 'followingUsername',
+                    as: 'followerData',
+                },
+            },
+            {
+                $addFields: {
+                    followersCount: {
+                        $size: {
+                            $filter: {
+                                input: '$followerData',
+                                as: 'follower',
+                                cond: { $eq: ['$$follower.status', 'accepted'] },
+                            },
+                        },
+                    },
+                },
+            },
+            {
+                $project: {
+                    username: 1,
+                    firstName: 1,
+                    lastName: 1,
+                    followersCount: 1,
+                    imageUrl : 1
+                },
+            },
+            {
+                $sort: { score: -1 }, 
+            },
+        ]);
+    
+        return users;
+    }
+    
+    
 }
