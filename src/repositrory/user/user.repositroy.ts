@@ -358,7 +358,7 @@ export class UserRepository {
                 },
             },
             {
-                $sort: { score: -1 }, 
+                $sort: { followersCount: -1 },  
             },
         ]);
     

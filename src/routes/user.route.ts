@@ -8,6 +8,7 @@ import path from 'path'
 import { createUserDto } from '../dto/createUser.dto'
 import { isEmail, isPostId, isUsername, Username } from '../types/user.types'
 import { updateUserDto } from '../dto/updateUser.dto'
+import { searchUser } from '../dto/searchUser.dto'
 
 export const UserRoute = (userService: UserService) => {
     const router = Router()
@@ -510,9 +511,15 @@ export const UserRoute = (userService: UserService) => {
     router.get('/user/search', authMiddleware , async (req: Request, res: Response) => {
         try {
 
-            const searchText = req.query.searchText as string;
 
-            const searchResults = await userService.searchUser(searchText , req.user.username)
+            const queryParams = searchUser.parse({
+                currentUser: req.user.username,
+                searchText: req.query.searchText,
+                pageNumber: req.query.pageNumber ? parseInt(req.query.pageNumber as string) : undefined,
+                pageSize: req.query.pageSize ? parseInt(req.query.pageSize as string) : undefined,
+            });
+
+            const searchResults = await userService.searchUser(queryParams.searchText , queryParams.currentUser , queryParams.pageNumber , queryParams.pageSize)
 
             res.status(200).json(searchResults)
         } catch (error) {
