@@ -2,7 +2,6 @@ import { Model, Document, Types } from 'mongoose'
 import { IPost } from '../../db/post/post'
 import { PostId, UserId, Username } from '../../types/user.types'
 import { HttpError } from '../../utility/error-handler'
-import { createDeflate, inflateRaw } from 'zlib'
 
 export interface createPost {
     images: string[]
@@ -56,6 +55,19 @@ export interface ExploreDataResponse {
     isLikedByUser: boolean
     isSavedByUser: boolean
     createdAt: Date
+}
+
+export interface searchPostResults {
+    id: Types.ObjectId
+    userId: Types.ObjectId
+    caption: string
+    images: string[]
+    tags: string[]
+    createdAt: Date
+    likesCount: number
+    creatorUsername: Username
+    closeFriendOnly: Username
+    isCloseFriend: boolean
 }
 
 export class PostRepository {
@@ -420,8 +432,7 @@ export class PostRepository {
         return post.closeFriendOnly
     }
 
-    async searchPosts(searchTags: string, currentUsername: string, followingUserIds: Types.ObjectId[], closeFriends: Username[], blockedUsernames: Username[]) {
-       
+    async searchPosts(searchTags: string, currentUsername: string, closeFriends: Username[], blockedUsernames: Username[]): Promise<searchPostResults[]> {
         const tags = searchTags.split(' ').filter((tag) => tag.trim() !== '')
 
         const regexTags = tags.map((tag) => new RegExp(tag, 'i'))
@@ -443,9 +454,9 @@ export class PostRepository {
             },
             {
                 $match: {
-                    creatorUsername: { $ne: currentUsername }, 
+                    creatorUsername: { $ne: currentUsername },
                     tags: {
-                        $elemMatch: { $in: regexTags }, 
+                        $elemMatch: { $in: regexTags },
                     },
                 },
             },
@@ -457,11 +468,7 @@ export class PostRepository {
                         {
                             $match: {
                                 $expr: {
-                                    $and: [
-                                        { $eq: ['$followingUsername', '$$creatorUsername'] },
-                                        { $eq: ['$followerUsername', '$$currentUsername'] },
-                                        { $eq: ['$status', 'accepted'] }, 
-                                    ],
+                                    $and: [{ $eq: ['$followingUsername', '$$creatorUsername'] }, { $eq: ['$followerUsername', '$$currentUsername'] }, { $eq: ['$status', 'accepted'] }],
                                 },
                             },
                         },
@@ -492,10 +499,7 @@ export class PostRepository {
                 $match: {
                     $and: [
                         {
-                            $or: [
-                                { isPrivate: false }, 
-                                { $gt: [{ $size: '$followData' }, 0] }, 
-                            ],
+                            $or: [{ isPrivate: false }, { $gt: [{ $size: '$followData' }, 0] }],
                         },
                     ],
                 },
@@ -508,18 +512,17 @@ export class PostRepository {
                     images: 1,
                     tags: 1,
                     createdAt: 1,
-                    likesCount: { $size: '$likes' }, 
+                    likesCount: { $size: '$likes' },
                     creatorUsername: 1,
                     closeFriendOnly: 1,
                     isCloseFriend: 1,
                 },
             },
             {
-                $sort: { likesCount: -1 }, 
+                $sort: { likesCount: -1 },
             },
         ])
 
-        
         const filteredPosts = posts.filter((post) => {
             return (
                 (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Show only close friend posts to close friends
@@ -527,6 +530,17 @@ export class PostRepository {
             )
         })
 
-        return filteredPosts 
+        return filteredPosts.map((post) => ({
+            id: post._id,
+            userId: post.userId,
+            caption: post.caption,
+            images: post.images,
+            tags: post.tags,
+            createdAt: post.createdAt,
+            likesCount: post.likesCount,
+            creatorUsername: post.creatorUsername,
+            closeFriendOnly: post.closeFriendOnly ?? false,
+            isCloseFriend: post.isCloseFriend ?? false,
+        }))
     }
 }

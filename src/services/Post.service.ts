@@ -1,5 +1,5 @@
 import path from 'path'
-import { createPost, PostDataResponse, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
+import { createPost, PostDataResponse, PostRepository, PostResponse, searchPostResults, updatePost } from '../repositrory/post/post.repository'
 import { UserRepository } from '../repositrory/user/user.repositroy'
 import { isUsername, PostId, Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
@@ -110,7 +110,6 @@ export class PostService {
         if (!isUsername(username)) {
             throw new HttpError(400, 'Invalid username')
         }
-        console.log('jjd')
 
         const user = await this.userRepo.getUserByUsername(username)
         if (!user) {
@@ -428,5 +427,17 @@ export class PostService {
         }
 
         return posts
+    }
+
+
+    async searchPosts(searchTags:string , currentUsername:Username): Promise<searchPostResults[]>{
+
+        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(currentUsername)
+
+        const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(currentUsername)
+
+        const results = await this.postRepo.searchPosts(searchTags , currentUsername , closeFriendNames , blockedUsers);
+
+        return results;
     }
 }
