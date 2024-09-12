@@ -2,6 +2,7 @@ import { Model } from 'mongoose'
 import { HttpError } from '../../utility/error-handler'
 import { Username } from '../../types/user.types'
 import { IBlock } from '../../db/Block/block.model'
+import { IUser } from '../../db/user/user.model'
 
 export interface Block {
     blockerUsername: Username
@@ -34,8 +35,8 @@ export class BlockRepository {
         await this.model.deleteOne({ blockerUsername, blockingUsername }).catch((err) => this.handleDBError(err))
     }
 
-    async checkBlock(blockerUsername: Username, blockingUsername: Username): Promise<Boolean> {
-        const BlockExist = await this.model.findOne({ blockerUsername, blockingUsername }).catch((err) => this.handleDBError(err))
+    async checkBlock(blockerUsername: IUser, blockingUsername: IUser): Promise<Boolean> {
+        const BlockExist = await this.model.findOne({ blockerUsername: blockerUsername.username, blockingUsername: blockingUsername.username }).catch((err) => this.handleDBError(err))
 
         if (!BlockExist) {
             return false
@@ -55,9 +56,9 @@ export class BlockRepository {
                     pipeline: [
                         {
                             $match: {
-                                status: 'accepted'
-                            }
-                        }
+                                status: 'accepted',
+                            },
+                        },
                     ],
                     as: 'followers',
                 },
@@ -70,9 +71,9 @@ export class BlockRepository {
                     pipeline: [
                         {
                             $match: {
-                                status: 'accepted'
-                            }
-                        }
+                                status: 'accepted',
+                            },
+                        },
                     ],
                     as: 'following',
                 },

@@ -35,6 +35,7 @@ import { SearchHistoryRepository } from './src/repositrory/SearchHistory/searchH
 import { SearchHistory } from './src/db/SearchHistory/searchHistory.model'
 import { SearchHistoryService } from './src/services/HistorySearch.service'
 import { MentionRepository } from './src/repositrory/post/mention.repository'
+import { LoggedInUser } from './src/types/user-auth'
 
 dotenv.config()
 
@@ -67,7 +68,7 @@ const dbConnection = new MongoDBConnection(uri)
 declare global {
     namespace Express {
         interface Request {
-            user: IUser
+            user: LoggedInUser
         }
     }
 }
@@ -80,7 +81,7 @@ dbConnection
 
         const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService)
 
-    const PORT = 8000
+        const PORT = 8000
 
         app.listen(PORT, () => {
             console.log(`app run on port ${PORT}`)

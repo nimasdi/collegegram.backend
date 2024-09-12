@@ -3,6 +3,14 @@ import { IUser } from '../../db/user/user.model'
 import { Email, Name, Password, UserId, Username } from '../../types/user.types'
 import { HttpError } from '../../utility/error-handler'
 import { IPost, postSchema } from '../../db/post/post'
+import { LoggedInUser } from '../../types/user-auth'
+import { User } from '../../types/user'
+
+export class SameUserError extends Error {
+    constructor() {
+        super('SameUserError')
+    }
+}
 
 export interface createUser {
     username: Username
@@ -48,7 +56,7 @@ export interface searchPeople {
     lastName: Name
     username: Username
     followersCount: number
-    imageUrl? : string
+    imageUrl?: string
 }
 
 export class UserRepository {
@@ -127,7 +135,34 @@ export class UserRepository {
         return null
     }
 
-    async checkUserExist(identifier: Email | Username): Promise<Boolean> {
+    async getUserByEmailOrUsername(identifier: Email | Username, loggedInUser: LoggedInUser): Promise<User | SameUserError | null> {
+        if (loggedInUser.email === identifier || loggedInUser.username === identifier) {
+            return new SameUserError()
+        }
+        const user = await this.model
+            .findOne(
+                {
+                    $or: [{ username: identifier }, { email: identifier }],
+                },
+                { _id: 1, firstName: 1, lastName: 1, username: 1, email: 1, private: 1, imageUrl: 1, bio: 1 }
+            )
+            .exec()
+            .catch((err) => this.handleDBError(err))
+
+        if (user) {
+            return {
+                id: user._id as UserId,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                username: user.username,
+                email: user.email,
+                private: user.private,
+            }
+        }
+
+        return null
+    }
+    async checkUserExist(identifier: Email | Username): Promise<IUser | null> {
         const user = await this.model
             .findOne(
                 {
@@ -138,11 +173,7 @@ export class UserRepository {
             .exec()
             .catch((err) => this.handleDBError(err))
 
-        if (user) {
-            return true
-        }
-
-        return false
+        return user
     }
 
     async getUserPasswordByEmail(email: Email): Promise<loginUserResponse | null> {
@@ -296,34 +327,29 @@ export class UserRepository {
     }
 
     async searchPeopleByUsernameOrFirstnameAndLastname(searchText: string, currentUsername: string): Promise<searchPeople[]> {
-        const regex = new RegExp(searchText, 'i'); 
-    
+        const regex = new RegExp(searchText, 'i')
+
         const users = await this.model.aggregate([
             {
                 $addFields: {
                     fullName: { $concat: ['$firstName', ' ', '$lastName'] },
                     fullNameWithoutSpace: { $concat: ['$firstName', '$lastName'] },
-                    splitFirstName: { $split: ['$firstName', ' '] }, 
-                    splitLastName: { $split: ['$lastName', ' '] },   
+                    splitFirstName: { $split: ['$firstName', ' '] },
+                    splitLastName: { $split: ['$lastName', ' '] },
                 },
             },
             {
                 $addFields: {
-                    combinedName: { $concatArrays: ['$splitFirstName', '$splitLastName'] }, 
+                    combinedName: { $concatArrays: ['$splitFirstName', '$splitLastName'] },
                 },
             },
             {
                 $match: {
                     $and: [
                         {
-                            $or: [
-                                { username: { $regex: regex } },
-                                { fullName: { $regex: regex } },
-                                { fullNameWithoutSpace: { $regex: regex } },
-                                { combinedName: { $in: [regex] } }, 
-                            ],
+                            $or: [{ username: { $regex: regex } }, { fullName: { $regex: regex } }, { fullNameWithoutSpace: { $regex: regex } }, { combinedName: { $in: [regex] } }],
                         },
-                        { username: { $ne: currentUsername } }, 
+                        { username: { $ne: currentUsername } },
                     ],
                 },
             },
@@ -354,16 +380,14 @@ export class UserRepository {
                     firstName: 1,
                     lastName: 1,
                     followersCount: 1,
-                    imageUrl : 1
+                    imageUrl: 1,
                 },
             },
             {
-                $sort: { followersCount: -1 },  
+                $sort: { followersCount: -1 },
             },
-        ]);
-    
-        return users;
+        ])
+
+        return users
     }
-    
-    
 }

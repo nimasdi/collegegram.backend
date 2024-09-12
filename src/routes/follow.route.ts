@@ -248,11 +248,10 @@ export const FollowRoute = (followService: FollowService) => {
     router.post('/request', authMiddleware, async (req, res) => {
         try {
             const requestData = followRequestDto.parse({
-                sender: req.user.username,
                 receiver: req.body.receiver,
             })
 
-            await followService.sendFollowRequest(requestData)
+            await followService.sendFollowRequest(req.user, requestData)
 
             res.status(200).send({ message: 'Follow request sent successfully' })
         } catch (error) {
@@ -352,8 +351,8 @@ export const FollowRoute = (followService: FollowService) => {
         try {
             // Parse the incoming request body
             const requestData = followRequestDto.parse({
-                sender: req.user.username, 
-                receiver: req.body.receiver, 
+                sender: req.user.username,
+                receiver: req.body.receiver,
             })
 
             await followService.cancelFollowRequest(requestData)

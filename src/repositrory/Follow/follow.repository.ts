@@ -1,42 +1,46 @@
-import { Model, Types } from "mongoose";
-import { HttpError } from "../../utility/error-handler";
-import { IFollow } from "../../db/Follow/follow.model";
-import { UserId, Username } from "../../types/user.types";
+import { Model, Types } from 'mongoose'
+import { HttpError } from '../../utility/error-handler'
+import { IFollow } from '../../db/Follow/follow.model'
+import { UserId, Username } from '../../types/user.types'
+import { LoggedInUser } from '../../types/user-auth'
+import { User } from '../../types/user'
+import { Relationship } from '../../types/relationship'
 
 export interface Follow {
-    followingUserName: Username,
-    followerUserName: Username,
+    followingUserName: Username
+    followerUserName: Username
 }
 
 export interface followingAndFollowers {
-    followers: { username: Username, followerCount: number, followingCount: number }[];
-    following: { username: Username, followerCount: number, followingCount: number }[];
-    followerCount: number;
-    followingCount: number;
+    followers: { username: Username; followerCount: number; followingCount: number }[]
+    following: { username: Username; followerCount: number; followingCount: number }[]
+    followerCount: number
+    followingCount: number
 }
 
-export interface followRequest {
-    sender: Username,
-    receiver: Username
+export interface IRelationshipManger {
+    getRelationship: (loggedInUser: LoggedInUser, user: User) => Promise<Relationship>
+    followRequest: (request: Relationship.NoConnection | Relationship.Following.Declined) => Promise<Relationship.Following.Pending>
+    block: (loggedInUser: LoggedInUser, user: User) => Promise<Relationship.Blocked>
+    unBlocked(relation: Relationship.Blocked): Promise<Relationship.NoConnection | Relationship.Blocked.ByTheUser>
 }
 
 interface followRequestAction {
-    sender: string;
-    receiver: string;
-    action: 'accept' | 'decline';
+    sender: string
+    receiver: string
+    action: 'accept' | 'decline'
 }
 
-export interface getFollowStatus{
-    followed: boolean,
-    status: string;
+export interface getFollowStatus {
+    followed: boolean
+    status: string
 }
 
 export class FollowRepository {
-
-    private model: Model<IFollow>;
+    private model: Model<IFollow>
 
     constructor(model: Model<IFollow>) {
-        this.model = model;
+        this.model = model
     }
 
     private handleDBError = (error: any) => {
@@ -45,42 +49,37 @@ export class FollowRepository {
     }
 
     async follow(followerUsername: Username, followingUsername: Username): Promise<void> {
-        const user = new this.model({ followerUsername, followingUsername });
-        await user.save().catch((err) => this.handleDBError(err));
+        const user = new this.model({ followerUsername, followingUsername })
+        await user.save().catch((err) => this.handleDBError(err))
     }
 
     async unfollow(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername, followerUsername , status: "accepted"})
-            .catch((err) => this.handleDBError(err));
+        await this.model.deleteOne({ followingUsername, followerUsername, status: 'accepted' }).catch((err) => this.handleDBError(err))
     }
 
     async removeFollowing(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({ followingUsername, followerUsername })
-            .catch((err) => this.handleDBError(err));
+        await this.model.deleteOne({ followingUsername, followerUsername }).catch((err) => this.handleDBError(err))
     }
 
     async checkFollow(followerUsername: Username, followingUsername: Username): Promise<string> {
-        const followExist = await this.model.findOne({ followingUsername, followerUsername })
-            .catch((err) => this.handleDBError(err))
+        const followExist = await this.model.findOne({ followingUsername, followerUsername }).catch((err) => this.handleDBError(err))
 
         if (!followExist) {
-            return "declined"
+            return 'declined'
         }
-        return followExist.status;
+        return followExist.status
     }
 
     async getFollowerCount(user: Username): Promise<Number> {
-        const followerCount = await this.model.countDocuments({ followingUsername: user , status: "accepted"})
-            .catch(err => this.handleDBError(err))
+        const followerCount = await this.model.countDocuments({ followingUsername: user, status: 'accepted' }).catch((err) => this.handleDBError(err))
         return followerCount
     }
 
     async getFollowersList(user: Username): Promise<Username[] | []> {
-        const followers = await this.model.find({ followingUsername: user, status: 'accepted' }, { followerUsername: 1 })
-            .catch(err => this.handleDBError(err))
+        const followers = await this.model.find({ followingUsername: user, status: 'accepted' }, { followerUsername: 1 }).catch((err) => this.handleDBError(err))
 
-        if(!!followers){
-            const followersUsername : Username[] = followers.map((follower) => follower.followerUsername)
+        if (!!followers) {
+            const followersUsername: Username[] = followers.map((follower) => follower.followerUsername)
             return followersUsername
         }
 
@@ -88,8 +87,7 @@ export class FollowRepository {
     }
 
     async getFollowingCount(user: Username): Promise<Number> {
-        const followingCount = await this.model.countDocuments({ followerUsername: user , status: "accepted"})
-            .catch(err => this.handleDBError(err))
+        const followingCount = await this.model.countDocuments({ followerUsername: user, status: 'accepted' }).catch((err) => this.handleDBError(err))
         return followingCount
     }
 
@@ -105,12 +103,12 @@ export class FollowRepository {
                     pipeline: [
                         {
                             $match: {
-                                status: 'accepted'
-                            }
-                        }
+                                status: 'accepted',
+                            },
+                        },
                     ],
-                    as: 'followers'
-                }
+                    as: 'followers',
+                },
             },
             {
                 $lookup: {
@@ -120,23 +118,23 @@ export class FollowRepository {
                     pipeline: [
                         {
                             $match: {
-                                status: 'accepted'
-                            }
-                        }
+                                status: 'accepted',
+                            },
+                        },
                     ],
-                    as: 'following'
-                }
+                    as: 'following',
+                },
             },
             {
                 $lookup: {
                     from: 'users',
                     localField: 'followerUsername',
                     foreignField: 'username',
-                    as: 'userData'
-                }
+                    as: 'userData',
+                },
             },
             {
-                $unwind: '$userData'
+                $unwind: '$userData',
             },
             {
                 $project: {
@@ -147,12 +145,15 @@ export class FollowRepository {
                     lastName: '$userData.lastName',
                     private: '$userData.private',
                     followerCount: { $size: '$followers' },
-                    followingCount: { $size: '$following' }
-                }
-            }
-        ];
+                    followingCount: { $size: '$following' },
+                },
+            },
+        ]
 
-        const followers = await this.model.aggregate(followersPipeline).exec().catch(err => this.handleDBError(err));
+        const followers = await this.model
+            .aggregate(followersPipeline)
+            .exec()
+            .catch((err) => this.handleDBError(err))
 
         // Aggregation for following
         const followingPipeline = [
@@ -165,12 +166,12 @@ export class FollowRepository {
                     pipeline: [
                         {
                             $match: {
-                                status: 'accepted'
-                            }
-                        }
+                                status: 'accepted',
+                            },
+                        },
                     ],
-                    as: 'followers'
-                }
+                    as: 'followers',
+                },
             },
             {
                 $lookup: {
@@ -180,23 +181,23 @@ export class FollowRepository {
                     pipeline: [
                         {
                             $match: {
-                                status: 'accepted'
-                            }
-                        }
+                                status: 'accepted',
+                            },
+                        },
                     ],
-                    as: 'following'
-                }
+                    as: 'following',
+                },
             },
             {
                 $lookup: {
                     from: 'users',
                     localField: 'followingUsername',
                     foreignField: 'username',
-                    as: 'userData'
-                }
+                    as: 'userData',
+                },
             },
             {
-                $unwind: '$userData'
+                $unwind: '$userData',
             },
             {
                 $project: {
@@ -207,86 +208,87 @@ export class FollowRepository {
                     lastName: '$userData.lastName',
                     private: '$userData.private',
                     followerCount: { $size: '$followers' },
-                    followingCount: { $size: '$following' }
-                }
-            }
-        ];
+                    followingCount: { $size: '$following' },
+                },
+            },
+        ]
 
-        const following = await this.model.aggregate(followingPipeline).exec().catch(err => this.handleDBError(err));
+        const following = await this.model
+            .aggregate(followingPipeline)
+            .exec()
+            .catch((err) => this.handleDBError(err))
 
-        const followerCount = followers.length;
-        const followingCount = following.length;
+        const followerCount = followers.length
+        const followingCount = following.length
 
         return {
             followers,
             following,
             followerCount,
             followingCount,
-        };
+        }
     }
 
     async getUserFollowingNames(username: Username): Promise<Username[]> {
-
-        const followings = await this.model.find({ followerUsername: username , status: 'accepted'})
+        const followings = await this.model
+            .find({ followerUsername: username, status: 'accepted' })
             .select('followingUsername')
             .lean()
             .exec()
-            .catch((err) => this.handleDBError(err));
+            .catch((err) => this.handleDBError(err))
 
-        const followingUsernames = followings.map(follow => follow.followingUsername);
+        const followingUsernames = followings.map((follow) => follow.followingUsername)
 
-        return followingUsernames;
+        return followingUsernames
     }
 
-
-
-    async sendFollowRequest(request: followRequest): Promise<Types.ObjectId> {
-        const followReq = new this.model({ followerUsername: request.sender, followingUsername: request.receiver, status: 'pending' });
-        await followReq.save().catch((err) => this.handleDBError(err));
+    async sendFollowRequest(request: FollowRequestSpec): Promise<Types.ObjectId> {
+        const followReq = new this.model({ followerUsername: request.sender, followingUsername: request.receiver, status: 'pending' })
+        await followReq.save().catch((err) => this.handleDBError(err))
 
         return followReq.id
     }
 
     async acceptOrDeclineFollowRequest(request: followRequestAction): Promise<Types.ObjectId> {
-
-        const { sender, receiver, action } = request;
+        const { sender, receiver, action } = request
 
         // Find the follow request
-        const followReq = await this.model.findOne({ followerUsername: sender, followingUsername: receiver, status: 'pending' });
+        const followReq = await this.model.findOne({ followerUsername: sender, followingUsername: receiver, status: 'pending' })
 
         if (!followReq) {
-            throw new HttpError(400, "follow request not found.")
+            throw new HttpError(400, 'follow request not found.')
         }
 
         if (action === 'accept') {
-            followReq.status = 'accepted';
-            await followReq.save().catch(err => this.handleDBError(err));
-
+            followReq.status = 'accepted'
+            await followReq.save().catch((err) => this.handleDBError(err))
         } else if (action === 'decline') {
-            followReq.status = 'declined';
-            await followReq.save().catch(err => this.handleDBError(err));
+            followReq.status = 'declined'
+            await followReq.save().catch((err) => this.handleDBError(err))
         }
 
-        return followReq.id;
+        return followReq.id
     }
 
     async findRequest(followingUsername: Username, followerUsername: Username) {
-        const request = await this.model.findOne({
-            followingUsername: followingUsername,
-            followerUsername: followerUsername,
-            status: 'pending'
-        }).exec();
+        const request = await this.model
+            .findOne({
+                followingUsername: followingUsername,
+                followerUsername: followerUsername,
+                status: 'pending',
+            })
+            .exec()
 
-        return request || null;
+        return request || null
     }
 
     async deleteFollowRequest(followerUsername: Username, followingUsername: Username): Promise<void> {
-        await this.model.deleteOne({
-            followerUsername,
-            followingUsername,
-            status: 'pending'
-        }).catch((err) => this.handleDBError(err));
+        await this.model
+            .deleteOne({
+                followerUsername,
+                followingUsername,
+                status: 'pending',
+            })
+            .catch((err) => this.handleDBError(err))
     }
-
 }
-
