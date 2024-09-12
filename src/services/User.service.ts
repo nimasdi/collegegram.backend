@@ -164,7 +164,7 @@ export class UserService {
         return userWithoutPosts as UserWithoutPosts
     }
 
-    async searchUser(searchText: string, currentUser: Username): Promise<searchPeople[]> {
+    async searchUser(searchText: string, currentUser: Username , pageNumber:number , pageSize:number): Promise<searchPeople[]> {
         
         if (!searchText.trim()) {
             return [];

@@ -1,5 +1,5 @@
 import path from 'path'
-import { createPost, PostDataResponse, PostRepository, PostResponse, updatePost } from '../repositrory/post/post.repository'
+import { createPost, PostDataResponse, PostRepository, PostResponse, searchPostResults, updatePost } from '../repositrory/post/post.repository'
 import { UserRepository } from '../repositrory/user/user.repositroy'
 import { isUsername, PostId, Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
@@ -21,6 +21,7 @@ import { NotificationService } from './Notification.service'
 import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
 import { MentionRepository, postsDataResponse } from '../repositrory/post/mention.repository'
 import { getSavedPostsDto } from '../dto/getUserSavedPosts.dto'
+import { searchPostDto } from '../dto/searchPost.dto'
 
 export class PostService {
     constructor(
@@ -110,7 +111,6 @@ export class PostService {
         if (!isUsername(username)) {
             throw new HttpError(400, 'Invalid username')
         }
-        console.log('jjd')
 
         const user = await this.userRepo.getUserByUsername(username)
         if (!user) {
@@ -428,5 +428,17 @@ export class PostService {
         }
 
         return posts
+    }
+
+
+    async searchPosts(searchPostData : searchPostDto): Promise<searchPostResults[]>{
+
+        const blockedUsers = await this.blockRepo.getUserBlockedUsernames(searchPostData.currentUser)
+
+        const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(searchPostData.currentUser)
+
+        const results = await this.postRepo.searchPosts(searchPostData.searchTags , searchPostData.currentUser , closeFriendNames , blockedUsers , searchPostData.pageNumber , searchPostData.pageSize);
+
+        return results;
     }
 }

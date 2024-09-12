@@ -2,7 +2,6 @@ import { Model, Document, Types } from 'mongoose'
 import { IPost } from '../../db/post/post'
 import { PostId, UserId, Username } from '../../types/user.types'
 import { HttpError } from '../../utility/error-handler'
-import { createDeflate, inflateRaw } from 'zlib'
 
 export interface createPost {
     images: string[]
@@ -56,6 +55,19 @@ export interface ExploreDataResponse {
     isLikedByUser: boolean
     isSavedByUser: boolean
     createdAt: Date
+}
+
+export interface searchPostResults {
+    id: Types.ObjectId
+    userId: Types.ObjectId
+    caption: string
+    images: string[]
+    tags: string[]
+    createdAt: Date
+    likesCount: number
+    creatorUsername: Username
+    closeFriendOnly: Username
+    isCloseFriend: boolean
 }
 
 export class PostRepository {
@@ -420,4 +432,120 @@ export class PostRepository {
         return post.closeFriendOnly
     }
 
+    async searchPosts(searchTags: string, currentUsername: string, closeFriends: Username[], blockedUsernames: Username[], pageNumber: number, pageSize: number): Promise<searchPostResults[]> {
+        const skip = (pageNumber - 1) * pageSize
+
+        const tags = searchTags.split(' ').filter((tag) => tag.trim() !== '')
+
+        const regexTags = tags.map((tag) => new RegExp(tag, 'i'))
+
+        const posts = await this.postModel.aggregate([
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'userId',
+                    foreignField: '_id',
+                    as: 'creator',
+                },
+            },
+            {
+                $addFields: {
+                    creatorUsername: { $arrayElemAt: ['$creator.username', 0] },
+                    isPrivate: { $arrayElemAt: ['$creator.private', 0] },
+                },
+            },
+            {
+                $match: {
+                    creatorUsername: { $ne: currentUsername },
+                    tags: {
+                        $elemMatch: { $in: regexTags },
+                    },
+                },
+            },
+            {
+                $lookup: {
+                    from: 'follows',
+                    let: { creatorUsername: '$creatorUsername', currentUsername: currentUsername },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [{ $eq: ['$followingUsername', '$$creatorUsername'] }, { $eq: ['$followerUsername', '$$currentUsername'] }, { $eq: ['$status', 'accepted'] }],
+                                },
+                            },
+                        },
+                    ],
+                    as: 'followData',
+                },
+            },
+            {
+                $lookup: {
+                    from: 'likeposts',
+                    localField: '_id',
+                    foreignField: 'postId',
+                    as: 'likes',
+                },
+            },
+            {
+                $addFields: {
+                    isCloseFriend: {
+                        $cond: {
+                            if: { $in: ['$creatorUsername', closeFriends] },
+                            then: true,
+                            else: false,
+                        },
+                    },
+                },
+            },
+            {
+                $match: {
+                    $and: [
+                        {
+                            $or: [
+                                { isPrivate: false },
+                                { $expr: { $gt: [{ $size: '$followData' }, 0] } }, // Corrected $gt usage
+                            ],
+                        },
+                    ],
+                },
+            },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    caption: 1,
+                    images: 1,
+                    tags: 1,
+                    createdAt: 1,
+                    likesCount: { $size: '$likes' },
+                    creatorUsername: 1,
+                    closeFriendOnly: 1,
+                    isCloseFriend: 1,
+                },
+            },
+            { $sort: { likesCount: -1 } },
+            { $skip: skip },
+            { $limit: pageSize },
+        ])
+
+        const filteredPosts = posts.filter((post) => {
+            return (
+                (!post.closeFriendOnly || (post.closeFriendOnly && post.isCloseFriend)) && // Show only close friend posts to close friends
+                !blockedUsernames.includes(post.creatorUsername) // Exclude posts from blocked users
+            )
+        })
+
+        return filteredPosts.map((post) => ({
+            id: post._id,
+            userId: post.userId,
+            caption: post.caption,
+            images: post.images,
+            tags: post.tags,
+            createdAt: post.createdAt,
+            likesCount: post.likesCount,
+            creatorUsername: post.creatorUsername,
+            closeFriendOnly: post.closeFriendOnly ?? false,
+            isCloseFriend: post.isCloseFriend ?? false,
+        }))
+    }
 }
