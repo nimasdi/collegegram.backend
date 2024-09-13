@@ -39,37 +39,37 @@ export const makeApp = (userService:UserService , commentService:CommentService 
     app.use(express.urlencoded({ extended: true }))
 
     //images
-    app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+    app.use('/api/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 
 
     // Swagger setup
     const swaggerDocs = swaggerJsDoc(swaggerOptions);
-    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+    app.use('/api/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
     // users
-    app.use('/' , UserRoute(userService))
+    app.use('/api/' , UserRoute(userService))
 
     // posts
-    app.use('/' , MakePostRoute(postService))
+    app.use('/api/' , MakePostRoute(postService))
 
     // follow
-    app.use('/follow', FollowRoute(followService))
+    app.use('/api/follow', FollowRoute(followService))
 
     // close friend
-    app.use('/', CloseFriendRoute(closeFriendService))
+    app.use('/api/', CloseFriendRoute(closeFriendService))
 
     // block
-    app.use('/block', BlockRoute(blockService))
+    app.use('/api/block', BlockRoute(blockService))
 
     //comments
-    app.use('/', CommentRoute(commentService));
+    app.use('/api/', CommentRoute(commentService));
 
     //search history
-    app.use('/', SearchHistoryRoute(searchHistoryService));
+    app.use('/api/', SearchHistoryRoute(searchHistoryService));
 
     // notifications
-    app.use('/notifications', NotificationRoute(notificationService));
+    app.use('/api/notifications', NotificationRoute(notificationService));
 
     const errorHandling: express.ErrorRequestHandler = (error, req, res, next) => {
 
