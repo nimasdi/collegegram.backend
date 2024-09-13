@@ -1,4 +1,4 @@
-FROM node:22.6
+FROM hub.hamdocker.ir/node:22.6
 
 WORKDIR /app
 
@@ -11,6 +11,6 @@ COPY . .
 RUN mkdir -p /app/src/uploads/posts
 RUN mkdir -p /app/src/uploads/images
 
-EXPOSE 3000
+EXPOSE 8000
 
 CMD ["npm", "start"]
