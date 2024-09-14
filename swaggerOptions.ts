@@ -10,6 +10,9 @@ const swaggerOptions: SwaggerOptions = {
         },
         servers: [
             {
+                url: 'https://co-peper.dev1403.rahnemacollege.ir/api',
+            },
+            {
                 url: 'http://5.34.195.108:3000',
             },
             {
