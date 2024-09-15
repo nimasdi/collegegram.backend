@@ -1,34 +1,28 @@
 import mongoose, { Model, Document, Schema } from "mongoose";
 
-export interface IComment extends Document {
-    username: string;
-    postId: mongoose.Types.ObjectId;
-    parentId?: mongoose.Types.ObjectId;
-    text: string;
+export interface IChat extends Document {
+    senderId: mongoose.Types.ObjectId;
+    content: string,
+    chatId: mongoose.Types.ObjectId
 }
 
-export const commentSchema: Schema<IComment> = new Schema({
-    postId: {
+export const chatSchema: Schema<IChat> = new Schema({
+    senderId: {
         type: Schema.Types.ObjectId,
-        ref: 'Post',
+        ref: 'Chat',
         required: true,
     },
-    parentId: {
+    content: {
+        type: String,
+        required: true,
+    },
+    chatId: {
         type: Schema.Types.ObjectId, 
-        ref: 'Comment', 
-        default: null,
-    },
-    text: {
-        type: String,
+        ref: 'Chat', 
         required: true,
-    },
-    username: {
-        type: String,
-        ref: 'User',
-        required: true, 
     },
 }, {
     timestamps: true, 
 });
 
-export const Comment: Model<IComment> = mongoose.model<IComment>('Comment', commentSchema);
+export const Chat: Model<IChat> = mongoose.model<IChat>('Chat', chatSchema);
