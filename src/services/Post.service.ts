@@ -59,7 +59,7 @@ export class PostService {
         }
 
         const imageUrls = postData.images.map((image) => {
-            return `http://5.34.195.108:3000/images/post/${path.basename(image)}`
+            return `${process.env.HOST}/images/post/${path.basename(image)}`
         })
 
         const mentionsUsernames = convertToArray(postData.mentionsUsernames)
