@@ -15,9 +15,9 @@ deploy:
       cd /home/ubuntu/collegram &&
       git pull https://$GIT_USERNAME:$GIT_PASSWORD@hamgit.ir/rc-dev-1403/co-peper/collegram  &&
       cd .. &&
-      docker compose -f docker-compose-prod.yml down &&
-      docker compose -f docker-compose-prod.yml build &&
-      docker compose -f docker-compose-prod.yml up -d --remove-orphans"
+      sudo docker compose -f docker-compose-prod.yml down &&
+      sudo docker compose -f docker-compose-prod.yml build &&
+      sudo docker compose -f docker-compose-prod.yml up -d --remove-orphans"
   environment:
     name: production
     url: http://188.213.197.231 
