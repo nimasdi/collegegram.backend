@@ -1,10 +1,16 @@
 import mongoose, { Model, Document, Schema } from "mongoose";
 
+enum contentType {
+    TEXT = "text",
+    IMAGE = "image",
+}
+
 export interface IMessage extends Document {
     senderId: mongoose.Types.ObjectId,
     receiverId: mongoose.Types.ObjectId,
     content: string,
-    seen: Boolean
+    seen: Boolean,
+    type: contentType
 }
 
 export const chatSchema: Schema<IMessage> = new Schema({
@@ -25,6 +31,11 @@ export const chatSchema: Schema<IMessage> = new Schema({
     seen:{
         type: Boolean,
         default: false
+    },
+    type:{
+        type: String,
+        enum: Object.values(contentType),
+        default: contentType.TEXT
     }
 }, {
     timestamps: true, 
