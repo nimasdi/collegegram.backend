@@ -140,7 +140,7 @@ export class UserService {
         }
 
         if (imageFile) {
-            newData.imageUrl = `http://5.34.195.108:3000/images/profile/${path.basename(imageFile)}`
+            newData.imageUrl = `${process.env.HOST}/images/profile/${path.basename(imageFile)}`
         }
 
         const password = updatedData.password
