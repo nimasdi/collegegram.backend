@@ -12,13 +12,14 @@ deploy:
   script:
     # SSH into the server, pull the latest code, and deploy using Docker Compose
     - ssh -i $ID_RSA -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "
-      cd /home/ubuntu/myapp &&
+      cd /home/ubuntu/collegram &&
       git pull &&
-      docker compose down &&
-      docker compose build &&
-      docker compose up -d --remove-orphans"
+      cd .. &&
+      docker compose -f docker-compose-prod.yml down &&
+      docker compose -f docker-compose-prod.yml build &&
+      docker compose -f docker-compose-prod.yml up -d --remove-orphans"
   environment:
     name: production
-    url: http://5.34.195.108
+    url: http://188.213.197.231 
   only:
     - main
