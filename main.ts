@@ -35,6 +35,8 @@ import { SearchHistoryRepository } from './src/repositrory/SearchHistory/searchH
 import { SearchHistory } from './src/db/SearchHistory/searchHistory.model'
 import { SearchHistoryService } from './src/services/HistorySearch.service'
 import { MentionRepository } from './src/repositrory/post/mention.repository'
+import { Socket } from 'socket.io'
+import { socketServer } from './src/chat'
 
 dotenv.config()
 
@@ -72,6 +74,17 @@ declare global {
     }
 }
 
+declare module 'socket.io' {
+    interface Socket {
+        sessionID: string
+        subject: string
+    }
+}
+
+socketServer.listen(3001, () => {
+    console.log(`socket run on port ${3001}`)
+})
+
 dbConnection
     .connect()
     .then(async () => {
@@ -80,7 +93,7 @@ dbConnection
 
         const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService)
 
-    const PORT = 8000
+        const PORT = 3000
 
         app.listen(PORT, () => {
             console.log(`app run on port ${PORT}`)
