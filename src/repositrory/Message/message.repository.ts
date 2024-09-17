@@ -6,7 +6,7 @@ import { IMessage } from "../../db/Chat/message.model";
 type contentType = 'text' | 'image'
 
 
-interface messageReponse{
+export interface messageReponse{
     id:mongoose.Types.ObjectId,
     sender:Object,
     content:string,
@@ -15,7 +15,7 @@ interface messageReponse{
     createdAt:Date
 }
 
-interface chatResponse {
+export interface chatResponse {
     sender: {
       _id: mongoose.Types.ObjectId;
       username: Username,

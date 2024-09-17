@@ -1,4 +1,4 @@
-import { Model } from 'mongoose'
+import mongoose, { Model } from 'mongoose'
 import { HttpError } from '../../utility/error-handler'
 import { Username } from '../../types/user.types'
 import { IBlock } from '../../db/Block/block.model'
@@ -36,6 +36,14 @@ export class BlockRepository {
 
     async checkBlock(blockerUsername: Username, blockingUsername: Username): Promise<Boolean> {
         const BlockExist = await this.model.findOne({ blockerUsername, blockingUsername }).catch((err) => this.handleDBError(err))
+
+        if (!BlockExist) {
+            return false
+        }
+        return true
+    }
+    async checkBlockById(blocker: mongoose.Types.ObjectId, blocking: mongoose.Types.ObjectId): Promise<Boolean> {
+        const BlockExist = await this.model.findOne({ blocker, blocking }).catch((err) => this.handleDBError(err))
 
         if (!BlockExist) {
             return false
