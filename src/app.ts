@@ -24,15 +24,14 @@ import { SearchHistoryRoute } from './routes/searchHistoy.route'
 export const makeApp = (userService: UserService, commentService: CommentService, followService: FollowService, postService: PostService, blockService: BlockService, closeFriendService: CloseFriendService, notificationService: NotificationService, searchHistoryService: SearchHistoryService) => {
     const app = express()
 
-    
-    app.use(cors({
-        origin: '*',
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-        allowedHeaders: ['*']
-    }));
-    
-
+    app.use(
+        cors({
+            origin: '*',
+            credentials: true,
+            methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+            allowedHeaders: ['*'],
+        })
+    )
 
     app.use(express.json())
     app.use(express.urlencoded({ extended: true }))
@@ -67,30 +66,6 @@ export const makeApp = (userService: UserService, commentService: CommentService
 
     // notifications
     app.use('/api/notifications', NotificationRoute(notificationService))
-
-    // io.on('connection', (socket) => {
-    //     console.log('A user connected:', socket.id)
-
-    //     socket.on('join room', async (roomId: string) => {
-    //         await socket.join(roomId);
-    //       });
-    //       socket.on('join room', async (roomId: string) => {
-    //         await socket.leave(roomId);
-    //       });
-
-    //     socket.on('sendMessage', (message) => {
-    //         console.log('Message received:', message)
-    //         io.emit('receiveMessage', message)
-    //     })
-
-    //     socket.on('typing', (data) => {
-    //         socket.broadcast.emit('userTyping', data)
-    //     })
-
-    //     socket.on('disconnect', () => {
-    //         console.log('User disconnected:', socket.id)
-    //     })
-    // })
 
     const errorHandling: express.ErrorRequestHandler = (error, req, res, next) => {
         if (error instanceof Error) {
