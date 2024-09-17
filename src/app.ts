@@ -20,8 +20,6 @@ import { NotificationRoute } from './routes/notification.route'
 import { NotificationService } from './services/Notification.service'
 import { SearchHistoryService } from './services/HistorySearch.service'
 import { SearchHistoryRoute } from './routes/searchHistoy.route'
-import http from 'http'
-import { Server as SocketIOServer } from 'socket.io'
 
 export const makeApp = (userService: UserService, commentService: CommentService, followService: FollowService, postService: PostService, blockService: BlockService, closeFriendService: CloseFriendService, notificationService: NotificationService, searchHistoryService: SearchHistoryService) => {
     const app = express()

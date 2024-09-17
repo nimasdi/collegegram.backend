@@ -63,19 +63,3 @@ export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError)
 };
 
 
-// Token verification helper (used if needed)
-const verifyAccessToken = (token: string) => {
-    try {
-        const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload
-        return {
-            valid: true,
-            payload: decoded,
-        }
-    } catch (error) {
-        console.error('Token verification error:', error)
-        return {
-            valid: false,
-            payload: null,
-        }
-    }
-}
