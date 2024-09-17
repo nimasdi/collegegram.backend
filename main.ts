@@ -35,8 +35,7 @@ import { SearchHistoryRepository } from './src/repositrory/SearchHistory/searchH
 import { SearchHistory } from './src/db/SearchHistory/searchHistory.model'
 import { SearchHistoryService } from './src/services/HistorySearch.service'
 import { MentionRepository } from './src/repositrory/post/mention.repository'
-import { Socket } from 'socket.io'
-import { socketServer } from './src/chat'
+import { makeSocketApp } from './src/socket_app'
 
 dotenv.config()
 
@@ -81,9 +80,6 @@ declare module 'socket.io' {
     }
 }
 
-socketServer.listen(3001, () => {
-    console.log(`socket run on port ${3001}`)
-})
 
 dbConnection
     .connect()
@@ -93,7 +89,14 @@ dbConnection
 
         const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService)
 
+        const { app: socketApp, socketServer } = makeSocketApp();
+
         const PORT = 3000
+        const SOCKETPORT = 3030
+
+        socketServer.listen(SOCKETPORT, () => {
+            console.log(`Server is running on port ${SOCKETPORT}`);
+        });
 
         app.listen(PORT, () => {
             console.log(`app run on port ${PORT}`)
