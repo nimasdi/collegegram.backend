@@ -73,5 +73,5 @@ export const upload1 = multer({
       cb(new Error('Only images are allowed!'));
     }
   }
-}).single('image'); // Changed from `.array('images', 20)` to `.single('image')`
+}).single('image'); 
 

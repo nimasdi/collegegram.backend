@@ -35,6 +35,11 @@ import { SearchHistoryRepository } from './src/repositrory/SearchHistory/searchH
 import { SearchHistory } from './src/db/SearchHistory/searchHistory.model'
 import { SearchHistoryService } from './src/services/HistorySearch.service'
 import { MentionRepository } from './src/repositrory/post/mention.repository'
+import { makeSocketApp } from './src/socket_app'
+import { Username } from './src/types/user.types'
+import { MessageService } from './src/services/Message.service'
+import { MessageRepository } from './src/repositrory/Message/message.repository'
+import { Message } from './src/db/Chat/message.model'
 
 dotenv.config()
 
@@ -51,6 +56,7 @@ const mentionRepo = new MentionRepository(Post)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
+const messageRepo = new MessageRepository(Message)
 const searchHistoryService = new SearchHistoryService(searchHistoryRepo, userRepo)
 export const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
 const userService = new UserService(userRepo, postRepo, searchHistoryService)
@@ -59,6 +65,7 @@ const commentService = new CommentService(userRepo, notifService, postRepo, comm
 const followService = new FollowService(followRepo, notifService, userRepo, blockRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
 const blockService = new BlockService(blockRepo, userRepo, followRepo)
+const messageService = new MessageService(messageRepo, blockRepo, userRepo)
 
 const uri = process.env.MONGO_URI || ''
 
@@ -72,6 +79,13 @@ declare global {
     }
 }
 
+declare module 'socket.io' {
+    interface Socket {
+        sessionID: string
+        subject: Username
+    }
+}
+
 dbConnection
     .connect()
     .then(async () => {
@@ -80,7 +94,14 @@ dbConnection
 
         const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService)
 
-    const PORT = 8000
+        const { app: socketApp, socketServer } = makeSocketApp(messageService)
+
+        const PORT = 3000
+        const SOCKETPORT = 3030
+
+        socketServer.listen(SOCKETPORT, () => {
+            console.log(`Server is running on port ${SOCKETPORT}`)
+        })
 
         app.listen(PORT, () => {
             console.log(`app run on port ${PORT}`)
