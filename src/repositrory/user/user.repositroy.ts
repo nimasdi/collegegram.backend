@@ -33,6 +33,7 @@ export interface loginUserResponse {
 }
 
 export interface dataUserResponse {
+    id: mongoose.Types.ObjectId
     firstName: Name
     lastName: Name
     username: Username
@@ -72,6 +73,7 @@ export class UserRepository {
 
     private generateDataUserResponse: (user: IUser) => dataUserResponse = (user) => {
         const userResponse: dataUserResponse = {
+            id: user._id as Types.ObjectId,
             firstName: user.firstName,
             lastName: user.lastName,
             username: user.username,
@@ -103,7 +105,7 @@ export class UserRepository {
 
     async getUserByUsername(username: Username): Promise<dataUserResponse | null> {
         const user = await this.model
-            .findOne({ username }, { _id: 0, password: 0 })
+            .findOne({ username }, { password: 0 })
             .exec()
             .catch((err) => this.handleDBError(err))
 
