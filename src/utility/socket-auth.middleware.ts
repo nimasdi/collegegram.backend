@@ -3,6 +3,7 @@ import { ExtendedError } from 'socket.io/dist/namespace'
 import { v4 as uuid } from 'uuid'
 import jwt from 'jsonwebtoken'
 import { DefaultEventsMap } from 'socket.io/dist/typed-events'
+import { Username } from '../types/user.types'
 
 interface JwtPayload {
     sub?: string
@@ -17,7 +18,7 @@ if (!JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined')
 }
 
-const sessionStore: Record<string, { sessionID: string; username: string }> = {};
+const sessionStore: Record<string, { sessionID: string; username: Username }> = {};
 
 export const socketAuthMiddleware = (socket: Socket, next: (err?: ExtendedError) => void) => {
     const authorizationHeader = socket.handshake.headers.authorization;
