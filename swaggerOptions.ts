@@ -16,7 +16,7 @@ const swaggerOptions: SwaggerOptions = {
                 url: 'http://5.34.195.108:3000',
             },
             {
-                url: 'http://localhost:3000'
+                url: 'http://localhost:8000/api'
             }
         ],
         components: {

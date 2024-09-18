@@ -205,8 +205,11 @@ export const NotificationRoute = (notificationService: NotificationService) => {
         try {
 
             const username = req.user.username;
-            const { notificationId } = req.body
-            const seen = await notificationService.seenNotification(username, notificationId)
+            const { notificationIds } = req.body
+
+            for(const notifId of notificationIds){
+                await notificationService.seenNotification(username, notifId)
+            }
 
             res.status(200).json({
                 message: "seen status changed"

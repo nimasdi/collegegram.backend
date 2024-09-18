@@ -47,7 +47,7 @@ export class NotificationtRepository {
     async getNotificationData(notificationsId: Types.ObjectId[], username: Username, pageNumber: number = 1, pageSize: number = 10, type: 'friend' | 'self'): Promise<getUserNotifs[]> {
         const skip = (pageNumber - 1) * pageSize
 
-        const matchQuery = type === 'friend' ? { _id: { $in: notificationsId } , targetUser : {  $ne : username } }: { _id: { $in: notificationsId } , targetUser : username }
+        const matchQuery = type === 'friend' ? { _id: { $in: notificationsId } , targetUser : {  $ne : username } , actionType : {$ne : 'followDeclined'} }: { _id: { $in: notificationsId } , targetUser : username,  actionType : {$ne : 'followDeclined'} }
 
         const notifs = await this.model
             .aggregate([
