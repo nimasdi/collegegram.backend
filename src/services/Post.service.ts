@@ -22,6 +22,7 @@ import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
 import { MentionRepository, postsDataResponse } from '../repositrory/post/mention.repository'
 import { getSavedPostsDto } from '../dto/getUserSavedPosts.dto'
 import { searchPostDto } from '../dto/searchPost.dto'
+import { SearchHistoryService } from './HistorySearch.service'
 
 export class PostService {
     constructor(
@@ -33,7 +34,8 @@ export class PostService {
         private closeFriendRepo: CloseFriendRepository,
         private followRepo: FollowRepository,
         private blockRepo: BlockRepository,
-        private mentionRepo : MentionRepository
+        private mentionRepo : MentionRepository,
+        private searchHistoryService: SearchHistoryService
     ) {}
 
     private async checkMutualBlocks(userA: Username, userB: Username): Promise<boolean> {
@@ -438,6 +440,8 @@ export class PostService {
         const closeFriendNames = await this.closeFriendRepo.getCloseFriends2(searchPostData.currentUser)
 
         const results = await this.postRepo.searchPosts(searchPostData.searchTags , searchPostData.currentUser , closeFriendNames , blockedUsers , searchPostData.pageNumber , searchPostData.pageSize);
+
+        await this.searchHistoryService.create(searchPostData.currentUser, searchPostData.searchTags)
 
         return results;
     }

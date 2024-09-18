@@ -40,9 +40,10 @@ export class MessageRepository {
         throw new HttpError(500, 'خطای شبکه رخ داده است.')
     }
 
-    async addNewMessage(senderId: mongoose.Types.ObjectId, receiverId: mongoose.Types.ObjectId, content: string, type: contentType  ): Promise<void> {
+    async addNewMessage(senderId: mongoose.Types.ObjectId, receiverId: mongoose.Types.ObjectId, content: string, type: contentType  ): Promise<mongoose.Types.ObjectId> {
         const message = new this.model({senderId, receiverId, content, type})
         await message.save().catch((err) => this.handleDBError(err))
+        return message.id
     }
 
     async seenMessages(messageIds: mongoose.Types.ObjectId[], receiverId: mongoose.Types.ObjectId ): Promise<void>{

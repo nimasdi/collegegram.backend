@@ -52,14 +52,14 @@ const mentionRepo = new MentionRepository(Post)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
+const searchHistoryService = new SearchHistoryService(searchHistoryRepo, userRepo)
 export const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
-const userService = new UserService(userRepo, postRepo)
-const postService = new PostService(userRepo, notifService, postRepo, likePostRepo, savePostRepo, closeFriendRepo, followRepo, blockRepo, mentionRepo)
+const userService = new UserService(userRepo, postRepo, searchHistoryService)
+const postService = new PostService(userRepo, notifService, postRepo, likePostRepo, savePostRepo, closeFriendRepo, followRepo, blockRepo, mentionRepo, searchHistoryService)
 const commentService = new CommentService(userRepo, notifService, postRepo, commentRepo, likeCommentRepo, closeFriendRepo, followRepo, blockRepo)
 const followService = new FollowService(followRepo, notifService, userRepo, blockRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
 const blockService = new BlockService(blockRepo, userRepo, followRepo)
-const searchHistoryService = new SearchHistoryService(searchHistoryRepo, userRepo)
 
 const uri = process.env.MONGO_URI || ''
 
