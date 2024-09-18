@@ -8,7 +8,7 @@ import { FollowRepository } from '../repositrory/Follow/follow.repository'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { CloseFriendRepository } from '../repositrory/CloseFriend/closeFriend.repository'
 
-type ActionType = 'like' | 'likePost' | 'comment' | 'follow' | 'followRequest'
+type ActionType = 'like' | 'comment' | 'followRequest' | 'followAccepted' | 'followDeclined' | 'mention'
 
 export class NotificationService {
     constructor(private userNotifRepo: UserNotificationtRepository, private notifRepo: NotificationtRepository, private userRepo: UserRepository, private followRepo: FollowRepository, private blockRepo: BlockRepository, private closeRepo: CloseFriendRepository) {}
@@ -44,6 +44,13 @@ export class NotificationService {
             }
         }
         return notifId || null
+    }
+
+    async changeFollowNotif(actionCreator:Username, targetUser: string, changeType: 'followAccepted' | 'followDeclined'){
+        const targetUsername = await this.findUsename(targetUser)
+        if (targetUsername) {
+            await this.notifRepo.changeFollowNotif(actionCreator, targetUsername, changeType)
+        }
     }
 
     async createNotificationForFollowers(notifId: Types.ObjectId,actionCreator: Username, targetUser: string, checkClose: Boolean): Promise<void> {

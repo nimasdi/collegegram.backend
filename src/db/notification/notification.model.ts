@@ -1,13 +1,17 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 import { Username } from '../../types/user.types';
 
-enum ActionType {
+enum ActionTypeEnum {
     LIKE = "like",
-    LIKEPOST = "likePost",
     COMMENT = "comment",
-    FOLLOW = "follow",
     FOLLOWREQUEST = "followRequest",
+    FOLLOWACCEPTED = "followAccepted",
+    FOLLOWDECLINED = "followDeclined" ,
+    MENTION = 'mention'
 }
+
+type ActionType = 'like' | 'comment' | 'followRequest' | 'followAccepted' | 'followDeclined' | 'mention'
+
 
 
 export interface INotification extends Document{
@@ -27,7 +31,7 @@ const NotificationSchema: Schema<INotification> = new Schema(
         },
         actionType: {
             type: String,
-            enum: Object.values(ActionType),
+            enum: Object.values(ActionTypeEnum),
             required: true,
         },
         targetEntityId: {
