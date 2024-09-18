@@ -1,4 +1,4 @@
-import { NotificationService } from "./Notification.service";
+import { NotificationService } from './Notification.service'
 import { CommentId, isPostId, PostId, Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
 import { PostRepository } from '../repositrory/post/post.repository'
@@ -12,7 +12,7 @@ import { GetCommentDto } from '../dto/getCommentWithLikes'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { CloseFriendRepository } from '../repositrory/CloseFriend/closeFriend.repository'
 import { FollowRepository } from '../repositrory/Follow/follow.repository'
-import { ActionType, publishToQueue } from "../rabbitMq/rabbit";
+import { ActionType, publishToQueue } from '../rabbitMq/rabbit'
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
@@ -25,10 +25,16 @@ export interface NestedComment extends getCommentsWithLikes {
 }
 
 export class CommentService {
-
-    constructor(private userRepo: UserRepository, private notifServise : NotificationService, private postRepo: PostRepository, private commentRepo: CommentRepository, private likeCommentRepository: LikeCommentRepository,private closeFriendRepo : CloseFriendRepository , private followRepo : FollowRepository ,private blockRepo: BlockRepository) {
-    }
-
+    constructor(
+        private userRepo: UserRepository,
+        private notifServise: NotificationService,
+        private postRepo: PostRepository,
+        private commentRepo: CommentRepository,
+        private likeCommentRepository: LikeCommentRepository,
+        private closeFriendRepo: CloseFriendRepository,
+        private followRepo: FollowRepository,
+        private blockRepo: BlockRepository
+    ) {}
 
     async createComment(username: Username, createComment: createCommentDto): Promise<createCommentResponse> {
         const { post_id, text } = createComment
@@ -48,16 +54,16 @@ export class CommentService {
         // create notif after action
         const notificationPayload = {
             actionCreator: username,
-            actionType: "comment" as ActionType,
+            actionType: 'comment' as ActionType,
             targetEntityId: commentId,
             targetUser: postExists.userId.toString(),
-            checkClose: postExists.closeFriendOnly
-        };
+            checkClose: postExists.closeFriendOnly,
+        }
 
         // Publish the task to create a notification
-        await publishToQueue('notification_queue', notificationPayload);
-        // this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())        
-        // this.notifServise.createNotificationForFollowers(username, "comment" , commentId, postExists.userId.toString(), postExists.closeFriendOnly)        
+        await publishToQueue('notification_queue', notificationPayload)
+        // this.notifServise.createNotification(username, "comment" , commentId, postExists.userId.toString())
+        // this.notifServise.createNotificationForFollowers(username, "comment" , commentId, postExists.userId.toString(), postExists.closeFriendOnly)
 
         return {
             success: true,
@@ -152,11 +158,10 @@ export class CommentService {
         if (senderIsBlocked) {
             throw new HttpError(403, `You are not allowed to view comments on this post.`)
         }
-        const receiverIsBlocked = await this.blockRepo.checkBlock(username , postCreator)
+        const receiverIsBlocked = await this.blockRepo.checkBlock(username, postCreator)
         if (receiverIsBlocked) {
             throw new HttpError(403, `You are not allowed to view comments on this post.`)
         }
-
 
         // close
         const isCloseFriend = postCreator !== username && (await this.closeFriendRepo.checkCloseFriend(username, postCreator))
@@ -168,10 +173,12 @@ export class CommentService {
         // private
         const isPrivate = await this.userRepo.checkAccountPrivacy(postCreator)
         const isFollowing = await this.followRepo.checkFollow(username, postCreator)
-        if (isPrivate && isFollowing != "accepted") {
-            throw new HttpError(403, `you dont follow the user.`)
+        if (postCreator != username) {
+            if (isPrivate && isFollowing != 'accepted') {
+                throw new HttpError(403, `you dont follow the user.`)
+            }
         }
-        
+
         const { comments, total } = await this.commentRepo.getCommentsWithLikes(postId, username, pageNumber, pageSize)
 
         const nestedComments = this.buildNestedComments(comments)
