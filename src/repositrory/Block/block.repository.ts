@@ -42,14 +42,6 @@ export class BlockRepository {
         }
         return true
     }
-    async checkBlockById(blocker: mongoose.Types.ObjectId, blocking: mongoose.Types.ObjectId): Promise<Boolean> {
-        const BlockExist = await this.model.findOne({ blocker, blocking }).catch((err) => this.handleDBError(err))
-
-        if (!BlockExist) {
-            return false
-        }
-        return true
-    }
 
     async getBlockedUserList(user: Username): Promise<blockedUsers> {
         // Aggregation for followers

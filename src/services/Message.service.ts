@@ -1,54 +1,74 @@
-import mongoose, { Types, model } from 'mongoose'
-import { UserId, Username, isUserId, isUsername } from '../types/user.types'
+import mongoose from 'mongoose'
+import { Username } from '../types/user.types'
 import { HttpError } from '../utility/error-handler'
 import { BlockRepository } from '../repositrory/Block/block.repository'
 import { MessageRepository, chatResponse, messageReponse } from '../repositrory/Message/message.repository'
 import path from 'path'
+import { UserRepository, dataUserResponse } from '../repositrory/user/user.repositroy'
 
-type ActionType = 'like' | 'likePost' | 'comment' | 'follow' | 'followRequest'
+export class MessageService {
+    constructor(private  messageRepo: MessageRepository, private blockRepo: BlockRepository, private userRepo: UserRepository) {}
 
-export class NotificationService {
-    constructor(private  messageRepo: MessageRepository, private blockRepo: BlockRepository) {}
-
-    async createTextMessage(senderId: mongoose.Types.ObjectId, receiverId: mongoose.Types.ObjectId, content: string): Promise<void> {
-        const blockedSender = await this.blockRepo.checkBlockById(senderId, receiverId)
+    private async chekUsers(sender: Username, receiver: Username): Promise<{senderUser:dataUserResponse,receiverUser:dataUserResponse}>{
+        const senderUser = await this.userRepo.getUserByUsername(sender)
+        const receiverUser = await this.userRepo.getUserByUsername(receiver)
+        if(!senderUser || !receiverUser){
+            throw new HttpError(400, 'users not found')
+        }
+        const blockedSender = await this.blockRepo.checkBlock(senderUser.username, receiverUser.username)
         if(blockedSender){
             throw new HttpError(400, 'you blocked this user')
         }
-        const blockedReceiver = await this.blockRepo.checkBlockById(receiverId, senderId)
+        const blockedReceiver = await this.blockRepo.checkBlock(senderUser.username, receiverUser.username)
         if(blockedReceiver){
             throw new HttpError(400, 'this user blocked you')
         }
 
-        await this.messageRepo.addNewMessage(senderId, receiverId, content, 'text')
+        return {senderUser, receiverUser}
     }
 
-    async createImageMessage(senderId: mongoose.Types.ObjectId, receiverId: mongoose.Types.ObjectId, content: string): Promise<void> {
-        const blockedSender = await this.blockRepo.checkBlockById(senderId, receiverId)
-        if(blockedSender){
-            throw new HttpError(400, 'you blocked this user')
+    private async chekReciever(receiver: Username): Promise<dataUserResponse>{
+        const receiverUser = await this.userRepo.getUserByUsername(receiver)
+        if(!receiverUser){
+            throw new HttpError(400, 'users not found')
         }
-        const blockedReceiver = await this.blockRepo.checkBlockById(receiverId, senderId)
-        if(blockedReceiver){
-            throw new HttpError(400, 'this user blocked you')
-        }
+        
+        return receiverUser
+    }
+
+    async createTextMessage(sender: Username, receiver: Username, content: string): Promise<mongoose.Types.ObjectId> {
+        const {senderUser, receiverUser} = await this.chekUsers(sender,receiver)
+
+        const messageId = await this.messageRepo.addNewMessage(senderUser.id, receiverUser.id, content, 'text')
+        return messageId
+    }
+
+    async createImageMessage(sender: Username, receiver: Username, content: string): Promise<mongoose.Types.ObjectId> {
+        const {senderUser, receiverUser} = await this.chekUsers(sender,receiver)
 
         const contentUrl = `${process.env.HOST}/images/messages/${path.basename(content)}`
 
-        await this.messageRepo.addNewMessage(senderId, receiverId, contentUrl, 'image')
+        const messageId = await this.messageRepo.addNewMessage(senderUser.id, receiverUser.id, contentUrl, 'image')
+        return messageId
     }
 
-    async seenMessages(messageIds: mongoose.Types.ObjectId[], receiverId: mongoose.Types.ObjectId): Promise<void> {
-        await this.messageRepo.seenMessages(messageIds, receiverId)
+    async seenMessages(messageIds: mongoose.Types.ObjectId[], receiver: Username): Promise<void> {
+        const receiverUser = await this.chekReciever(receiver)
+
+        await this.messageRepo.seenMessages(messageIds, receiverUser.id)
     }
 
-    async getMessages(receiverId: mongoose.Types.ObjectId,pageNumber:number,pageSize:number): Promise<messageReponse[]> {
-        const messages = await this.messageRepo.getMessages(receiverId, pageNumber, pageSize)
+    async getMessages(receiver: Username,pageNumber:number,pageSize:number): Promise<messageReponse[]> {
+        const receiverUser = await this.chekReciever(receiver)
+
+        const messages = await this.messageRepo.getMessages(receiverUser.id, pageNumber, pageSize)
         return messages
     }
 
-    async getChatLists(receiverId: mongoose.Types.ObjectId): Promise<chatResponse[]> {
-        const chats = await this.messageRepo.getChatLists(receiverId)
+    async getChatLists(receiver: Username): Promise<chatResponse[]> {
+        const receiverUser = await this.chekReciever(receiver)
+
+        const chats = await this.messageRepo.getChatLists(receiverUser.id)
         return chats
     }
 }
