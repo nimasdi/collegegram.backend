@@ -138,9 +138,6 @@ export class FollowService {
 
         // Publish the task to create a notification
         await publishToQueue('notification_queue', notificationPayload); 
-
-        // this.notifServise.createNotification(sender, "follow" , followReq , receiver)        
-
     }
 
 
@@ -186,7 +183,7 @@ export class FollowService {
         if(action === 'accept'){
             const notificationPayload = {
                 actionCreator: sender,
-                actionType: "follow" as ActionType,
+                actionType: "followAccepted" as ActionType,
                 targetEntityId: result,
                 targetUser: receiver,
                 checkClose: false
@@ -228,6 +225,17 @@ export class FollowService {
         }
     
         await this.followRepo.deleteFollowRequest(sender, receiver);
+
+        const notificationPayload = {
+            actionCreator: sender,
+            actionType: "followDeclined" as ActionType,
+            targetEntityId: followRequest.id,
+            targetUser: receiver,
+            checkClose: false
+        };
+
+        // Publish the task to create a notification
+        await publishToQueue('notification_queue', notificationPayload);
 
     }
     

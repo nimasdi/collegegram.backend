@@ -5,7 +5,8 @@ import { Types } from 'mongoose';
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || ''; 
 
-export type ActionType = 'like' | 'likePost' | 'comment' | 'follow' | 'followRequest'
+export type ActionType = 'like' | 'comment' | 'followRequest' | 'followAccepted' | 'followDeclined' | 'mention'
+
 
 export interface RabbitData{
     actionCreator: Username,

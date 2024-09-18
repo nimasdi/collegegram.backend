@@ -3,7 +3,7 @@ import { HttpError } from '../../utility/error-handler'
 import { INotification } from '../../db/notification/notification.model'
 import { Username } from '../../types/user.types'
 
-type ActionType = 'like' | 'likePost' | 'comment' | 'follow' | 'followRequest'
+type ActionType = 'like' | 'comment' | 'followRequest' | 'followAccepted' | 'followDeclined' | 'mention'
 
 export interface getUserNotifs {
     id: Types.ObjectId
@@ -30,6 +30,18 @@ export class NotificationtRepository {
         await notif.save().catch((err) => this.handleDBError(err))
 
         return notif.id
+    }
+
+    async changeFollowNotif(actionCreator:Username, targetUser: Username, changeType: 'followAccepted' | 'followDeclined'){
+        const notif = await this.model.findOne({actionCreator, targetUser, actionType:'followRequest'})
+
+        if(!notif){
+            throw new HttpError(404, "not found")
+        }
+        
+        notif.actionType = changeType
+
+        await notif.save()
     }
 
     async getNotificationData(notificationsId: Types.ObjectId[], username: Username, pageNumber: number = 1, pageSize: number = 10, type: 'friend' | 'self'): Promise<getUserNotifs[]> {
