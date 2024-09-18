@@ -8,7 +8,7 @@ import path from 'path'
 import { HttpError } from '../utility/error-handler'
 import { UpdateUserDto } from '../dto/updateUser.dto'
 import { PostRepository } from '../repositrory/post/post.repository'
-import { FollowRepository } from '../repositrory/Follow/follow.repository'
+import { SearchHistoryService } from './HistorySearch.service'
 
 export type userCreatePostData = {
     images: string[]
@@ -34,7 +34,7 @@ if (!JWT_SECRET) {
 }
 
 export class UserService {
-    constructor(private userRepo: UserRepository, private postRepo: PostRepository) {}
+    constructor(private userRepo: UserRepository, private postRepo: PostRepository, private searchHistoryService: SearchHistoryService) {}
 
     async createUser(userData: createUser): Promise<Boolean> {
         userData.password = md5(userData.password) as Password
@@ -170,8 +170,10 @@ export class UserService {
             return [];
         }
     
-        const searchResults = await this.userRepo.searchPeopleByUsernameOrFirstnameAndLastname(searchText.trim(), currentUser);
-    
+        const searchResults = await this.userRepo.searchPeopleByUsernameOrFirstnameAndLastname(searchText.trim(), currentUser);    
+        
+        await this.searchHistoryService.create(currentUser, searchText)
+
         return searchResults;
     }
     
