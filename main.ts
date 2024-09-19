@@ -96,7 +96,7 @@ dbConnection
 
         const { app: socketApp, socketServer } = makeSocketApp(messageService)
 
-        const PORT = 3000
+        const PORT = 8000
         const SOCKETPORT = 3030
 
         socketServer.listen(SOCKETPORT, () => {
