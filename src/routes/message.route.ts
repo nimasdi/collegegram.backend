@@ -4,7 +4,7 @@ import { handelErrorResponse } from '../utility/habdle-errResponse'
 import authMiddleware from '../utility/authorization'
 import { MessageService } from '../services/Message.service'
 
-export const NotificationRoute = (messageService: MessageService) => {
+export const ChatRoute = (messageService: MessageService) => {
     const router = Router()
 
     /**

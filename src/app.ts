@@ -20,8 +20,10 @@ import { NotificationRoute } from "./routes/notification.route";
 import { NotificationService } from "./services/Notification.service";
 import { SearchHistoryService } from "./services/HistorySearch.service";
 import { SearchHistoryRoute } from "./routes/searchHistoy.route";
+import { ChatRoute } from "./routes/message.route";
+import { MessageService } from "./services/Message.service";
 
-export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService , notificationService: NotificationService, searchHistoryService: SearchHistoryService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService , notificationService: NotificationService, searchHistoryService: SearchHistoryService, messageService: MessageService) => {
 
     const app = express()
 
@@ -70,6 +72,9 @@ export const makeApp = (userService:UserService , commentService:CommentService 
 
     // notifications
     app.use('/api/notifications', NotificationRoute(notificationService));
+
+     // chats
+     app.use('/api/message' , ChatRoute(messageService))
 
     const errorHandling: express.ErrorRequestHandler = (error, req, res, next) => {
 
