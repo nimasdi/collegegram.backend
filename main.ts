@@ -35,6 +35,8 @@ import { SearchHistoryRepository } from './src/repositrory/SearchHistory/searchH
 import { SearchHistory } from './src/db/SearchHistory/searchHistory.model'
 import { SearchHistoryService } from './src/services/HistorySearch.service'
 import { MentionRepository } from './src/repositrory/post/mention.repository'
+import { makeSocketApp } from './src/socket_app'
+import { Username } from './src/types/user.types'
 import { MessageService } from './src/services/Message.service'
 import { MessageRepository } from './src/repositrory/Message/message.repository'
 import { Message } from './src/db/Chat/message.model'
@@ -77,6 +79,13 @@ declare global {
     }
 }
 
+declare module 'socket.io' {
+    interface Socket {
+        sessionID: string
+        subject: Username
+    }
+}
+
 dbConnection
     .connect()
     .then(async () => {
@@ -85,10 +94,17 @@ dbConnection
 
         const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService, messageService)
 
-    const PORT = 8000
+        const socketServer = makeSocketApp(app , messageService)
 
-        app.listen(PORT, () => {
-            console.log(`app run on port ${PORT}`)
+        const PORT = 8000
+        // const SOCKETPORT = 3030
+
+        socketServer.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`)
         })
+
+        // app.listen(PORT, () => {
+        //     console.log(`app run on port ${PORT}`)
+        // })
     })
     .catch((err) => console.log('not connected to db'))
