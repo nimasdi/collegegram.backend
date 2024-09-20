@@ -7,8 +7,7 @@ import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
 
-export const makeSocketApp = (messageService: MessageService) => {
-    const app = express()
+export const makeSocketApp = (app: Express.Application , messageService: MessageService) => {
 
     const socketServer = createServer(app)
 
@@ -86,5 +85,5 @@ export const makeSocketApp = (messageService: MessageService) => {
         })
     })
 
-    return { app, socketServer }
+    return  socketServer
 }
