@@ -1,3 +1,19 @@
+import { CommentService } from "./services/Comment.service";
+import { CommentRoute } from "./routes/comment.route";
+import { FollowRoute } from "./routes/follow.route";
+import { FollowService } from "./services/Follow.service";
+import { PostService } from "./services/Post.service";
+import { MakePostRoute } from "./routes/post.route";
+import { BlockRoute } from "./routes/block.route";
+import { BlockService } from "./services/Block.service";
+import { CloseFriendRoute } from "./routes/closeFriend.route";
+import { CloseFriendService } from "./services/CloseFriend.service";
+import { NotificationRoute } from "./routes/notification.route";
+import { NotificationService } from "./services/Notification.service";
+import { SearchHistoryService } from "./services/HistorySearch.service";
+import { SearchHistoryRoute } from "./routes/searchHistoy.route";
+import { ChatRoute } from "./routes/message.route";
+import { MessageService } from "./services/Message.service";
 import express from 'express'
 import { UserService } from './services/User.service'
 import { UserRoute } from './routes/user.route'
@@ -6,22 +22,8 @@ import swaggerUi from 'swagger-ui-express'
 import swaggerOptions from '../swaggerOptions'
 import path from 'path'
 import cors from 'cors'
-import { CommentService } from './services/Comment.service'
-import { CommentRoute } from './routes/comment.route'
-import { FollowRoute } from './routes/follow.route'
-import { FollowService } from './services/Follow.service'
-import { PostService } from './services/Post.service'
-import { MakePostRoute } from './routes/post.route'
-import { BlockRoute } from './routes/block.route'
-import { BlockService } from './services/Block.service'
-import { CloseFriendRoute } from './routes/closeFriend.route'
-import { CloseFriendService } from './services/CloseFriend.service'
-import { NotificationRoute } from './routes/notification.route'
-import { NotificationService } from './services/Notification.service'
-import { SearchHistoryService } from './services/HistorySearch.service'
-import { SearchHistoryRoute } from './routes/searchHistoy.route'
 
-export const makeApp = (userService: UserService, commentService: CommentService, followService: FollowService, postService: PostService, blockService: BlockService, closeFriendService: CloseFriendService, notificationService: NotificationService, searchHistoryService: SearchHistoryService) => {
+export const makeApp = (userService:UserService , commentService:CommentService , followService: FollowService , postService : PostService, blockService: BlockService , closeFriendService: CloseFriendService , notificationService: NotificationService, searchHistoryService: SearchHistoryService, messageService: MessageService) => {
     const app = express()
 
     app.use(
@@ -66,6 +68,9 @@ export const makeApp = (userService: UserService, commentService: CommentService
 
     // notifications
     app.use('/api/notifications', NotificationRoute(notificationService))
+
+     // chats
+     app.use('/api/message' , ChatRoute(messageService))
 
     const errorHandling: express.ErrorRequestHandler = (error, req, res, next) => {
         if (error instanceof Error) {

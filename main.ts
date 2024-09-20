@@ -53,19 +53,19 @@ const closeFriendRepo = new CloseFriendRepository(Follow)
 const blockRepo = new BlockRepository(Block)
 const searchHistoryRepo = new SearchHistoryRepository(SearchHistory)
 const mentionRepo = new MentionRepository(Post)
+const messageRepo = new MessageRepository(Message)
 const likeCommentRepo = new LikeCommentRepository(LikeComment)
 const likePostRepo = new LikePostRepository(LikePost)
 const savePostRepo = new SavePostRepository(SavePost)
-const messageRepo = new MessageRepository(Message)
 const searchHistoryService = new SearchHistoryService(searchHistoryRepo, userRepo)
 export const notifService = new NotificationService(userNotifRepo, notifRepo, userRepo, followRepo, blockRepo, closeFriendRepo)
 const userService = new UserService(userRepo, postRepo, searchHistoryService)
 const postService = new PostService(userRepo, notifService, postRepo, likePostRepo, savePostRepo, closeFriendRepo, followRepo, blockRepo, mentionRepo, searchHistoryService)
 const commentService = new CommentService(userRepo, notifService, postRepo, commentRepo, likeCommentRepo, closeFriendRepo, followRepo, blockRepo)
 const followService = new FollowService(followRepo, notifService, userRepo, blockRepo)
+const messageService = new MessageService(messageRepo, blockRepo, userRepo)
 const closeFriendService = new CloseFriendService(closeFriendRepo)
 const blockService = new BlockService(blockRepo, userRepo, followRepo)
-const messageService = new MessageService(messageRepo, blockRepo, userRepo)
 
 const uri = process.env.MONGO_URI || ''
 
@@ -92,7 +92,7 @@ dbConnection
         // Start consuming messages
         consumeFromQueue('notification_queue', processNotificationMessage)
 
-        const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService)
+        const app = makeApp(userService, commentService, followService, postService, blockService, closeFriendService, notifService, searchHistoryService, messageService)
 
         const socketServer = makeSocketApp(app , messageService)
 
