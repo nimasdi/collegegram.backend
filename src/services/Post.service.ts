@@ -103,6 +103,18 @@ export class PostService {
         const createdPost = await this.postRepo.createPost(postData2, userId)
 
         if (createdPost) {
+            for(const mention of mentions){
+                const notificationPayload = {
+                    actionCreator: username,
+                    actionType: "mention" as ActionType,
+                    targetEntityId: createdPost.id,
+                    targetUser: mention,
+                    checkClose: false
+                };
+        
+                // Publish the task to create a notification
+                await publishToQueue('notification_queue', notificationPayload);
+            }
             return true
         }
 
