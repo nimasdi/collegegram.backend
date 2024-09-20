@@ -7,11 +7,18 @@ import crypto from 'crypto'
 import path from 'path'
 import fs from 'fs'
 
-export const makeSocketApp = (app: Express.Application , messageService: MessageService) => {
-
+export const makeSocketApp = (app: Express.Application, messageService: MessageService) => {
     const socketServer = createServer(app)
 
-    const io = new Server(socketServer, { maxHttpBufferSize: 1e8 })
+    const io = new Server(socketServer, {
+        maxHttpBufferSize: 1e8,
+        cors: {
+            origin: '*', 
+            methods: ['GET', 'POST'],
+            allowedHeaders: ['*'],
+            credentials: true,
+        },
+    })
 
     io.use(socketAuthMiddleware)
 
@@ -85,5 +92,5 @@ export const makeSocketApp = (app: Express.Application , messageService: Message
         })
     })
 
-    return  socketServer
+    return socketServer
 }
