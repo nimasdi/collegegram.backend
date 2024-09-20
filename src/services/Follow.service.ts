@@ -143,6 +143,8 @@ export class FollowService {
 
     async acceptOrDeclineFollowRequest(followRequestActionData: FollowRequestActionDto): Promise<Boolean | Types.ObjectId> {
         const { receiver, sender, action } = followRequestActionData
+        console.log(receiver)
+
 
         const senderIsBlocked = await this.blockRepo.checkBlock(receiver , sender)
         const isReceiverBlocked = await this.blockRepo.checkBlock(sender, receiver)
@@ -176,10 +178,6 @@ export class FollowService {
             action
         });
 
-        // if(action === 'accept'){
-        //     this.notifServise.createNotification(sender, "follow" , result , receiver)        
-        //     this.notifServise.createNotificationForFollowers(sender, "follow" , result , receiver, false)        
-        // }
         if(action === 'accept'){
             const notificationPayload = {
                 actionCreator: sender,
@@ -189,6 +187,16 @@ export class FollowService {
                 checkClose: false
             };
     
+            // Publish the task to create a notification
+            await publishToQueue('notification_queue', notificationPayload);
+        }else if(action === 'decline'){
+            const notificationPayload = {
+                actionCreator: sender,
+                actionType: "followDeclined" as ActionType,
+                targetEntityId: result,
+                targetUser: receiver,
+                checkClose: false
+            };
             // Publish the task to create a notification
             await publishToQueue('notification_queue', notificationPayload);
         }       
@@ -227,10 +235,10 @@ export class FollowService {
         await this.followRepo.deleteFollowRequest(sender, receiver);
 
         const notificationPayload = {
-            actionCreator: sender,
+            actionCreator: receiver,
             actionType: "followDeclined" as ActionType,
             targetEntityId: followRequest.id,
-            targetUser: receiver,
+            targetUser: sender,
             checkClose: false
         };
 
