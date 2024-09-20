@@ -108,6 +108,8 @@ export class NotificationtRepository {
 
                         targetUser: 1,
 
+                        createdAt: 1,
+
                         commentText: '$commentData.text',
 
                         postUrl: '$postData.url',
@@ -132,7 +134,8 @@ export class NotificationtRepository {
             targetUser: notif.targetUser,
             commentText: notif.commentText,
             postUrl: notif.postUrl,
-            seen: notif.seen
+            seen: notif.seen,
+            createdAt: notif.createdAt
         }))
     }
 }
