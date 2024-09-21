@@ -38,7 +38,7 @@ export class MentionRepository {
             caption: post.caption,
             tags: post.tags,
             mentions: post.mentions,
-            postId: post.id,
+            postId: post._id,
             userId: post.userId,
             username: post.creatorUsername,
             likesCount: post.likesCount,
