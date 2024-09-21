@@ -53,7 +53,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
                 const fileExtension = path.extname(fileName)
                 const newFileName = `image-${uniqueSuffix}${fileExtension}`
 
-                const uploadPath = path.join(__dirname, '..', 'src', 'uploads', 'images', 'messages', newFileName)
+                const uploadPath = path.join(__dirname, '..', 'src', 'uploads', 'messages', newFileName)
 
                 fs.writeFile(uploadPath, fileBuffer, async (err) => {
                     if (err) {
@@ -63,7 +63,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
                     }
 
                     const contentUrl = `${process.env.HOST}/images/messages/${newFileName}`
-                    const id = await messageService.createImageMessage(socket.subject, to, contentUrl)
+                    const id = await messageService.createImageMessage(socket.subject, to, newFileName)
 
                     socket.to(to).to(socket.subject).emit('receive message image', {
                         content: contentUrl,
