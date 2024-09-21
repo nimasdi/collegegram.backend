@@ -10,6 +10,8 @@ COPY . .
 
 RUN mkdir -p /app/src/uploads/posts
 RUN mkdir -p /app/src/uploads/images
+RUN mkdir -p /app/src/uploads/images/messages
+
 
 EXPOSE 8000
 
