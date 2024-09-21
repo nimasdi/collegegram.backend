@@ -51,13 +51,22 @@ export class MessageRepository {
         .catch((err) => this.handleDBError(err))
     }
 
-    async getMessages(receiverId: mongoose.Types.ObjectId,  pageNumber: number, pageSize: number) : Promise<messageReponse[]>{
+    async getMessages(senderId: mongoose.Types.ObjectId, receiverId: mongoose.Types.ObjectId,  pageNumber: number, pageSize: number) : Promise<messageReponse[]>{
         const skip = (pageNumber - 1) * pageSize
 
         const messages = await this.model.aggregate([
             {
                 $match: {
-                    receiverId: receiverId,
+                    $or:[
+                        {
+                            receiverId: receiverId,
+                            senderId: senderId
+                        },
+                        {
+                            receiverId: senderId,
+                            senderId: receiverId
+                        }
+                    ]
                 },
             },
             {
