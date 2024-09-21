@@ -97,14 +97,14 @@ dbConnection
         const socketServer = makeSocketApp(app , messageService)
 
         const PORT = 8000
-        // const SOCKETPORT = 3030
+        const SOCKETPORT = 3030
 
-        socketServer.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`)
+        socketServer.listen(SOCKETPORT, () => {
+            console.log(`Server is running on port ${SOCKETPORT}`)
         })
 
-        // app.listen(PORT, () => {
-        //     console.log(`app run on port ${PORT}`)
-        // })
+        app.listen(PORT, () => {
+            console.log(`app run on port ${PORT}`)
+        })
     })
     .catch((err) => console.log('not connected to db'))
