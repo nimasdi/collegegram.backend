@@ -15,7 +15,7 @@ export class SearchHistoryService {
         }
         const existSearch = await this.searchRepo.checkSearchExist({username, searchText})
         if(existSearch) {
-            throw new HttpError(400, "exist before")
+            return;
         }
         await this.searchRepo.createSearchHistory({username, searchText})
     }
