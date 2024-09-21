@@ -13,6 +13,7 @@ export interface getUserNotifs {
     targetUser: Username
     commentText: string
     postId: Types.ObjectId
+    notifId: Types.ObjectId
     postImage: string
 }
 
@@ -118,7 +119,9 @@ export class NotificationtRepository {
 
                         postImage: '$postData.images[0]',
 
-                        seen : '$notifState.seen'
+                        seen : '$notifState.seen',
+
+                        notifId: '$notifState._id'
                     },
                 },
 
@@ -140,6 +143,7 @@ export class NotificationtRepository {
             postId: notif.postId,
             postImage: notif.postImage,
             seen: notif.seen,
+            notifId: notif.notifId,
             createdAt: notif.createdAt
         }))
     }
