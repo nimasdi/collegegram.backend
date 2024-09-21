@@ -12,8 +12,10 @@ export interface getUserNotifs {
     targetEntityId: Types.ObjectId
     targetUser: Username
     commentText: string
-    postUrl: string
+    postId: Types.ObjectId
+    postImage: string
 }
+
 export class NotificationtRepository {
     private model: Model<INotification>
 
@@ -84,7 +86,7 @@ export class NotificationtRepository {
 
                         let: { targetId: '$targetEntityId', actionType: '$actionType' },
 
-                        pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$_id', '$$targetId'] }, { $in: ['$$actionType', ['likePost']] }] } } }, { $project: { url: 1 } }],
+                        pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$_id', '$$targetId'] }, { $in: ['$$actionType', ['likePost']] }] } } }, { $project: { _id: 1 , images: 1 } }],
 
                         as: 'postData',
                     },
@@ -112,7 +114,9 @@ export class NotificationtRepository {
 
                         commentText: '$commentData.text',
 
-                        postUrl: '$postData.url',
+                        postId: '$postData._id',
+
+                        postImage: '$postData.images[0]',
 
                         seen : '$notifState.seen'
                     },
@@ -133,7 +137,8 @@ export class NotificationtRepository {
             targetEntityId: notif.targetEntityId,
             targetUser: notif.targetUser,
             commentText: notif.commentText,
-            postUrl: notif.postUrl,
+            postId: notif.postId,
+            postImage: notif.postImage,
             seen: notif.seen,
             createdAt: notif.createdAt
         }))
