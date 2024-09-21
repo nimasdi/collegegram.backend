@@ -13,7 +13,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
     const io = new Server(socketServer, {
         maxHttpBufferSize: 1e8,
         cors: {
-            origin: '*', 
+            origin: '*',
             methods: ['GET', 'POST'],
             allowedHeaders: ['*'],
             credentials: true,
@@ -33,40 +33,49 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
         })
 
         socket.on('private message', async ({ content, to }) => {
-            const id = await messageService.createTextMessage(socket.subject, to, content)
-            socket.to(to).to(socket.subject).emit('private message', {
-                content,
-                from: socket.subject,
-                to,
-                messageId: id,
-            })
-        })
-
-        socket.on('private message image', async ({ fileBuffer, fileName, to }) => {
-            const uniqueSuffix = crypto.randomBytes(8).toString('hex')
-            const fileExtension = path.extname(fileName)
-            const newFileName = `image-${uniqueSuffix}${fileExtension}`
-
-            const uploadPath = path.join(__dirname, '..', 'src', 'uploads', 'images', 'messages', newFileName)
-
-            fs.writeFile(uploadPath, fileBuffer, async (err) => {
-                if (err) {
-                    console.error('Error saving the file:', err)
-                    return
-                }
-
-                const contentUrl = `${process.env.HOST}/images/messages/${path.basename(fileName)}`
-
-                const id = await messageService.createImageMessage(socket.subject, to, fileName)
-
-                // Emit the image message to the users
-                socket.to(to).to(socket.subject).emit('private message image', {
-                    content: contentUrl,
+            try {
+                const id = await messageService.createTextMessage(socket.subject, to, content)
+                socket.to(to).to(socket.subject).emit('private message', {
+                    content,
                     from: socket.subject,
                     to,
                     messageId: id,
                 })
-            })
+            } catch (error) {
+                console.error('Error sending private message:', error)
+                socket.emit('error', { message: 'Failed to send message.' })
+            }
+        })
+
+        socket.on('private message image', async ({ fileBuffer, fileName, to }) => {
+            try {
+                const uniqueSuffix = crypto.randomBytes(8).toString('hex')
+                const fileExtension = path.extname(fileName)
+                const newFileName = `image-${uniqueSuffix}${fileExtension}`
+
+                const uploadPath = path.join(__dirname, '..', 'src', 'uploads', 'images', 'messages', newFileName)
+
+                fs.writeFile(uploadPath, fileBuffer, async (err) => {
+                    if (err) {
+                        console.error('Error saving the image file:', err)
+                        socket.emit('error', { message: 'Failed to save image.' })
+                        return
+                    }
+
+                    const contentUrl = `${process.env.HOST}/images/messages/${newFileName}`
+                    const id = await messageService.createImageMessage(socket.subject, to, contentUrl)
+
+                    socket.to(to).to(socket.subject).emit('private message image', {
+                        content: contentUrl,
+                        from: socket.subject,
+                        to,
+                        messageId: id,
+                    })
+                })
+            } catch (error) {
+                console.error('Error handling private message image:', error)
+                socket.emit('error', { message: 'Failed to send image.' })
+            }
         })
 
         socket.on('seen messages', async ({ messageIds, receiver }) => {
@@ -75,6 +84,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
                 socket.emit('seen messages ack', { messageIds })
             } catch (error) {
                 console.error('Error marking messages as seen:', error)
+                socket.emit('error', { message: 'Failed to mark messages as seen.' })
             }
         })
 
@@ -84,6 +94,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
                 socket.emit('get messages', { messages })
             } catch (error) {
                 console.error('Error retrieving messages:', error)
+                socket.emit('error', { message: 'Failed to retrieve messages.' })
             }
         })
 
