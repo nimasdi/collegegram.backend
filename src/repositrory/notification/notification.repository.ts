@@ -87,7 +87,7 @@ export class NotificationtRepository {
 
                         let: { targetId: '$targetEntityId', actionType: '$actionType' },
 
-                        pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$_id', '$$targetId'] }, { $in: ['$$actionType', ['likePost']] }] } } }, { $project: { _id: 1 , images: 1 } }],
+                        pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$_id', '$$targetId'] }, { $in: ['$$actionType', ['like','comment','mention']] }] } } }, { $project: { _id: 1 , images: 1 } }],
 
                         as: 'postData',
                     },

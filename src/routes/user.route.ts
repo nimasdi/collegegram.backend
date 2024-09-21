@@ -285,7 +285,7 @@ export const UserRoute = (userService: UserService) => {
      *         description: Internal server error
      */
     router.get('/images/:type/:imageName', (req, res) => {
-        const type = req.params.type === 'post' ? 'posts' : 'images'
+        const type = req.params.type === 'post' ? 'posts' : req.params.type === 'messages' ? 'messages' : 'images'
         let url = path.join(__dirname, `../../src/uploads/${type}/${req.params.imageName}`)
         res.sendFile(url)
     })
