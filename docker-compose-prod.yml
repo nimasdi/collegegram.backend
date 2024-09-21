@@ -9,6 +9,7 @@ services:
     # - "3000:3000"
     expose:
       - "8000"
+      - "3030"
     env_file: ./collegram/.env
     # networks:
     #   - nett
