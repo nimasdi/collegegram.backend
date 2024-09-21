@@ -76,7 +76,7 @@ export class NotificationtRepository {
 
                         let: { targetId: '$targetEntityId', actionType: '$actionType' },
 
-                        pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$_id', '$$targetId'] }, { $eq: ['$$actionType', 'comment'] }] } } }, { $project: { text: 1 } }],
+                        pipeline: [{ $match: { $expr: { $and: [{ $eq: ['$_id', '$$targetId'] }, { $eq: ['$$actionType', 'comment'] }] } } }, { $project: { text: 1 , postId: 1 } }],
 
                         as: 'commentData',
                     },
@@ -115,6 +115,8 @@ export class NotificationtRepository {
 
                         commentText: '$commentData.text',
 
+                        commentPostId: '$commentData.postId',
+
                         postId: '$postData._id',
 
                         postImage: '$postData.images[0]',
@@ -140,7 +142,7 @@ export class NotificationtRepository {
             targetEntityId: notif.targetEntityId,
             targetUser: notif.targetUser,
             commentText: notif.commentText,
-            postId: notif.postId,
+            postId: notif.actionType === 'comment' ? notif.commentPostId : notif.postId,
             postImage: notif.postImage,
             seen: notif.seen,
             notifId: notif.notifId,
