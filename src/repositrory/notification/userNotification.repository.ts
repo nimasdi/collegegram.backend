@@ -21,7 +21,7 @@ export class UserNotificationtRepository {
 
     async seenNotification(username: Username, notificationId: Types.ObjectId) {
         const notif = await this.model
-            .findOne({ username, notificationId })
+            .findOne({ username, _id: notificationId })
             .exec()
             .catch((err) => this.handleDBError(err))
 
