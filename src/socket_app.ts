@@ -57,7 +57,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
 
                 fs.writeFile(uploadPath, fileBuffer, async (err) => {
                     if (err) {
-                        console.error('Error saving the image file:', err)
+                        console.log('Error saving the image file:', err)
                         socket.emit('error', { message: 'Failed to save image.' })
                         return
                     }
