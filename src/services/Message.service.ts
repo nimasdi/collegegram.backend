@@ -58,10 +58,11 @@ export class MessageService {
         await this.messageRepo.seenMessages(messageIds, receiverUser.id)
     }
 
-    async getMessages(receiver: Username,pageNumber:number,pageSize:number): Promise<messageReponse[]> {
+    async getMessages(sender:Username, receiver: Username,pageNumber:number,pageSize:number): Promise<messageReponse[]> {
         const receiverUser = await this.chekReciever(receiver)
+        const senderUser = await this.chekReciever(sender)
 
-        const messages = await this.messageRepo.getMessages(receiverUser.id, pageNumber, pageSize)
+        const messages = await this.messageRepo.getMessages(senderUser.id,receiverUser.id, pageNumber, pageSize)
         return messages
     }
 

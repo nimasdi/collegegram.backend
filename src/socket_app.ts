@@ -88,9 +88,9 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
             }
         })
 
-        socket.on('get messages', async ({ receiver, pageNumber, pageSize }) => {
+        socket.on('get messages', async ({ sender, receiver, pageNumber, pageSize }) => {
             try {
-                const messages = await messageService.getMessages(receiver, pageNumber, pageSize)
+                const messages = await messageService.getMessages(sender, receiver, pageNumber, pageSize)
                 socket.emit('get messages', { messages })
             } catch (error) {
                 console.error('Error retrieving messages:', error)
