@@ -35,7 +35,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
         socket.on('private message', async ({ content, to }) => {
             try {
                 const id = await messageService.createTextMessage(socket.subject, to, content)
-                socket.to(to).to(socket.subject).emit('private message', {
+                socket.to(to).to(socket.subject).emit('receive message', {
                     content,
                     from: socket.subject,
                     to,
@@ -65,7 +65,7 @@ export const makeSocketApp = (app: Express.Application, messageService: MessageS
                     const contentUrl = `${process.env.HOST}/images/messages/${newFileName}`
                     const id = await messageService.createImageMessage(socket.subject, to, contentUrl)
 
-                    socket.to(to).to(socket.subject).emit('private message image', {
+                    socket.to(to).to(socket.subject).emit('receive message image', {
                         content: contentUrl,
                         from: socket.subject,
                         to,
