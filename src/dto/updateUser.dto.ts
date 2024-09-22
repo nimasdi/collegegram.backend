@@ -2,6 +2,13 @@ import { z } from "zod";
 import { Name, Password, Email, zodUsername, zodPassword, zodEmail, zodName } from "../types/user.types";
 
 
+const customBoolean = z.preprocess((val) => {
+    if (typeof val === 'string') {
+        return val.toLowerCase() === 'true'
+    }
+    return val
+}, z.boolean())
+
 interface updateUser {
     firstName: Name;
     lastName: Name;
@@ -17,7 +24,7 @@ export const updateUserDto = z.object({
     lastName: zodName.optional(),
     email: zodEmail.optional(),
     password: zodPassword.optional(),
-    private: z.coerce.boolean().optional(),
+    private: customBoolean,
     bio: z.string().optional(),
     imageUrl: z.string().optional(),
 });
